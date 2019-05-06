@@ -1,0 +1,116 @@
+
+:root {
+	--graycolor: #aaa;
+}
+
+
+
+table#input_table {
+	margin-left: 2em;
+	/*margin-left: auto;*/
+	margin-right: auto;
+}
+
+/* ボーダーの解決は強い線が優先、同じ時は構造順 */
+table.black_border {
+	border-collapse: collapse;
+	text-align: center;
+	margin: 5px;
+	margin-right: auto;
+}
+
+table.black_border th,
+table.black_border td {
+	padding: 2px;
+	border: 1px solid black;
+}
+
+table.black_border tr {
+	border: 1px solid var(--graycolor);
+}
+
+table.black_border col {
+	border: 1px solid var(--graycolor);
+}
+
+table.black_border td.equipment {
+	text-align: left;
+	white-space: nowrap;
+	padding-left: 10px;
+}
+
+table.black_border td.n_all {
+	border-width: 0px;
+}
+
+table.black_border th.n_tb,
+table.black_border td.n_tb {
+	border-top-width: 0px;
+	border-bottom-width: 0px;
+}
+
+table.black_border td.left {
+	text-align: left;
+	padding-left: 10px;
+}
+
+table#input_table td#totaltp_comment {
+	text-align: left;
+	/*vertical-align: top;*/
+	padding-left: 0.5em;
+}
+
+
+table#input_table th {
+	background-color: lavender;
+}
+table#input_table th.green {
+	background-color: #c8fac8;
+}
+
+/* nth-child の数式は n=0,1,2... で当てはまる整数にマッチ */
+table#input_table tbody.input_area tr:nth-child(-n+6) td:first-child {
+	cursor: default;
+	background-color: #def;
+}
+table#input_table tbody.input_area tr:nth-child(n+7) td:first-child {
+	cursor: default;
+	background-color: #fed;
+}
+
+
+input[type="number"] {
+	text-align: right;
+	width: 40px;
+}
+input[type="number"].bold {
+	font-weight: bold;
+}
+input[type="number"]#remaining_tp {
+	font-size: 120%;
+	width: 90px;
+}
+
+
+table#hint_table.center {
+	margin-left: auto;
+	margin-right: auto;
+}
+
+table#hint_table .name {
+	text-align: left;
+	white-space: nowrap;
+	padding-left: 10px;
+	width: 170px;
+}
+table#hint_table .tp_s
+, table#hint_table .tp_a
+{
+	width: 65px;
+}
+
+table#hint_table .comment {
+	text-align: left;
+	padding-left: 10px;
+}
+

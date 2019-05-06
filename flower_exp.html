@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=Shift_JIS">
+<meta name="description" content="FLOWER KNIGHT GIRL の合成計算機です。素材やゴールドの消費がなるべく少なくなるような手順を計算します。">
+<title>花騎士合成計算機</title>
+<link rel="icon" type="image/png" href="./icon-192x192.png">
+<link rel="apple-touch-icon" type="image/png" href="./apple-touch-icon-180x180.png">
+<link rel="stylesheet" type="text/css" href="style.css">
+
+<!-- Global site tag (gtag.js) - Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-46408606-2"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-46408606-2');
+</script>
+
+<link rel="stylesheet" type="text/css" href="flower_exp.css">
+<style id="style_changer" type="text/css"></style>
+<!--
+	jQuery? いえ、知らない子ですね・・・
+-->
+<script type="text/JavaScript" src="js/utility.js"></script>
+<script type="text/JavaScript" src="js/knapsack.js"></script>
+<script type="text/JavaScript" src="js/flower_exp_def.js"></script>
+<script type="text/JavaScript" src="js/flower_exp_calc.js"></script>
+<script type="text/JavaScript" src="js/flower_exp_calc2.js"></script>
+<script type="text/JavaScript" src="js/flower_exp.js"></script>
+</head>
+<body>
+
+<h1 class="small_header">花騎士合成計算機</h1>
+
+<noscript>
+<font color="red">
+！JavaScriptが無効になっています。有効にしないと動きません！
+</font>
+</noscript>
+
+<table id="input_table" class="black_border center">
+<thead>
+	<tr><th colspan="6">強化する花騎士</th></tr>
+</thead>
+<tbody>
+	<tr>
+		<th>レアリティ</th>
+		<td>
+			<select id="rarity">
+				<option value="2">★2</option>
+				<option value="3">★3</option>
+				<option value="4">★4</option>
+				<option value="5">★5</option>
+				<option value="6" selected>★6</option>
+			</select>
+		</td>
+		<th>進化</th>
+		<td colspan="3">
+			<label><input id="growth_immature" type="radio" name="growth" checked>未進化</label>
+			<label><input id="growth_upgrowth" type="radio" name="growth">進化済み</label>
+			<label><input id="growth_florescence" type="radio" name="growth">開花</label>
+			<label>上限<input id="limit_level" type="number" min="80" max="100" step="5" value="80">Lv</label>
+		</td>
+	</tr>
+	<tr class="width_set">
+		<th>現在Lv</th>
+		<td><input id="current_level" type="number" min="1" max="100" step="1" value="1"></td>
+		<th>次のLvまで</th>
+		<td><input id="next_exp" type="number" min="0" step="1" value="" class="exp"></td>
+		<th>累計経験値</th>
+		<td><input id="total_exp" type="number" min="0" step="1" value="0" class="exp"></td>
+	</tr>
+</tbody>
+</table>
+
+<table id="material_table" class="black_border">
+<tbody>
+	<tr class="width_set">
+		<th>素材</th>
+		<th>マニュ5才</th>
+		<th>マニュ20才</th>
+		<th>マニュ100才</th>
+		<th>アンプルゥ<br>(通常/上)</th>
+		<th class="special_header">
+			<select id="special_A_rarity"></select><br>
+			<label>Lv <input id="special_A_level" type="number" min="1" max="60" value="1" class="special_level"></label>
+		</th>
+		<th class="special_header">
+			<select id="special_B_rarity"></select><br>
+			<label>Lv <input id="special_B_level" type="number" min="1" max="60" value="1" class="special_level"></label>
+		</th>
+		<th class="special_header">
+			<select id="special_C_rarity"></select><br>
+			<label>Lv <input id="special_C_level" type="number" min="1" max="60" value="1" class="special_level"></label>
+		</th>
+		<th class="special_header">
+			<select id="special_D_rarity"></select><br>
+			<label>Lv <input id="special_D_level" type="number" min="1" max="60" value="1" class="special_level"></label>
+		</th>
+	</tr>
+	<tr>
+		<th rowspan="2">同属性</td>
+		<td>1080 exp</td>
+		<td>2700 exp</td>
+		<td>7200 exp</td>
+		<td rowspan="2">－</td>
+		<td id="special_A_exp_same"></td>
+		<td id="special_B_exp_same"></td>
+		<td id="special_C_exp_same"></td>
+		<td id="special_D_exp_same"></td>
+	</tr>
+	<tr>
+		<td><input id="count_m_m5" type="number" min="0" value="0"><label><input id="allin_m_m5" type="checkbox">全</label></td>
+		<td><input id="count_m_m20" type="number" min="0" value="0"><label><input id="allin_m_m20" type="checkbox">全</label></td>
+		<td><input id="count_m_m100" type="number" min="0" value="0"><label><input id="allin_m_m100" type="checkbox">全</label></td>
+		<td><input id="count_m_sp_A" type="number" min="0" value="0"><label><input id="allin_m_sp_A" type="checkbox">全</label></td>
+		<td><input id="count_m_sp_B" type="number" min="0" value="0"><label><input id="allin_m_sp_B" type="checkbox">全</label></td>
+		<td><input id="count_m_sp_C" type="number" min="0" value="0"><label><input id="allin_m_sp_C" type="checkbox">全</label></td>
+		<td><input id="count_m_sp_D" type="number" min="0" value="0"><label><input id="allin_m_sp_D" type="checkbox">全</label></td>
+	</tr>
+	<tr>
+		<th rowspan="2">別属性
+		<td>720 exp</td>
+		<td>1800 exp</td>
+		<td>4800 exp</td>
+		<td>1080 exp</td>
+		<td><input id="special_A_exp" type="number" min="0" max="999999" value="0" class="special_exp"> exp</td>
+		<td><input id="special_B_exp" type="number" min="0" max="999999" value="0" class="special_exp"> exp</td>
+		<td><input id="special_C_exp" type="number" min="0" max="999999" value="0" class="special_exp"> exp</td>
+		<td><input id="special_D_exp" type="number" min="0" max="999999" value="0" class="special_exp"> exp</td>
+	</tr>
+	<tr>
+		<td><input id="count_o_m5" type="number" min="0" value="0"><label><input id="allin_o_m5" type="checkbox">全</label></td>
+		<td><input id="count_o_m20" type="number" min="0" value="0"><label><input id="allin_o_m20" type="checkbox">全</label></td>
+		<td><input id="count_o_m100" type="number" min="0" value="0"><label><input id="allin_o_m100" type="checkbox">全</label></td>
+		<td><input id="count_o_amp" type="number" min="0" value="0"><label><input id="allin_o_amp" type="checkbox">全</label></td>
+		<td><input id="count_o_sp_A" type="number" min="0" value="0"><label><input id="allin_o_sp_A" type="checkbox">全</label></td>
+		<td><input id="count_o_sp_B" type="number" min="0" value="0"><label><input id="allin_o_sp_B" type="checkbox">全</label></td>
+		<td><input id="count_o_sp_C" type="number" min="0" value="0"><label><input id="allin_o_sp_C" type="checkbox">全</label></td>
+		<td><input id="count_o_sp_D" type="number" min="0" value="0"><label><input id="allin_o_sp_D" type="checkbox">全</label></td>
+	</tr>
+	<tr>
+		<th>合計経験値</th>
+		<td id="total_feed_exp" colspan="8"></td>
+	</tr>
+</tbody>
+<tbody class="option">
+	<tr>
+		<th rowspan="2">オプション</th>
+		<td colspan="3">
+			<label><input id="priority_gold" type="radio" name="option_gold_or_exp" checked>ゴールド優先</label>
+			<label><input id="priority_exp" type="radio" name="option_gold_or_exp">経験値優先</label>
+			<label class="debug"><input id="priority_gold_all" type="radio" name="option_gold_or_exp" disabled>ゴールド優先(全探)</label>
+		</td>
+		<td colspan="5">
+			経験値 <input id="exp_factor" type="number" min="1" max="9.99" step="0.01" value="" class="input_4"> 倍
+		</td>
+	</tr>
+	<tr>
+		<td colspan="3">
+			<label><input id="great_nothing" type="radio" name="option_great" checked>大成功なし</label>
+			<label><input id="great_onlylast" type="radio" name="option_great">最後だけ大成功</label><br>
+			<label><input id="great_nothing_modify" type="radio" name="option_great">大成功なし(大成功考慮)</label>
+			<!-- 実装がめんどくさくなった
+				<label><input id="great_all" type="radio" name="option_great">大成功のみ</label>
+			-->
+		</td>
+		<td colspan="5">
+			途中では
+			<select id="once_min_count">
+				<option value="1" selected>1</option>
+				<option value="2">2</option>
+				<option value="3">3</option>
+				<option value="4">4</option>
+				<option value="5">5</option>
+				<option value="6">6</option>
+				<option value="7">7</option>
+				<option value="8">8</option>
+				<option value="9">9</option>
+				<option value="10">10</option>
+			</select>
+			枚以上使用する
+		</td>
+	</tr>
+</tbody>
+</table>
+
+<h3>計算結果</h3>
+<table id="outline_table" class="black_border"></table>
+
+<h3>強化例</h3>
+<table id="process_table" class="black_border"></table>
+
+<hr size="1">
+
+<h3>説明書</h3>
+<h4>使い方</h4>
+<p>
+	強化する花騎士の情報と素材の個数を入力すれば自動で計算します。<br>
+	現在Lvや次のLvまでを入力すると、累計経験値は自動で入力されます。もちろん累計経験値からの入力も可能です。<br>
+	「全」をチェックすると、その素材を全て使って強化します。(最大レベルに到達しても続行)<br>
+	重かったらすまんでち
+</p>
+
+<h4>オプション</h4>
+<dl>
+	<dt>ゴールド優先・経験値優先</dt>
+	<dd>
+		必要なゴールドが少ないものと、オーバーする経験値が少ないもののどちらを優先するかです。<br>
+	</dd>
+	<dt>大成功なし・最後だけ大成功・大成功なし(大成功考慮)</dt>
+	<dd>
+		大成功の扱いについてのオプションです。
+		もちろんこの通りに発生するとは限らないので、実際に必要なゴールド・素材は異なることがあります。<br>
+		<ul><li>
+			大成功なし<br>
+			大成功が起こらないと仮定して計算します。<br>
+			安定感があり、強化に必要なゴールドの見通しが立てやすいと思います。<br>
+			しかし最後の強化で大成功が出ると、大成功のぶんはまるまる無駄になってしまいます。<br>
+		</li><li>
+			最後だけ大成功<br>
+			最後の大成功の経験値を無駄にしないように、最後だけ大成功することを仮定して計算します。<br>
+			大成功が出なかった場合の続き(最後だけ大成功を狙い続けた場合の最悪値)も計算します。<br>
+			大成功が出ないと、消費するゴールド等が増えてしまうことが多いです。<br>
+		</li><li>
+			大成功なし(大成功考慮)<br>
+			「最後だけ大成功」では、なるべく最後の大成功の効果が大きくなるようなものを探します。<br>
+			しかしこの方法では、大成功が出なかった場合の損も大きくなります。<br>
+			そこで、まず「大成功なし」を計算して、大成功で無駄になりそうなところを(利用素材はそのままで)調整したものがこちらになります。<br>
+			「大成功なし」と「最後だけ大成功」の中間のようなものです。
+		</li></ul>
+	</dd>
+	<dt>経験値X倍</dt>
+	<dd>
+		キャンペーン等の倍率です。
+	</dd>
+	<dt>途中ではX枚以上使用する</dt>
+	<dd>
+		消費ゴールドを最小にするものを探索すると、しばしば1枚だけで強化するような調整が現れます。<br>
+		しかしこのときに大成功すると、大成功の恩恵はあまりなく消費ゴールドだけが増えてしまうことも。<br>
+		それを嫌う場合のためにこのオプションがあるのですが、それが本当に有効かは別に検討する必要があります。
+	</dd>
+</dl>
+
+<h4>TIPS</h4>
+<ul>
+<li>
+	素材の個数等の入力欄は、キーボードの上下でも変更できます。(ブラウザの機能)<br>
+	素材の量を変えてみて、自分の好みにあった強化方法を探すのがおすすめです。
+</li>
+<li>
+	一見別属性の素材を使うメリットはないように見えますが、実はゴールド最小を考えた場合に有効に使えることがあります。<br>
+	　例：★6(未進化) Lv1　ゴールド優先　マニュ100才のみ<br>
+	とはいえ、途中の大成功については要検討です。
+</li>
+<li>
+	マニュの精製の効率については次の通り。<br>
+	多少の経験値を犠牲に、ゴールド消費量を大きく減らすことができます。
+	<table class="black_border">
+	<caption>
+		精製効率表
+	</caption>
+	<thead>
+		<tr>
+			<th width="200">精製素材</th>
+			<th width="80">経験値</th>
+			<th width="200">精製先</th>
+			<th width="80">経験値</th>
+			<th width="80">差分</th>
+			<th width="80">効率</th>
+		</tr>
+	</thead>
+	<tbody>
+		<tr>
+			<td>(同属性) マニュ5才(3)</td>
+			<td>3240</td>
+			<td>(同属性) マニュ20才</td>
+			<td>2700</td>
+			<td>-540</td>
+			<td>83.33%</td>
+		</tr>
+		<tr>
+			<td>(同属性) マニュ20才(3)</td>
+			<td>8100</td>
+			<td>(同属性) マニュ100才</td>
+			<td>7200</td>
+			<td>-900</td>
+			<td>88.89%</td>
+		</tr>
+		<tr>
+			<td>(同属性) マニュ5才(9)</td>
+			<td>9720</td>
+			<td>(同属性) マニュ100才</td>
+			<td>7200</td>
+			<td>-2520</td>
+			<td>74.07%</td>
+		</tr>
+	</tbody>
+	</table>
+</li>
+</ul>
+
+<h4>細かい仕様など</h4>
+<ul>
+<li>
+	「経験値優先」では、厳密には利用素材の経験値量ではなく、経験値量を基にした利用素材の価値を最小にします。<br>
+	例えば、同属性5才と別属性5才の価値は同じです。<br>
+	アンプルゥについては、マニュ5才と同価値で利用優先度が高いものと定義してあります。
+</li>
+<li>
+	「大成功なし」について<br>
+	「経験値優先」は最小解となります。(実はナップサック問題です)<br>
+	「ゴールド優先」の場合、高速化のために厳密には最小解でない可能性があるのですが、大抵は最小になると思います。<br>
+	<button id="show_debug">デバッグ用を表示</button> (デバッグ用なので大成功なしのみ、素材が増えると遅いので注意)
+</li>
+<li>
+	「最後だけ大成功」について<br>
+	「途中ではX枚以上使用する」は最後から2つ前までとなります。<br>
+	最後のセットになるべく多くの経験値を含めるためです。
+</li>
+<li>
+	「大成功なし(大成功考慮)」について<br>
+	大成功でレベルMAXになるかもしれない回の後に「全」を指定した素材が現れることがあります。<br>
+	大成功でレベルMAXになったらそこで強化終了したいということですが、問題になるケースはあまりなさそう？　なので仕様ということで。
+</li>
+<li>
+	端数処理の問題により、解の最小性が保証されない場合があります。<br>
+	マニュ、アンプルゥ、キャラ装花、キャラ技花のみの場合は端数が出ないので問題ありません。(キャンペーン1.1倍/1.15倍時両方)<br>
+	これら以外(花騎士等)を素材にした場合かつキャンペーン倍率がかかる場合には近似値ということでお願いします。<br>
+	最小は保証されないとはいえ僅かな経験値の差なので、大体は最小になるとは思いますが……
+</li>
+<li>
+	あんまり細かいことばかり考えてるとはｇ
+</li>
+</ul>
+
+
+<div class="footer">
+	<hr>
+	<div class="right" title="何かあったらこちらにどぞ～">作った人: <a href="https://twitter.com/konoha_gold_EX">@konoha_gold_EX</a></div>
+	<a href="index.html">トップページへ</a>
+</div>
+
+</body>
+</html>

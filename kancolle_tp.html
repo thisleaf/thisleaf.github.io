@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=Shift_JIS">
+<meta name="description" content="艦これの輸送マップにおけるTPを計算します。">
+<title>艦これ輸送物資量(TP)計算機</title>
+<link rel="icon" type="image/png" href="./icon-192x192.png">
+<link rel="apple-touch-icon" type="image/png" href="./apple-touch-icon-180x180.png">
+<link rel="stylesheet" type="text/css" href="style.css">
+
+<!-- Global site tag (gtag.js) - Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-46408606-2"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-46408606-2');
+</script>
+
+<link rel="stylesheet" type="text/css" href="kancolle_tp.css">
+<script type="text/JavaScript" src="js/utility.js"></script>
+<script type="text/JavaScript" src="js/kancolle_tp.js"></script>
+</head>
+<body>
+
+<h1 class="small_header">艦これ輸送物資量(TP)計算機</h1>
+
+<noscript>
+<font color="red">
+！JavaScriptが無効になっています。有効にしないと動きません！
+</font>
+</noscript>
+
+<table id="input_table" class="black_border">
+<colgroup>
+	<col width="30">
+	<col width="170">
+	<col width="65">
+	<col width="65">
+	<col width="5">
+</colgroup>
+<colgroup>
+	<col width="270">
+	<col width="65">
+	<col width="65">
+	<col width="65">
+</colgroup>
+<thead>
+	<tr>
+		<th colspan="2">艦種</th>
+		<th>S勝利</th>
+		<th>A勝利</th>
+		<td class="n_tb"></td>
+		<th>装備</th>
+		<th>S勝利</th>
+		<th>A勝利</th>
+		<th>個数</th>
+	</tr>
+</thead>
+<tbody class="input_area">
+	<tr>
+		<td id="td_1">1</td><td><select id="ship_1"></select></td><td id="shiptp_S_1"></td><td id="shiptp_A_1"></td><td class="n_tb"></td>
+		<td class="equipment">ドラム缶</td>
+		<td>5</td>
+		<td>3.5</td>
+		<td><input id="drum" type="number" min="0" value="0"></td>
+	</tr><tr>
+		<td id="td_2">2</td><td><select id="ship_2"></select></td><td id="shiptp_S_2"></td><td id="shiptp_A_2"></td><td class="n_tb"></td>
+		<td class="equipment n_all">大発動艇</td>
+		<td rowspan="4">8</td>
+		<td rowspan="4">5.6</td>
+		<td rowspan="4"><input id="daihatsu" type="number" min="0" value="0"></td>
+	</tr><tr>
+		<td id="td_3">3</td><td><select id="ship_3"></select></td><td id="shiptp_S_3"></td><td id="shiptp_A_3"></td><td class="n_tb"></td>
+		<td class="equipment n_all">特大発動艇</td>
+	</tr><tr>
+		<td id="td_4">4</td><td><select id="ship_4"></select></td><td id="shiptp_S_4"></td><td id="shiptp_A_4"></td><td class="n_tb"></td>
+		<td class="equipment n_all">大発動艇(八九式中戦車＆陸戦隊)</td>
+	</tr><tr>
+		<td id="td_5">5</td><td><select id="ship_5"></select></td><td id="shiptp_S_5"></td><td id="shiptp_A_5"></td><td class="n_tb"></td>
+		<td class="equipment n_all">特大発動艇＋戦車第11連隊</td>
+	</tr><tr>
+		<td id="td_6">6</td><td><select id="ship_6"></select></td><td id="shiptp_S_6"></td><td id="shiptp_A_6"></td><td class="n_tb"></td>
+		<td class="equipment">特二式内火艇</td>
+		<td>2</td>
+		<td>1.4</td>
+		<td><input id="naikatei" type="number" min="0" value="0"></td>
+	</tr><tr>
+		<td id="td_7">7</td><td><select id="ship_7"></select></td><td id="shiptp_S_7"></td><td id="shiptp_A_7"></td><td class="n_tb"></td>
+		<td class="equipment n_all">戦闘糧食</td>
+		<td rowspan="3">1</td>
+		<td rowspan="3">0.7</td>
+		<td rowspan="3"><input id="onigiri" type="number" min="0" value="0"></td>
+	</tr><tr>
+		<td id="td_8">8</td><td><select id="ship_8"></select></td><td id="shiptp_S_8"></td><td id="shiptp_A_8"></td><td class="n_tb"></td>
+		<td class="equipment n_all">秋刀魚の缶詰</td>
+	</tr><tr>
+		<td id="td_9">9</td><td><select id="ship_9"></select></td><td id="shiptp_S_9"></td><td id="shiptp_A_9"></td><td class="n_tb"></td>
+		<td class="equipment n_all">戦闘糧食(特別なおにぎり)</td>
+	</tr><tr>
+		<td id="td_10">10</td><td><select id="ship_10"></select></td><td id="shiptp_S_10"></td><td id="shiptp_A_10"></td><td class="n_tb"></td>
+		<td class="equipment">直接入力1</td>
+		<td><input id="user_1_S" type="number" min="0" max="999" value="0"></td>
+		<td id="user_1_A">0.0</td>
+		<td><input id="user_1_count" type="number" min="0" value="0"></td>
+	</tr><tr>
+		<td id="td_11">11</td><td><select id="ship_11"></select></td><td id="shiptp_S_11"></td><td id="shiptp_A_11"></td><td class="n_tb"></td>
+		<td class="equipment">直接入力2</td>
+		<td><input id="user_2_S" type="number" min="0" max="999" value="0"></td>
+		<td id="user_2_A">0.0</td>
+		<td><input id="user_2_count" type="number" min="0" value="0"></td>
+	</tr><tr>
+		<td id="td_12">12</td><td><select id="ship_12"></select></td><td id="shiptp_S_12"></td><td id="shiptp_A_12"></td><td class="n_tb"></td>
+		<td class="equipment">直接入力3</td>
+		<td><input id="user_3_S" type="number" min="0" max="999" value="0"></td>
+		<td id="user_3_A">0.0</td>
+		<td><input id="user_3_count" type="number" min="0" value="0"></td>
+	</tr>
+</tbody><tbody>
+	<tr>
+		<td class="n_all"></td>
+		<td class="n_all"></td>
+		<td class="n_all"></td>
+		<td class="n_all"></td>
+		<td class="n_all"></td>
+		<td class="n_all"></td>
+		<td class="n_all"></td>
+		<td class="n_all"></td>
+		<td class="n_all"></td>
+	</tr><tr>
+		<th colspan="2" class="green">残りTP</th>
+		<td colspan="2"><input id="remaining_tp" type="number" min="0" value="0"></td>
+		<td colspan="3" rowspan="1" class="left">
+			<label><input id="record_data" type="checkbox">入力をブラウザに記憶する</label><br>
+			<label><input id="use_noerror" type="checkbox">A勝利は計算誤差なしで計算する</label>
+		</td>
+		<td colspan="2" rowspan="1">
+			<button id="clear_button">入力をクリア</button>
+		</td>
+	</tr><tr>
+		<th colspan="2"></th>
+		<th>TP</th>
+		<th>回数</th>
+		<td id="totaltp_comment" colspan="5" rowspan="3"></td>
+	</tr><tr>
+		<th colspan="2">S勝利</th>
+		<td id="totaltp_s"></td>
+		<td id="totaltp_s_count"></td>
+	</tr><tr>
+		<th colspan="2">A勝利</th>
+		<td id="totaltp_a"></td>
+		<td id="totaltp_a_count"></td>
+	</tr>
+</tbody>
+</table>
+
+
+<ul>
+<li>艦種の左の番号をドラッグ＆ドロップすると入れ替えができます。<br>
+	Ctrlキーを押している場合はコピーになります。</li>
+<li>その海域に特有の輸送量が設定されていることがあります。直接入力欄を使ってね。</li>
+<li>B勝利(以下)は輸送失敗です。</li>
+<li>揚陸マス到達時に大破/退避している艦はTPに計上されません。</li>
+<li>装備の改修値は無関係なようです。</li>
+<li>A勝利のTPはS勝利時の0.7倍切り捨てです。0.7倍なので時々、実際のプレイでも計算誤差が出るようです。
+	<a class="refer" target="_blank" href="https://twitter.com/BeeActs/status/832668774687875073">参考</a><br>
+	JavaScriptで計算して誤差が出た場合は表示していますが、本当にずれるかは不明です。</li>
+<li>戦闘糧食等は3戦目以降にランダムで食べてしまうことには注意。<br>
+	一応、揚陸マス以前に消費してしまっても、その出撃時のTPは減らないようです。
+</li>
+</ul>
+
+<table id="hint_table" class="black_border center">
+</table>
+
+<div class="footer">
+	<hr>
+	<div class="right" title="作りました！">作った人: <a href="https://twitter.com/konoha_gold_EX">@konoha_gold_EX</a></div>
+	<a href="index.html">トップページへ</a>
+</div>
+
+</body>
+</html>

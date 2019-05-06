@@ -1,0 +1,25 @@
+/* 全ページ共通css */
+
+body {
+	margin-bottom: 20vh;
+}
+
+h1.small_header {
+	font-size: 160%;
+}
+
+
+a.refer {
+	font-size: 80%;
+}
+
+.footer {
+	font-size: 80%;
+}
+.footer > hr {
+	border-width: 0px 0px 1px 0px;
+}
+.footer > .right {
+	float: right;
+}
+
