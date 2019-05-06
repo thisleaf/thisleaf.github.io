@@ -1,5 +1,5 @@
 
-/* “ü—Í—“‚È‚Ç */
+/* å…¥åŠ›æ¬„ãªã© */
 input[type="number"] {
 	text-align: right;
 	width: 45px;
@@ -22,7 +22,7 @@ label.disabled {
 }
 
 
-/* ƒe[ƒuƒ‹”Ä—p */
+/* ãƒ†ãƒ¼ãƒ–ãƒ«æ±ç”¨ */
 table.black_border {
 	border-collapse: collapse;
 	border: 1px solid black;
@@ -48,7 +48,7 @@ table.center {
 }
 
 
-/* ‹­‰»‚·‚é‰Ô‹Rm */
+/* å¼·åŒ–ã™ã‚‹èŠ±é¨å£« */
 table#input_table tr.width_set td
 , table#input_table tr.width_set th
 {
@@ -64,7 +64,7 @@ table#input_table tbody th {
 }
 
 
-/* ‘fŞ */
+/* ç´ æ */
 table#material_table tr.width_set th {
 	line-height: 1.1;
 	width: 105px;
@@ -100,7 +100,7 @@ td#total_feed_exp {
 }
 
 
-/* ‡¬ŠT—v */
+/* åˆæˆæ¦‚è¦ */
 table#outline_table {
 	font-size: 10pt;
 	border-collapse: collapse;
@@ -156,7 +156,7 @@ table#outline_table td.exceed.minus
 }
 
 
-/* ‡¬‰ß’ö */
+/* åˆæˆéç¨‹ */
 table#process_table {
 	font-size: 10pt;
 	border-collapse: collapse;
@@ -240,7 +240,7 @@ table#process_table .justexp
 }
 
 
-/* à–¾‘‚È‚Ç */
+/* èª¬æ˜æ›¸ãªã© */
 h3 {
 	margin-bottom: 0px;
 }

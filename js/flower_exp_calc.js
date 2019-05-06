@@ -1,5 +1,5 @@
 
-// table[idx] <= base < table[idx] ‚È‚é idx ‚ğ•Ô‚·
+// table[idx] <= base < table[idx] ãªã‚‹ idx ã‚’è¿”ã™
 function index_in_ascending(base, table){
 	// binary search
 	var left = 0;
@@ -16,13 +16,13 @@ function index_in_ascending(base, table){
 }
 
 function get_exp_table(rarity, growth){
-	// growth ‚É‚Í‚æ‚ç‚È‚¢
+	// growth ã«ã¯ã‚ˆã‚‰ãªã„
 	var tables = [TOTALEXP_STAR2, TOTALEXP_STAR3, TOTALEXP_STAR4, TOTALEXP_STAR5, TOTALEXP_STAR6];
 	return tables[rarity - 2];
 }
 
 function get_goldcost_table(rarity, growth){
-	// rarity ‚É‚Í‚æ‚ç‚È‚¢
+	// rarity ã«ã¯ã‚ˆã‚‰ãªã„
 	return growth == 0 ? GOLDCOST_TABLE1 : GOLDCOST_TABLE2;
 }
 
@@ -35,20 +35,20 @@ function exp_to_level(exp, limit_level, exp_table){
 
 
 
-// materials ‚ÌƒJ[ƒh‚ğ‘S‚Äg‚Á‚Ä‹­‰»‚·‚éê‡‚É
-// Á”ïƒS[ƒ‹ƒh‚ªÅ¬‚É‚È‚é‚à‚Ì‚ğ’T‚·
-// materials ‚Í•À‚Ñ‡‚ª•Ï‚í‚é‰Â”\«‚ª‚ ‚é
-// ŒoŒ±’l‚ª®”‚Å‚È‚¢ê‡‚ÍÅ¬‚ª•ÛØ‚³‚ê‚È‚¢‚ªA‹ß—’l‚Æ‚¢‚¤‚±‚Æ‚Å
-// –ß‚è’l: PowerupList
+// materials ã®ã‚«ãƒ¼ãƒ‰ã‚’å…¨ã¦ä½¿ã£ã¦å¼·åŒ–ã™ã‚‹å ´åˆã«
+// æ¶ˆè²»ã‚´ãƒ¼ãƒ«ãƒ‰ãŒæœ€å°ã«ãªã‚‹ã‚‚ã®ã‚’æ¢ã™
+// materials ã¯ä¸¦ã³é †ãŒå¤‰ã‚ã‚‹å¯èƒ½æ€§ãŒã‚ã‚‹
+// çµŒé¨“å€¤ãŒæ•´æ•°ã§ãªã„å ´åˆã¯æœ€å°ãŒä¿è¨¼ã•ã‚Œãªã„ãŒã€è¿‘ä¼¼å€¤ã¨ã„ã†ã“ã¨ã§
+// æˆ»ã‚Šå€¤: PowerupList
 function calc_mingold_powerup(base_exp, goal_exp, materials, limit_level, exp_table, gold_table, once_min_count, great_mode){
-	// ŒoŒ±’l‚ª­‚È‚¢•û‚©‚çg‚¤
-	// æ‚à‚µ‚»‚¤‚Å‚È‚¢‚È‚ç“ü‚ê‘Ö‚¦‚ÄˆÀ‚­‚È‚é
-	// i®”‚Å‚È‚¢‚È‚ç‚»‚¤‚Æ‚àŒÀ‚ç‚È‚¢j
+	// çµŒé¨“å€¤ãŒå°‘ãªã„æ–¹ã‹ã‚‰ä½¿ã†
+	// âˆµã‚‚ã—ãã†ã§ãªã„ãªã‚‰å…¥ã‚Œæ›¿ãˆã¦å®‰ããªã‚‹
+	// ï¼ˆæ•´æ•°ã§ãªã„ãªã‚‰ãã†ã¨ã‚‚é™ã‚‰ãªã„ï¼‰
 	materials.sort(FKGCard.exp_less);
 	
-	// 0 .. i ”Ô–Ú‚Ü‚Åg‚Á‚Ä‹­‰»‚µ‚½ê‡‚Ì
-	// —İŒvexp‚Æ“’BƒŒƒxƒ‹
-	// GREAT_ALL‚Ìê‡‚ÍÅ‰‚©‚ç1.5”{‚Æ‚·‚é
+	// 0 .. i ç•ªç›®ã¾ã§ä½¿ã£ã¦å¼·åŒ–ã—ãŸå ´åˆã®
+	// ç´¯è¨ˆexpã¨åˆ°é”ãƒ¬ãƒ™ãƒ«
+	// GREAT_ALLã®å ´åˆã¯æœ€åˆã‹ã‚‰1.5å€ã¨ã™ã‚‹
 	let base_level = exp_to_level(base_exp, limit_level, exp_table);
 /*
 	var total_exps = new Array;
@@ -65,12 +65,12 @@ function calc_mingold_powerup(base_exp, goal_exp, materials, limit_level, exp_ta
 	}
 */
 	
-	// “®“IŒv‰æ–@  O(n)‚Åƒnƒ„ƒCI
-	// solution_array[n] = 0 .. n ‚Ü‚Åg‚Á‚Ä‹­‰»‚µ‚½ê‡‚ÌÅ“K‰ğ
+	// å‹•çš„è¨ˆç”»æ³•  O(n)ã§ãƒãƒ¤ã‚¤ï¼
+	// solution_array[n] = 0 .. n ã¾ã§ä½¿ã£ã¦å¼·åŒ–ã—ãŸå ´åˆã®æœ€é©è§£
 	var solution_array = new Array;
 	
 	for (var n=0; n<materials.length; n++) {
-		// 0 .. n ‚ğg‚Á‚½‹­‰»
+		// 0 .. n ã‚’ä½¿ã£ãŸå¼·åŒ–
 		var min_k = -1;
 		var min_cost = Infinity;
 		var min_prev_k = 10;
@@ -80,13 +80,13 @@ function calc_mingold_powerup(base_exp, goal_exp, materials, limit_level, exp_ta
 		var last_loop = n == materials.length - 1;
 		var last_great = great_mode == GREAT_ONLYLAST && last_loop;
 		
-		// ÅŒã‚É k –‡g‚Á‚Ä‹­‰»‚·‚é
+		// æœ€å¾Œã« k æšä½¿ã£ã¦å¼·åŒ–ã™ã‚‹
 		var k = 1;
-		// Å¬‘I‘ğ–‡”(ƒ‰ƒXƒgˆÈŠO)
+		// æœ€å°é¸æŠæšæ•°(ãƒ©ã‚¹ãƒˆä»¥å¤–)
 		if (!last_loop && once_min_count > 1) k = once_min_count;
 		
 		for (; k<=10; k++) {
-			// n - k + 1 .. n ‚Ü‚Å‚ğg—p
+			// n - k + 1 .. n ã¾ã§ã‚’ä½¿ç”¨
 			var ibegin = n - k + 1;
 			//var iend = n + 1;
 			
@@ -114,9 +114,9 @@ function calc_mingold_powerup(base_exp, goal_exp, materials, limit_level, exp_ta
 			est_cost += once_cost;
 			
 			if (est_cost <= min_cost) {
-				// “¯’l‚Èê‡‚ÉAƒJ[ƒh‚ğ‘O•û‚É‚Ü‚Æ‚ß‚é
+				// åŒå€¤ãªå ´åˆã«ã€ã‚«ãƒ¼ãƒ‰ã‚’å‰æ–¹ã«ã¾ã¨ã‚ã‚‹
 				if (est_cost == min_cost && ibegin >= 1) {
-					// ‘O‰ñ‹­‰»‚Ì–‡”‚ª‘å‚«‚¢‚à‚Ì‚ğ—Dæ
+					// å‰å›å¼·åŒ–ã®æšæ•°ãŒå¤§ãã„ã‚‚ã®ã‚’å„ªå…ˆ
 					if (prev_k < min_prev_k) continue;
 				}
 				
@@ -131,7 +131,7 @@ function calc_mingold_powerup(base_exp, goal_exp, materials, limit_level, exp_ta
 		var pl = null;
 		
 		if (min_k >= 1) {
-			// min_k ŒÂg‚Á‚½‚à‚Ì‚ªÅ¬(‚È‚¢ê‡‚à‚ ‚é)
+			// min_k å€‹ä½¿ã£ãŸã‚‚ã®ãŒæœ€å°(ãªã„å ´åˆã‚‚ã‚ã‚‹)
 			var min_begin = n - min_k + 1;
 			var min_end = n + 1;
 			
@@ -163,7 +163,7 @@ function calc_mingold_powerup(base_exp, goal_exp, materials, limit_level, exp_ta
 	var solution = null;
 	
 	if (solution_array.length > 0) {
-		// ‚±‚ê‚Ínull‚É‚È‚ç‚È‚¢EEE‚Í‚¸
+		// ã“ã‚Œã¯nullã«ãªã‚‰ãªã„ãƒ»ãƒ»ãƒ»ã¯ãš
 		solution = solution_array[solution_array.length - 1];
 		
 		var total_gold = 0;
@@ -186,32 +186,32 @@ function calc_mingold_powerup(base_exp, goal_exp, materials, limit_level, exp_ta
 		solution = new PowerupList(base_exp);
 	}
 	
-	// completed, stacks “™‚ÍƒZƒbƒg‚µ‚È‚¢
+	// completed, stacks ç­‰ã¯ã‚»ãƒƒãƒˆã—ãªã„
 	
 	return solution;
 }
 
 
-// goal_exp ‚Ü‚Å‹­‰»‚·‚éÛ‚ÉAƒS[ƒ‹ƒh‚ªÅ¬‚É‚È‚é‘g‚İ‡‚í‚¹‚ğ’T‚·
-// stacks ‚Í•Û‘¶
-// great_mode ‚Í GREAT_NOTHING, GREAT_ALL ‚Ì‚İ
-// ‚¢‚­‚Â‚©ƒpƒ^[ƒ“‚ª‚ ‚é
+// goal_exp ã¾ã§å¼·åŒ–ã™ã‚‹éš›ã«ã€ã‚´ãƒ¼ãƒ«ãƒ‰ãŒæœ€å°ã«ãªã‚‹çµ„ã¿åˆã‚ã›ã‚’æ¢ã™
+// stacks ã¯ä¿å­˜
+// great_mode ã¯ GREAT_NOTHING, GREAT_ALL ã®ã¿
+// ã„ãã¤ã‹ãƒ‘ã‚¿ãƒ¼ãƒ³ãŒã‚ã‚‹
 function calc_mingold_powerup_of_s(base_exp, goal_exp, stacks, limit_level, exp_table, gold_table, once_min_count, great_mode){
 	return calc_mingold_powerup_of_s_TS(base_exp, goal_exp, stacks, limit_level, exp_table, gold_table, once_min_count, great_mode);
 }
 
 
-// ‚‘¬”Å
-// Å¬‚Í•ÛØ‚³‚ê‚È‚¢@‚Æ‚«‚Ç‚«Å¬‚É‚È‚ç‚È‚¢‰ğ‚ªo‚é‚ªA‚»‚ê‚Í•¡G‚Èê‡‚¾‚¯‚©‚à
+// é«˜é€Ÿç‰ˆ
+// æœ€å°ã¯ä¿è¨¼ã•ã‚Œãªã„ã€€ã¨ãã©ãæœ€å°ã«ãªã‚‰ãªã„è§£ãŒå‡ºã‚‹ãŒã€ãã‚Œã¯è¤‡é›‘ãªå ´åˆã ã‘ã‹ã‚‚
 function calc_mingold_powerup_of_s_fast(base_exp, goal_exp, stacks, limit_level, exp_table, gold_table, once_min_count, great_mode){
 	//function _exp(e){ return great_mode == GREAT_ALL ? Math.floor(e * 1.5) : e; }
 	function _exp(e){ return great_mode == GREAT_ALL ? e * 1.5 : e; }
 	
-	// ŒÅ’è
+	// å›ºå®š
 	var fixed_stacks = new Array;
 	var fixed_cards = new Array;
 	var fixed_exp = 0;
-	// ‘I‘ğ
+	// é¸æŠ
 	var unresolved_stacks = new Array;
 	
 	FKGCardStack.separateFixedStacks(fixed_stacks, unresolved_stacks, stacks);
@@ -223,7 +223,7 @@ function calc_mingold_powerup_of_s_fast(base_exp, goal_exp, stacks, limit_level,
 		fixed_exp += _exp(fixed_stacks[i].card.exp_as_feed) * fixed_stacks[i].count;
 	}
 	
-	// ŒoŒ±’l‚Ì‘½‚¢•û‚©‚ç
+	// çµŒé¨“å€¤ã®å¤šã„æ–¹ã‹ã‚‰
 	unresolved_stacks.sort(function (a, b){
 		var c = b.card.exp_as_feed - a.card.exp_as_feed;
 		if (c == 0) c = b.card.value_as_feed - a.card.value_as_feed;
@@ -234,8 +234,8 @@ function calc_mingold_powerup_of_s_fast(base_exp, goal_exp, stacks, limit_level,
 	var remain_exp = goal_exp - base_exp - fixed_exp;
 	var select_counts = new Array;
 	
-	// ‚Ü‚¸exp‚ª‘å‚«‚¢•û‚©‚ç•À‚×‚Ä‚¢‚­
-	// ‘å‚«‚¢•û‚©‚ç‚È‚Ì‚ÅA“¯‰¿’l‚Í“¯‘®«‚ª—Dæ‚Æ‚È‚é
+	// ã¾ãšexpãŒå¤§ãã„æ–¹ã‹ã‚‰ä¸¦ã¹ã¦ã„ã
+	// å¤§ãã„æ–¹ã‹ã‚‰ãªã®ã§ã€åŒä¾¡å€¤ã¯åŒå±æ€§ãŒå„ªå…ˆã¨ãªã‚‹
 	for (var i=0; i<unresolved_stacks.length; i++) {
 		var c = Math.ceil(remain_exp / _exp(unresolved_stacks[i].card.exp_as_feed));
 		if (c > unresolved_stacks[i].count) c = unresolved_stacks[i].count;
@@ -247,10 +247,10 @@ function calc_mingold_powerup_of_s_fast(base_exp, goal_exp, stacks, limit_level,
 	
 	var sub_select_counts = select_counts.concat();
 	
-	// “ü‚ê‘Ö‚¦ŒvZ
+	// å…¥ã‚Œæ›¿ãˆè¨ˆç®—
 	var pl = _minimize(select_counts, -remain_exp);
 	
-	// ‹H‚É–‡”‘‰Á‚Å¬‚³‚­‚È‚éƒpƒ^[ƒ“‚ª‚ ‚é
+	// ç¨€ã«æšæ•°å¢—åŠ ã§å°ã•ããªã‚‹ãƒ‘ã‚¿ãƒ¼ãƒ³ãŒã‚ã‚‹
 	var plus = false;
 	var sub_remain_exp = remain_exp;
 	for (var i=0; i<unresolved_stacks.length; i++) {
@@ -268,7 +268,7 @@ function calc_mingold_powerup_of_s_fast(base_exp, goal_exp, stacks, limit_level,
 		}
 	}
 	
-	// ’Ç‰Áî•ñ“™‚ÌƒZƒbƒg
+	// è¿½åŠ æƒ…å ±ç­‰ã®ã‚»ãƒƒãƒˆ
 	pl.completed = remain_exp <= 0;
 	
 	var p_comm = fixed_cards.length >= 1 ? COMMENT_POSSIBLY_COMPLETE : COMMENT_COMPLETE;
@@ -277,10 +277,10 @@ function calc_mingold_powerup_of_s_fast(base_exp, goal_exp, stacks, limit_level,
 	return pl;
 	
 	
-	// ŒvZ
-	// ‚¯‚Á‚±‚¤G‚¾‚ª‚Ü‚ ‚¾‚¢‚½‚¢‘åä•v‚â‚ëi–Sj
+	// è¨ˆç®—
+	// ã‘ã£ã“ã†é›‘ã ãŒã¾ã‚ã ã„ãŸã„å¤§ä¸ˆå¤«ã‚„ã‚ï¼ˆæ…¢å¿ƒï¼‰
 	function _minimize(arg_counts, arg_overflow_exp){
-		// ‚Ü‚¸‚Í‘®«©—R‚È‚à‚Ì‚ğŒvZ
+		// ã¾ãšã¯å±æ€§è‡ªç”±ãªã‚‚ã®ã‚’è¨ˆç®—
 		var fw_counts = arg_counts.concat();
 		var bk_counts = arg_counts.concat();
 		var fw_over = _swap(fw_counts, arg_overflow_exp,  1, true);
@@ -300,7 +300,7 @@ function calc_mingold_powerup_of_s_fast(base_exp, goal_exp, stacks, limit_level,
 			unfit_over = bk_over;
 		}
 		
-		// ‘¼‘®«‚ğ“¯‘®«‚É’u‚«Š·‚¦‚ç‚ê‚é‚©
+		// ä»–å±æ€§ã‚’åŒå±æ€§ã«ç½®ãæ›ãˆã‚‰ã‚Œã‚‹ã‹
 		var counts = arg_counts.concat();
 		var fit_over = _swap(counts, arg_overflow_exp, direction, false);
 		
@@ -314,18 +314,18 @@ function calc_mingold_powerup_of_s_fast(base_exp, goal_exp, stacks, limit_level,
 	}
 	
 	function _swap(counts, overflow_exp, direction, use_unfit){
-		// exp‚ª¬‚³‚¢‚à‚Ì‚ÉŒğŠ·‚µ‚Ä‚àğŒ‚ğ–‚½‚·‚È‚çŒğŠ·‚µ‚½‚Ù‚¤‚ªˆÀ‚¢
+		// expãŒå°ã•ã„ã‚‚ã®ã«äº¤æ›ã—ã¦ã‚‚æ¡ä»¶ã‚’æº€ãŸã™ãªã‚‰äº¤æ›ã—ãŸã»ã†ãŒå®‰ã„
 		for (var i=0; i<unresolved_stacks.length; i++) {
 			var r = direction > 0 ? i : unresolved_stacks.length - 1 - i;
 			
 			for (var j=0; j<r; j++) {
 				if (!use_unfit && unresolved_stacks[r].card.same_element === false) continue;
 				
-				// [j] ‚Æ [r] ‚ÌŒğŠ·‚ğŒŸ“¢
+				// [j] ã¨ [r] ã®äº¤æ›ã‚’æ¤œè¨
 				var r_free = unresolved_stacks[r].count - counts[r];
 				if (r_free <= 0) break;
 				
-				// 1–‡ŒğŠ·‚Å‚ÌexpŒ¸­—Ê
+				// 1æšäº¤æ›ã§ã®expæ¸›å°‘é‡
 				var d = _exp(unresolved_stacks[j].card.exp_as_feed) - _exp(unresolved_stacks[r].card.exp_as_feed);
 				if (d <= 0) break;
 				
@@ -342,7 +342,7 @@ function calc_mingold_powerup_of_s_fast(base_exp, goal_exp, stacks, limit_level,
 		}
 		return overflow_exp;
 	}
-	// ‚©‚©‚éƒS[ƒ‹ƒh‚ğŒvZ
+	// ã‹ã‹ã‚‹ã‚´ãƒ¼ãƒ«ãƒ‰ã‚’è¨ˆç®—
 	function _to_list(counts){
 		var materials = fixed_cards.concat();
 		for (var i=0; i<unresolved_stacks.length; i++) {
@@ -356,16 +356,16 @@ function calc_mingold_powerup_of_s_fast(base_exp, goal_exp, stacks, limit_level,
 }
 
 
-// ƒ^ƒu[ƒT[ƒ`‚ğg‚¤ƒo[ƒWƒ‡ƒ“
-// ã‚Ì‰ğ‚Í‚Ù‚Æ‚ñ‚ÇÅ“K‚É‹ß‚¢‚ªAÅ“K‚Æ‚ÍŒÀ‚ç‚È‚¢‚Ì‚Å‚¿‚å‚Á‚Æ‹ß–T‚ğ‚¤‚ë‚Â‚­
+// ã‚¿ãƒ–ãƒ¼ã‚µãƒ¼ãƒã‚’ä½¿ã†ãƒãƒ¼ã‚¸ãƒ§ãƒ³
+// ä¸Šã®è§£ã¯ã»ã¨ã‚“ã©æœ€é©ã«è¿‘ã„ãŒã€æœ€é©ã¨ã¯é™ã‚‰ãªã„ã®ã§ã¡ã‚‡ã£ã¨è¿‘å‚ã‚’ã†ã‚ã¤ã
 function calc_mingold_powerup_of_s_TS(base_exp, goal_exp, stacks, limit_level, exp_table, gold_table, once_min_count, great_mode){
 	function _exp(e){ return great_mode == GREAT_ALL ? e * 1.5 : e; }
 	
-	// ŒÅ’è
+	// å›ºå®š
 	var fixed_stacks = new Array;
 	var fixed_cards = new Array;
 	var fixed_exp = 0;
-	// ‘I‘ğ
+	// é¸æŠ
 	var unresolved_stacks = new Array;
 	
 	FKGCardStack.separateFixedStacks(fixed_stacks, unresolved_stacks, stacks);
@@ -377,7 +377,7 @@ function calc_mingold_powerup_of_s_TS(base_exp, goal_exp, stacks, limit_level, e
 		fixed_exp += _exp(fixed_stacks[i].card.exp_as_feed) * fixed_stacks[i].count;
 	}
 	
-	// ŒoŒ±’l‚Ì‘½‚¢•û‚©‚ç
+	// çµŒé¨“å€¤ã®å¤šã„æ–¹ã‹ã‚‰
 	unresolved_stacks.sort(function (a, b){
 		var c = b.card.exp_as_feed - a.card.exp_as_feed;
 		if (c == 0) c = b.card.value_as_feed - a.card.value_as_feed;
@@ -390,8 +390,8 @@ function calc_mingold_powerup_of_s_TS(base_exp, goal_exp, stacks, limit_level, e
 	var unres_free_item = 0;
 	var select_counts = new Array;
 	
-	// ‚Ü‚¸exp‚ª‘å‚«‚¢•û‚©‚ç•À‚×‚Ä‚¢‚­
-	// ‘å‚«‚¢•û‚©‚ç‚È‚Ì‚ÅA“¯‰¿’l‚Í“¯‘®«‚ª—Dæ‚Æ‚È‚é
+	// ã¾ãšexpãŒå¤§ãã„æ–¹ã‹ã‚‰ä¸¦ã¹ã¦ã„ã
+	// å¤§ãã„æ–¹ã‹ã‚‰ãªã®ã§ã€åŒä¾¡å€¤ã¯åŒå±æ€§ãŒå„ªå…ˆã¨ãªã‚‹
 	for (var i=0; i<unresolved_stacks.length; i++) {
 		var c = Math.ceil(remain_exp / _exp(unresolved_stacks[i].card.exp_as_feed));
 		if (c > unresolved_stacks[i].count) c = unresolved_stacks[i].count;
@@ -404,8 +404,8 @@ function calc_mingold_powerup_of_s_TS(base_exp, goal_exp, stacks, limit_level, e
 		if (unresolved_stacks[i].count > 0) unres_free_item++;
 	}
 	
-	// “ü‚ê‘Ö‚¦ŒvZ
-	// ‚±‚ê‚ğ‰Šú’l‚Æ‚µ‚Äg—p
+	// å…¥ã‚Œæ›¿ãˆè¨ˆç®—
+	// ã“ã‚Œã‚’åˆæœŸå€¤ã¨ã—ã¦ä½¿ç”¨
 	var fw_counts = select_counts.concat();
 	var fw_over = _swap(fw_counts, -remain_exp, 1, true);
 	var fw_pl = _to_list(fw_counts);
@@ -418,8 +418,8 @@ function calc_mingold_powerup_of_s_TS(base_exp, goal_exp, stacks, limit_level, e
 		}
 	}
 	
-	// ƒ^ƒu[ƒT[ƒ`
-	// ‚Ç‚Ì‚­‚ç‚¢‚ÌƒTƒCƒY‚ª‚¢‚¢‚Ì‚¾‚ë‚¤H
+	// ã‚¿ãƒ–ãƒ¼ã‚µãƒ¼ãƒ
+	// ã©ã®ãã‚‰ã„ã®ã‚µã‚¤ã‚ºãŒã„ã„ã®ã ã‚ã†ï¼Ÿ
 	const max_generation_count = unres_free_item * 10;
 	const tabu_size = unres_free_item;
 	//const tabu_size = Math.floor((unres_free_item + 1) / 2);
@@ -427,12 +427,12 @@ function calc_mingold_powerup_of_s_TS(base_exp, goal_exp, stacks, limit_level, e
 	
 	var tabu_list = new Array;
 	var cache = new Object;
-	// Œ»İ‚Ìó‘Ô
+	// ç¾åœ¨ã®çŠ¶æ…‹
 	var current = new _Gene(fw_pl, fw_counts, fw_value, fw_over);
-	// ‡Œv–‡”‚Ì‘‰ÁEŒ¸­‚ğl—¶‚·‚é‚©
-	// ‘å’ï‚ÍŒ»İ‚Ì–‡”‚Å—Ç‚¢‚Ì‚ÅA“r’†‚©‚ç‰ğ‹Ö‚·‚é
+	// åˆè¨ˆæšæ•°ã®å¢—åŠ ãƒ»æ¸›å°‘ã‚’è€ƒæ…®ã™ã‚‹ã‹
+	// å¤§æŠµã¯ç¾åœ¨ã®æšæ•°ã§è‰¯ã„ã®ã§ã€é€”ä¸­ã‹ã‚‰è§£ç¦ã™ã‚‹
 	var change_size_mode = false;
-	// Å¬‰ğ
+	// æœ€å°è§£
 	var min_gene = current;
 	// debug
 	var calc_count = 0;
@@ -449,7 +449,7 @@ function calc_mingold_powerup_of_s_TS(base_exp, goal_exp, stacks, limit_level, e
 			}
 		}
 		
-		// ‹ß–T‰ğ‚Ì¶¬
+		// è¿‘å‚è§£ã®ç”Ÿæˆ
 		var neighbors = new Array;
 		
 		for (var i=0; i<counts.length; i++) {
@@ -458,7 +458,7 @@ function calc_mingold_powerup_of_s_TS(base_exp, goal_exp, stacks, limit_level, e
 			
 			if (change_size_mode) {
 				if (counts[i] > 0 && overflow_exp - card_exp >= 0) {
-					// Œ¸­‚³‚¹‚é
+					// æ¸›å°‘ã•ã›ã‚‹
 					if (!_is_tabu(i, -1)) {
 						counts[i]--;
 						neighbors.push(_calc_gene(counts, value - card_value, overflow_exp - card_exp, _path(i, -2)));
@@ -466,7 +466,7 @@ function calc_mingold_powerup_of_s_TS(base_exp, goal_exp, stacks, limit_level, e
 					}
 				}
 				if (counts[i] < unresolved_stacks[i].count) {
-					// ‘‰Á‚³‚¹‚é
+					// å¢—åŠ ã•ã›ã‚‹
 					if (!_is_tabu(i, -2)) {
 						counts[i]++;
 						neighbors.push(_calc_gene(counts, value + card_value, overflow_exp + card_exp, _path(i, -1)));
@@ -479,7 +479,7 @@ function calc_mingold_powerup_of_s_TS(base_exp, goal_exp, stacks, limit_level, e
 				var j_card_exp = _exp(unresolved_stacks[j].card.exp_as_feed);
 				var j_card_value = unresolved_stacks[j].card.value_as_feed;
 				
-				// iŒ¸­j‘‰Á
+				// iæ¸›å°‘jå¢—åŠ 
 				if (counts[i] > 0 && counts[j] < unresolved_stacks[j].count) {
 					var swap_overflow_exp = overflow_exp - card_exp + j_card_exp;
 					
@@ -491,7 +491,7 @@ function calc_mingold_powerup_of_s_TS(base_exp, goal_exp, stacks, limit_level, e
 					}
 				}
 				
-				// i‘‰ÁjŒ¸­
+				// iå¢—åŠ jæ¸›å°‘
 				if (counts[j] > 0 && counts[i] < unresolved_stacks[i].count) {
 					var swap_overflow_exp = overflow_exp + card_exp - j_card_exp;
 					
@@ -537,15 +537,15 @@ function calc_mingold_powerup_of_s_TS(base_exp, goal_exp, stacks, limit_level, e
 		console.log(
 			neighbors.length,
 			current.value, current.powerup_list.gold_to_powerup, current.counts.join(","), sum,
-			current.tabu_path, renew ? "š" : "",
-			current.powerup_list.gold_to_powerup == min_gene.gold_to_powerup ? "œ" : ""
+			current.tabu_path, renew ? "â˜…" : "",
+			current.powerup_list.gold_to_powerup == min_gene.gold_to_powerup ? "â—" : ""
 		);
 // */
 	}
 	
 	//console.log("TS", tabu_size, calc_count, cache_count, "gen", gen);
 	
-	// ‰ğ‚Æ’Ç‰Áî•ñ“™‚ÌƒZƒbƒg
+	// è§£ã¨è¿½åŠ æƒ…å ±ç­‰ã®ã‚»ãƒƒãƒˆ
 	var solution = min_gene.powerup_list;
 	solution.completed = remain_exp <= 0;
 	
@@ -597,18 +597,18 @@ function calc_mingold_powerup_of_s_TS(base_exp, goal_exp, stacks, limit_level, e
 		this.tabu_path = "";
 	}
 	function _swap(counts, overflow_exp, direction, use_unfit){
-		// exp‚ª¬‚³‚¢‚à‚Ì‚ÉŒğŠ·‚µ‚Ä‚àğŒ‚ğ–‚½‚·‚È‚çŒğŠ·‚µ‚½‚Ù‚¤‚ªˆÀ‚¢
+		// expãŒå°ã•ã„ã‚‚ã®ã«äº¤æ›ã—ã¦ã‚‚æ¡ä»¶ã‚’æº€ãŸã™ãªã‚‰äº¤æ›ã—ãŸã»ã†ãŒå®‰ã„
 		for (var i=0; i<unresolved_stacks.length; i++) {
 			var r = direction > 0 ? i : unresolved_stacks.length - 1 - i;
 			
 			for (var j=0; j<r; j++) {
 				if (!use_unfit && unresolved_stacks[r].card.same_element === false) continue;
 				
-				// [j] ‚Æ [r] ‚ÌŒğŠ·‚ğŒŸ“¢
+				// [j] ã¨ [r] ã®äº¤æ›ã‚’æ¤œè¨
 				var r_free = unresolved_stacks[r].count - counts[r];
 				if (r_free <= 0) break;
 				
-				// 1–‡ŒğŠ·‚Å‚ÌexpŒ¸­—Ê
+				// 1æšäº¤æ›ã§ã®expæ¸›å°‘é‡
 				var d = _exp(unresolved_stacks[j].card.exp_as_feed) - _exp(unresolved_stacks[r].card.exp_as_feed);
 				if (d <= 0) break;
 				
@@ -625,7 +625,7 @@ function calc_mingold_powerup_of_s_TS(base_exp, goal_exp, stacks, limit_level, e
 		}
 		return overflow_exp;
 	}
-	// ‚©‚©‚éƒS[ƒ‹ƒh‚ğŒvZ
+	// ã‹ã‹ã‚‹ã‚´ãƒ¼ãƒ«ãƒ‰ã‚’è¨ˆç®—
 	function _to_list(counts){
 		var materials = fixed_cards.concat();
 		for (var i=0; i<unresolved_stacks.length; i++) {
@@ -639,14 +639,14 @@ function calc_mingold_powerup_of_s_TS(base_exp, goal_exp, stacks, limit_level, e
 }
 
 
-// ‘g‚İ‡‚í‚¹—ñ‹“‚É‚æ‚é‘S’TõA‚»‚±‚»‚±}Š ‚è‚µ‚Ä‚¢‚é‚ª”‚ª‘‚¦‚é‚Æ‚©‚È‚è’x‚¢
-// stacks: •Û‘¶
+// çµ„ã¿åˆã‚ã›åˆ—æŒ™ã«ã‚ˆã‚‹å…¨æ¢ç´¢ã€ãã“ãã“æåˆˆã‚Šã—ã¦ã„ã‚‹ãŒæ•°ãŒå¢—ãˆã‚‹ã¨ã‹ãªã‚Šé…ã„
+// stacks: ä¿å­˜
 function calc_mingold_powerup_of_s_all(base_exp, goal_exp, stacks, limit_level, exp_table, gold_table, once_min_count){
-	// ŒÅ’è
+	// å›ºå®š
 	var fixed_stacks = new Array;
 	var fixed_cards = new Array;
 	var fixed_exp = 0;
-	// ‘I‘ğ
+	// é¸æŠ
 	var unresolved_stacks = new Array;
 	
 	FKGCardStack.separateFixedStacks(fixed_stacks, unresolved_stacks, stacks);
@@ -658,14 +658,14 @@ function calc_mingold_powerup_of_s_all(base_exp, goal_exp, stacks, limit_level, 
 		fixed_exp += fixed_stacks[i].card.exp_as_feed * fixed_stacks[i].count;
 	}
 	
-	// ŒoŒ±’l‚Ì‘½‚¢•û‚©‚ç
+	// çµŒé¨“å€¤ã®å¤šã„æ–¹ã‹ã‚‰
 	unresolved_stacks.sort(function (a, b){
 		var c = b.card.exp_as_feed - a.card.exp_as_feed;
 		if (c == 0) c = b.card.priority - a.card.priority;
 		return c;
 	});
 	
-	// ŒvZ‚ÌƒLƒƒƒbƒVƒ…
+	// è¨ˆç®—ã®ã‚­ãƒ£ãƒƒã‚·ãƒ¥
 	var lower_gold_cache = new Array;
 	
 	var calc_count = 0; // for debug
@@ -690,7 +690,7 @@ function calc_mingold_powerup_of_s_all(base_exp, goal_exp, stacks, limit_level, 
 		min_solution.setOnceComments(1, goal_exp, p_comm, COMMENT_RECALC, COMMENT_COMPLETE, COMMENT_LACK);
 		
 	} else {
-		// ‘S•”g—p
+		// å…¨éƒ¨ä½¿ç”¨
 		min_solution = calc_mingold_powerup_of_s(base_exp, goal_exp, stacks, limit_level, exp_table, gold_table, once_min_count);
 	}
 	
@@ -698,13 +698,13 @@ function calc_mingold_powerup_of_s_all(base_exp, goal_exp, stacks, limit_level, 
 	
 	
 	function _loop(current_value, remain_exp, remain_feed_exp, pos){
-		// unresolved_stacks[pos] ‚Ì”‚ğŒˆ‚ß‚é
+		// unresolved_stacks[pos] ã®æ•°ã‚’æ±ºã‚ã‚‹
 		var st = unresolved_stacks[pos];
 		
-		// remain_exp: ‚ ‚Æ‚Ç‚ê‚¾‚¯ŒoŒ±’l‚ª•K—v‚©
-		// remain_feed_exp: c‚è‚Ì‰a‚Ì‘ŒoŒ±’l
+		// remain_exp: ã‚ã¨ã©ã‚Œã ã‘çµŒé¨“å€¤ãŒå¿…è¦ã‹
+		// remain_feed_exp: æ®‹ã‚Šã®é¤Œã®ç·çµŒé¨“å€¤
 		
-		// ‚±‚ê‚¾‚¯‚ ‚ê‚Î‘«‚è‚é
+		// ã“ã‚Œã ã‘ã‚ã‚Œã°è¶³ã‚Šã‚‹
 		var count = Math.ceil(remain_exp / st.card.exp_as_feed);
 		if (count > st.count) count = st.count;
 		
@@ -713,13 +713,13 @@ function calc_mingold_powerup_of_s_all(base_exp, goal_exp, stacks, limit_level, 
 		var new_remain_feed_exp = remain_feed_exp - st.card.exp_as_feed * st.count;
 		
 		while (count >= 0) {
-			// countŒÂ’Ç‰Á‚µ‚½‚à‚Ì‚É‚Â‚¢‚Äl‚¦‚é
+			// countå€‹è¿½åŠ ã—ãŸã‚‚ã®ã«ã¤ã„ã¦è€ƒãˆã‚‹
 			var new_current_value = current_value + st.card.value_as_feed * count;
 			var new_remain_exp = remain_exp - st.card.exp_as_feed * count;
 			
 			if (new_remain_exp <= 0) {
-				// —vŒ‚ğ–‚½‚µ‚½
-				// ‚±‚êˆÈã‚Í•K—v‚È‚¢
+				// è¦ä»¶ã‚’æº€ãŸã—ãŸ
+				// ã“ã‚Œä»¥ä¸Šã¯å¿…è¦ãªã„
 				var pw = calc_mingold_powerup(base_exp, goal_exp, fixed_cards.concat(materials), limit_level, exp_table, gold_table, once_min_count, GREAT_NOTHING);
 				calc_count++;
 				
@@ -729,19 +729,19 @@ function calc_mingold_powerup_of_s_all(base_exp, goal_exp, stacks, limit_level, 
 					min_value = new_current_value;
 				}
 			} else {
-				// Ä‹A
+				// å†å¸°
 				if (pos < unresolved_stacks.length - 1 && new_remain_exp <= new_remain_feed_exp) {
-					// –‡”‚©‚ç‰ºŠE‚ğƒ`ƒFƒbƒN
+					// æšæ•°ã‹ã‚‰ä¸‹ç•Œã‚’ãƒã‚§ãƒƒã‚¯
 					var lower_count = materials.length + _get_lower_count(new_remain_exp, pos + 1);
 					var lower_gold = _get_lower_gold_by_count(lower_count);
 					
-					// ‚±‚êˆÈã’Tõ‚µ‚Ä‚à‚È‚¢
+					// ã“ã‚Œä»¥ä¸Šæ¢ç´¢ã—ã¦ã‚‚ãªã„
 					if (lower_gold > min_gold) break;
 					
 					_loop(new_current_value, new_remain_exp, new_remain_feed_exp, pos + 1);
 					
 				} else {
-					// ŒoŒ±’l‚Í‰º‚ª‚Á‚Ä‚¢‚­•ûŒü‚Å‚Ìƒ‹[ƒv‚È‚Ì‚Å
+					// çµŒé¨“å€¤ã¯ä¸‹ãŒã£ã¦ã„ãæ–¹å‘ã§ã®ãƒ«ãƒ¼ãƒ—ãªã®ã§
 					break;
 				}
 			}
@@ -753,7 +753,7 @@ function calc_mingold_powerup_of_s_all(base_exp, goal_exp, stacks, limit_level, 
 		if (count > 0) materials.length -= count;
 	}
 	
-	// begin_posˆÈ~‚Åarg_remain_exp‚ğ–‚½‚·‚Ì‚ÉÅ’áŒÀ•K—v‚È–‡”(fixedœ‚­)
+	// begin_posä»¥é™ã§arg_remain_expã‚’æº€ãŸã™ã®ã«æœ€ä½é™å¿…è¦ãªæšæ•°(fixedé™¤ã)
 	function _get_lower_count(arg_remain_exp, begin_pos){
 		var remain_exp = arg_remain_exp;
 		var count = 0;
@@ -763,24 +763,24 @@ function calc_mingold_powerup_of_s_all(base_exp, goal_exp, stacks, limit_level, 
 			var st = unresolved_stacks[i];
 			var c = Math.ceil(remain_exp / st.card.exp_as_feed);
 			if (c > st.count) c = st.count;
-			// c–‡”z’u
+			// cæšé…ç½®
 			count += c;
 			remain_exp -= st.card.exp_as_feed * c;
 		}
-		// •s‘«
+		// ä¸è¶³
 		if (remain_exp > 0) {
-			// ã‚Ìg‚¢•û‚È‚ç‚±‚±‚É‚Í‚±‚È‚¢‚Í‚¸EEE
+			// ä¸Šã®ä½¿ã„æ–¹ãªã‚‰ã“ã“ã«ã¯ã“ãªã„ã¯ãšãƒ»ãƒ»ãƒ»
 			console.log("oh");
 			count = -1;
 		}
 		return count;
 	}
 	
-	// –‡”‚©‚ç‚»‚Ì‰ºŠE‚ğ•Ô‚·
+	// æšæ•°ã‹ã‚‰ãã®ä¸‹ç•Œã‚’è¿”ã™
 	function _get_lower_gold_by_count(count){
 		if (lower_gold_cache.hasOwnProperty(count)) return lower_gold_cache[count];
 		
-		// ŒoŒ±’l‚ª­‚È‚¢•û‚©‚çcount–‡”z’u‚µ‚½‚à‚Ì‚Ìmingold(once_min_count=1)
+		// çµŒé¨“å€¤ãŒå°‘ãªã„æ–¹ã‹ã‚‰countæšé…ç½®ã—ãŸã‚‚ã®ã®mingold(once_min_count=1)
 		var remain_count = count;
 		var materials = fixed_cards.concat();
 		for (var i=unresolved_stacks.length-1; i>=0; i--) {
@@ -799,15 +799,15 @@ function calc_mingold_powerup_of_s_all(base_exp, goal_exp, stacks, limit_level, 
 
 
 
-// ƒS[ƒ‹ƒh—Dæ’Tõ(ÅŒã‚¾‚¯‘å¬Œ÷)
+// ã‚´ãƒ¼ãƒ«ãƒ‰å„ªå…ˆæ¢ç´¢(æœ€å¾Œã ã‘å¤§æˆåŠŸ)
 function calc_mingold_lastgreat_of_s_simple(base_exp, goal_exp, arg_stacks, limit_level, exp_table, gold_table, once_min_count){
-	// ”O‚Ìˆ×
+	// å¿µã®ç‚º
 	var stacks = FKGCardStack.duplicate(arg_stacks);
 	
-	// all-in ‚Ì cards
+	// all-in ã® cards
 	var fixed_stacks = new Array;
 	var fixed_cards;
-	// all-in ‚Å‚È‚¢
+	// all-in ã§ãªã„
 	var unresolved_stacks = new Array;
 	
 	FKGCardStack.separateFixedStacks(fixed_stacks, unresolved_stacks, stacks);
@@ -819,22 +819,22 @@ function calc_mingold_lastgreat_of_s_simple(base_exp, goal_exp, arg_stacks, limi
 	var require_exp = goal_exp - base_exp;
 	var temp_cards = new Array;
 	
-	// Å¬‚ğ—^‚¦‚é‘g‚İ‡‚í‚¹
+	// æœ€å°ã‚’ä¸ãˆã‚‹çµ„ã¿åˆã‚ã›
 	var min_gold = Infinity;
 	var min_solution = null;
 //	var min_succeed_cards = null;
 //	var min_great_cards = null;
-//	var min_residue_stacks = null; // c‚è‚Ì unresolved_stacks
+//	var min_residue_stacks = null; // æ®‹ã‚Šã® unresolved_stacks
 //	var min_unresolved_stacks = null;
 	
 	
-	// ‘å¬Œ÷‚É“ü‚éŒÅ’è‚Ì”‚Åê‡•ª‚¯
+	// å¤§æˆåŠŸã«å…¥ã‚‹å›ºå®šã®æ•°ã§å ´åˆåˆ†ã‘
 	for (var n=0; n<=10; n++) {
 		if (fixed_cards.length < n) break;
 		
-		// •ªŠ„ˆÊ’u
+		// åˆ†å‰²ä½ç½®
 		var spos = fixed_cards.length - n;
-		// ŒÅ’èn–‡‚ğ‘å¬Œ÷‚É‚·‚é
+		// å›ºå®šnæšã‚’å¤§æˆåŠŸã«ã™ã‚‹
 		var succeed_exp = 0;
 		var great_exp = 0;
 		//for (var i=spos; i<fixed_cards.length; i++)
@@ -847,9 +847,9 @@ function calc_mingold_lastgreat_of_s_simple(base_exp, goal_exp, arg_stacks, limi
 			}
 		}
 		
-		// c‚è‚Ì‘å¬Œ÷–‡”(Å‘å)
+		// æ®‹ã‚Šã®å¤§æˆåŠŸæšæ•°(æœ€å¤§)
 		var m = 10 - n;
-		// ‘å‚«‚¢•û‚©‚ç’Ç‰Á‚µ‚Ä‚¢‚­
+		// å¤§ãã„æ–¹ã‹ã‚‰è¿½åŠ ã—ã¦ã„ã
 		for (var i=0; i<m; i++) {
 			if (Math.ceil(succeed_exp) + Math.ceil(great_exp) >= require_exp) break;
 			//if (Math.ceil(great_exp) >= require_exp) break;
@@ -861,43 +861,43 @@ function calc_mingold_lastgreat_of_s_simple(base_exp, goal_exp, arg_stacks, limi
 			temp_cards.unshift(card);
 		}
 		
-		// u¬Œ÷v‚É’Ç‰Á‚·‚éƒJ[ƒh
+		// ã€ŒæˆåŠŸã€ã«è¿½åŠ ã™ã‚‹ã‚«ãƒ¼ãƒ‰
 		var succeed_fixed_cards = fixed_cards.slice(0, spos);
 		
 		var pl;
-		// ¬Œ÷‚Ì•”•ª
+		// æˆåŠŸã®éƒ¨åˆ†
 		//if (succeed_exp + great_exp < require_exp)
 		if (Math.ceil(succeed_exp) + Math.ceil(great_exp) < require_exp)
 		{
-			// ‘«‚è‚È‚¢‚Ì‚ÅAunresolved_stacks ‚©‚ç‘I‚ñ‚Å’Ç‰Á‚ğŒŸ“¢
+			// è¶³ã‚Šãªã„ã®ã§ã€unresolved_stacks ã‹ã‚‰é¸ã‚“ã§è¿½åŠ ã‚’æ¤œè¨
 			var succeed_stacks = FKGCardStack.duplicate(fixed_stacks);
 			FKGCardStack.fromCards(succeed_stacks, succeed_fixed_cards);
 			succeed_stacks = succeed_stacks.concat(unresolved_stacks);
-			// ŒÅ’è‚Í‚±‚Á‚¿‚Å‚àŒÅ’è
+			// å›ºå®šã¯ã“ã£ã¡ã§ã‚‚å›ºå®š
 			pl = calc_mingold_powerup_of_s(base_exp, goal_exp - Math.ceil(great_exp), succeed_stacks, limit_level, exp_table, gold_table, once_min_count, GREAT_NOTHING);
 			
 		} else {
-			// ‚·‚Å‚ÉŒoŒ±’lğŒ‚Í–‚½‚µ‚Ä‚¢‚é
+			// ã™ã§ã«çµŒé¨“å€¤æ¡ä»¶ã¯æº€ãŸã—ã¦ã„ã‚‹
 			pl = calc_mingold_powerup(base_exp, goal_exp - Math.ceil(great_exp), succeed_fixed_cards, limit_level, exp_table, gold_table, once_min_count, GREAT_NOTHING);
 			pl.completed = true;
 		}
 		
-		// goal_exp - great_exp ‚Ü‚Å‹­‰»‚Å‚«‚ê‚Î pl.completed ‚ª true
+		// goal_exp - great_exp ã¾ã§å¼·åŒ–ã§ãã‚Œã° pl.completed ãŒ true
 		
-		// ‘å¬Œ÷‚ğ•t‚¯‰Á‚¦‚é
+		// å¤§æˆåŠŸã‚’ä»˜ã‘åŠ ãˆã‚‹
 		var min_completed = min_solution && min_solution.completed;
 		if (pl.completed || !min_completed) {
-			// u‘å¬Œ÷v‚ÌƒJ[ƒh‚àÅ“K‚Æ‚ÍŒÀ‚ç‚È‚¢
-			// –¢g—pƒJ[ƒh‚ğŒvZ
+			// ã€Œå¤§æˆåŠŸã€ã®ã‚«ãƒ¼ãƒ‰ã‚‚æœ€é©ã¨ã¯é™ã‚‰ãªã„
+			// æœªä½¿ç”¨ã‚«ãƒ¼ãƒ‰ã‚’è¨ˆç®—
 			var unres = FKGCardStack.duplicate(unresolved_stacks);
 			FKGCardStack.fromCards(unres, temp_cards);
 			for (var i=0; i<pl.list.length; i++) {
-				FKGCardStack.removeCards(unres, pl.list[i].materials); // fixed‚Í–³‹‚³‚ê‚é
+				FKGCardStack.removeCards(unres, pl.list[i].materials); // fixedã¯ç„¡è¦–ã•ã‚Œã‚‹
 			}
 			var unres_fixed = FKGCardStack.duplicate(fixed_stacks);
 			FKGCardStack.fromCards(unres_fixed, fixed_cards.slice(spos));
 			
-			// unres, unres_fixed ‚ªc‚Á‚Ä‚¢‚éƒJ[ƒh(stack)
+			// unres, unres_fixed ãŒæ®‹ã£ã¦ã„ã‚‹ã‚«ãƒ¼ãƒ‰(stack)
 			var pl2 = calc_mingold_powerup_of_s(pl.end_experience, goal_exp, unres.concat(unres_fixed),
 				limit_level, exp_table, gold_table, 10, GREAT_ALL);
 			
@@ -909,10 +909,10 @@ function calc_mingold_lastgreat_of_s_simple(base_exp, goal_exp, arg_stacks, limi
 				pl.push_back(once);
 				
 			} else {
-				// ‘fŞ0–‡‚¾‚Æ‚±‚±‚É‚­‚é‚©‚à
+				// ç´ æ0æšã ã¨ã“ã“ã«ãã‚‹ã‹ã‚‚
 			}
 			
-			// Å¬‚ğXV‚µ‚½‚ç‹L˜^
+			// æœ€å°ã‚’æ›´æ–°ã—ãŸã‚‰è¨˜éŒ²
 			if ( (!min_completed && (pl.completed || pl.gold_to_powerup < min_gold))
 				|| (min_completed && pl.gold_to_powerup < min_gold) )
 			{
@@ -921,7 +921,7 @@ function calc_mingold_lastgreat_of_s_simple(base_exp, goal_exp, arg_stacks, limi
 			}
 		}
 		
-		// –ß‚·
+		// æˆ»ã™
 		for (var i=0; i<temp_cards.length; i++) {
 			FKGCardStack.push(unresolved_stacks, temp_cards[i]);
 		}
@@ -931,7 +931,7 @@ function calc_mingold_lastgreat_of_s_simple(base_exp, goal_exp, arg_stacks, limi
 	var solution = min_solution;
 	
 	if (solution) {
-		// ƒRƒƒ“ƒg‚Ì•ÒW
+		// ã‚³ãƒ¡ãƒ³ãƒˆã®ç·¨é›†
 		var p_compl = fixed_cards.length >= 1 ? COMMENT_POSSIBLY_COMPLETE : COMMENT_COMPLETE;
 		solution.setOnceComments(1, goal_exp, p_compl, COMMENT_RECALC, COMMENT_COMPLETE, COMMENT_LACK);
 	} else {
@@ -942,14 +942,14 @@ function calc_mingold_lastgreat_of_s_simple(base_exp, goal_exp, arg_stacks, limi
 }
 
 
-// ƒS[ƒ‹ƒh—Dæ’Tõ(ÅŒã‚¾‚¯‘å¬Œ÷)
-// ÅŒã‚Ìu¬Œ÷v‚©‚ç‚Ì‘±‚«‚àŒvZ‚·‚é
+// ã‚´ãƒ¼ãƒ«ãƒ‰å„ªå…ˆæ¢ç´¢(æœ€å¾Œã ã‘å¤§æˆåŠŸ)
+// æœ€å¾Œã®ã€ŒæˆåŠŸã€ã‹ã‚‰ã®ç¶šãã‚‚è¨ˆç®—ã™ã‚‹
 function calc_mingold_lastgreat_of_s(base_exp, goal_exp, arg_stacks, limit_level, exp_table, gold_table, once_min_count){
 	var stacks = FKGCardStack.duplicate(arg_stacks);
 	var solution = calc_mingold_lastgreat_of_s_simple(base_exp, goal_exp, stacks, limit_level, exp_table, gold_table, once_min_count);
 	
 	if (solution && solution.list.length >= 1) {
-		// ‘±‚«‚ÌŒvZ
+		// ç¶šãã®è¨ˆç®—
 		var last_once = solution.list[solution.list.length - 1];
 		var succeed_exp = last_once.before_experience + last_once.recalcExp(false);
 		var once_count = solution.list.length;
@@ -958,17 +958,17 @@ function calc_mingold_lastgreat_of_s(base_exp, goal_exp, arg_stacks, limit_level
 		var fixed_stacks = new Array;
 		var unresolved_stacks = new Array;
 		FKGCardStack.separateFixedStacks(fixed_stacks, unresolved_stacks, stacks);
-		// g‚Á‚½ƒJ[ƒh‚ğœŠO
-		// ‚±‚ê‚Å unresolved_stacks ‚ªc‚è‚ÌƒJ[ƒhAŒÅ’è‚Í‚à‚¤‚È‚¢
+		// ä½¿ã£ãŸã‚«ãƒ¼ãƒ‰ã‚’é™¤å¤–
+		// ã“ã‚Œã§ unresolved_stacks ãŒæ®‹ã‚Šã®ã‚«ãƒ¼ãƒ‰ã€å›ºå®šã¯ã‚‚ã†ãªã„
 		_remove_list_cards(unresolved_stacks, solution);
 		
 		while (succeed_exp < goal_exp) {
-			// ¬Œ÷‚©‚ç‚ÌŒvZ
+			// æˆåŠŸã‹ã‚‰ã®è¨ˆç®—
 			var pl = calc_mingold_lastgreat_of_s_simple(succeed_exp, goal_exp, unresolved_stacks, limit_level, exp_table, gold_table, once_min_count);
 			
 			if (!pl.completed) break;
 			
-			// solution‚Ö‚Ì’Ç‰Á
+			// solutionã¸ã®è¿½åŠ 
 			for (var i=0; i<pl.list.length; i++) {
 				var once = pl.list[i];
 				once.number = ++once_count;
@@ -976,7 +976,7 @@ function calc_mingold_lastgreat_of_s(base_exp, goal_exp, arg_stacks, limit_level
 				once.total_gold_to_powerup = total_gold;
 				
 				if (i == pl.list.length - 1) {
-					// ƒ‰ƒXƒg‚Í‚â‚Á‚Ï‚è¬Œ÷ˆµ‚¢‚Å‘±s
+					// ãƒ©ã‚¹ãƒˆã¯ã‚„ã£ã±ã‚ŠæˆåŠŸæ‰±ã„ã§ç¶šè¡Œ
 					once.suppose_great = false;
 					once.gain_experience = once.recalcExp(false);
 					once.end_experience = once.before_experience + once.gain_experience;
@@ -985,13 +985,13 @@ function calc_mingold_lastgreat_of_s(base_exp, goal_exp, arg_stacks, limit_level
 				solution.push_back(once, 2);
 			}
 			
-			// unresolved_stacks ‚ÌXV
+			// unresolved_stacks ã®æ›´æ–°
 			_remove_list_cards(unresolved_stacks, pl);
 			
 			succeed_exp = last_once.end_experience;
 		}
 		
-		// ƒRƒƒ“ƒg‚Ì(’Ç‰Á)•ÒW
+		// ã‚³ãƒ¡ãƒ³ãƒˆã®(è¿½åŠ )ç·¨é›†
 		if (solution.sublist.length >= 1) {
 			solution.setLastComment(1, COMMENT_TO_NTH(solution.list.length + 1), COMMENT_COMPLETE);
 			solution.setOnceComments(2, goal_exp, COMMENT_COMPLETE, COMMENT_RECALC, COMMENT_COMPLETE, COMMENT_LACK);
@@ -1001,7 +1001,7 @@ function calc_mingold_lastgreat_of_s(base_exp, goal_exp, arg_stacks, limit_level
 	return solution;
 	
 	
-	// stack‚©‚çpl‚Åg—p‚µ‚½ƒJ[ƒh‚ğæ‚èœ‚­
+	// stackã‹ã‚‰plã§ä½¿ç”¨ã—ãŸã‚«ãƒ¼ãƒ‰ã‚’å–ã‚Šé™¤ã
 	function _remove_list_cards(stacks, pl){
 		for (var i=0; i<pl.list.length; i++) {
 			FKGCardStack.removeCards(stacks, pl.list[i].materials);
@@ -1010,8 +1010,8 @@ function calc_mingold_lastgreat_of_s(base_exp, goal_exp, arg_stacks, limit_level
 }
 
 
-// ŒoŒ±’l—Dæ‚ÅAŒÂ”‚¾‚¯‚ğŒvZ‚·‚é
-// stacks‚Í•Û‘¶A‰ğ‚È‚µ‚Í null
+// çµŒé¨“å€¤å„ªå…ˆã§ã€å€‹æ•°ã ã‘ã‚’è¨ˆç®—ã™ã‚‹
+// stacksã¯ä¿å­˜ã€è§£ãªã—ã¯ null
 function calc_minexp_counts_of_s(require_exp, stacks, great){
 	var knapsack_items = new Array;
 	for (var i=0; i<stacks.length; i++) {
@@ -1033,13 +1033,13 @@ function calc_minexp_counts_of_s(require_exp, stacks, great){
 }
 
 
-// ŒoŒ±’l—Dæ’Tõ
+// çµŒé¨“å€¤å„ªå…ˆæ¢ç´¢
 function calc_minexp_powerup_of_s(base_exp, goal_exp, stacks, limit_level, exp_table, gold_table, once_min_count){
-	// ŒÅ’è
+	// å›ºå®š
 	var fixed_stacks = new Array;
 	var fixed_cards = new Array;
 	var fixed_exp = 0;
-	// ‘I‘ğ
+	// é¸æŠ
 	var unresolved_stacks = new Array;
 	
 	FKGCardStack.separateFixedStacks(fixed_stacks, unresolved_stacks, stacks);
@@ -1060,7 +1060,7 @@ function calc_minexp_powerup_of_s(base_exp, goal_exp, stacks, limit_level, exp_t
 		completed = counts != null;
 		
 		if (!completed) {
-			// ‘«‚è‚È‚¢‚ª‘S•”g‚¤
+			// è¶³ã‚Šãªã„ãŒå…¨éƒ¨ä½¿ã†
 			counts = new Array;
 			for (var i=0; i<unresolved_stacks.length; i++) {
 				counts[i] = unresolved_stacks[i].count;
@@ -1074,7 +1074,7 @@ function calc_minexp_powerup_of_s(base_exp, goal_exp, stacks, limit_level, exp_t
 		}
 	}
 	
-	// ‚©‚©‚éƒS[ƒ‹ƒh‚ğŒvZ‚µ‚Ä•Ô‚·
+	// ã‹ã‹ã‚‹ã‚´ãƒ¼ãƒ«ãƒ‰ã‚’è¨ˆç®—ã—ã¦è¿”ã™
 	var pl = calc_mingold_powerup(base_exp, goal_exp, materials, limit_level, exp_table, gold_table, once_min_count, GREAT_NOTHING);
 	pl.completed = completed;
 	
@@ -1085,15 +1085,15 @@ function calc_minexp_powerup_of_s(base_exp, goal_exp, stacks, limit_level, exp_t
 }
 
 
-// ŒoŒ±’l—Dæ’Tõ(ÅŒã‚¾‚¯‘å¬Œ÷)
+// çµŒé¨“å€¤å„ªå…ˆæ¢ç´¢(æœ€å¾Œã ã‘å¤§æˆåŠŸ)
 function calc_minexp_lastgreat_of_s_simple(base_exp, goal_exp, original_stacks, limit_level, exp_table, gold_table, once_min_count){
-	// •K‚¸g‚¤‘fŞ‚ª‚ ‚é‚ÆA‘å¬Œ÷‚É“ü‚ê‚é‚©¬Œ÷‚É“ü‚ê‚é‚©‚Ì‘I‘ğ‚ª‚ ‚Á‚Ä–ï‰î
+	// å¿…ãšä½¿ã†ç´ æãŒã‚ã‚‹ã¨ã€å¤§æˆåŠŸã«å…¥ã‚Œã‚‹ã‹æˆåŠŸã«å…¥ã‚Œã‚‹ã‹ã®é¸æŠãŒã‚ã£ã¦å„ä»‹
 	var stacks = FKGCardStack.duplicate(original_stacks);
 	
-	// all-in ‚Ì cards
+	// all-in ã® cards
 	var fixed_stacks = new Array;
 	var fixed_cards;
-	// all-in ‚Å‚È‚¢
+	// all-in ã§ãªã„
 	var unresolved_stacks = new Array;
 	
 	FKGCardStack.separateFixedStacks(fixed_stacks, unresolved_stacks, stacks);
@@ -1105,25 +1105,25 @@ function calc_minexp_lastgreat_of_s_simple(base_exp, goal_exp, original_stacks, 
 	var require_exp = goal_exp - base_exp;
 	var temp_cards = new Array;
 	
-	// Å¬‚ğ—^‚¦‚é‘g‚İ‡‚í‚¹
+	// æœ€å°ã‚’ä¸ãˆã‚‹çµ„ã¿åˆã‚ã›
 //	var min_exp = Infinity;
 	var min_value = Infinity;
 	var min_succeed_exp = Infinity;
 	
 	var min_succeed_cards = null;
 	var min_great_cards = null;
-	var min_residue_stacks = null; // c‚è‚Ì unresolved_stacks
+	var min_residue_stacks = null; // æ®‹ã‚Šã® unresolved_stacks
 //	var min_solution = null;
 	
 	
-	// ‘å¬Œ÷‚É“ü‚éŒÅ’è‚Ì”‚Åê‡•ª‚¯
+	// å¤§æˆåŠŸã«å…¥ã‚‹å›ºå®šã®æ•°ã§å ´åˆåˆ†ã‘
 	for (var n=0; n<=10; n++) {
 		if (fixed_cards.length < n) break;
 		
-		// ŒÅ’èn–‡‚ğ‘å¬Œ÷‚É‚·‚é
+		// å›ºå®šnæšã‚’å¤§æˆåŠŸã«ã™ã‚‹
 		var succeed_exp = 0;
 		var great_exp = 0;
-		// ‚±‚ê‚ğÅ¬‚É‚·‚é‚æ‚¤‚É‘I‘ğ‚µ‚Ä‚¢‚­
+		// ã“ã‚Œã‚’æœ€å°ã«ã™ã‚‹ã‚ˆã†ã«é¸æŠã—ã¦ã„ã
 		var succeed_value = 0;
 		var great_value = 0;
 		
@@ -1141,9 +1141,9 @@ function calc_minexp_lastgreat_of_s_simple(base_exp, goal_exp, original_stacks, 
 		var fixed_great_exp = great_exp;
 		var fixed_great_value = great_value;
 		
-		// c‚è‚Ì‘å¬Œ÷–‡”(Å‘å)
+		// æ®‹ã‚Šã®å¤§æˆåŠŸæšæ•°(æœ€å¤§)
 		var m = 10 - n;
-		// ‰¼‘å¬Œ÷A‘å‚«‚¢•û‚©‚ç’Ç‰Á‚µ‚Ä‚¢‚­
+		// ä»®å¤§æˆåŠŸã€å¤§ãã„æ–¹ã‹ã‚‰è¿½åŠ ã—ã¦ã„ã
 		for (var i=0; i<m; i++) {
 			if (Math.ceil(succeed_exp) + Math.ceil(great_exp) >= require_exp) break;
 			
@@ -1155,14 +1155,14 @@ function calc_minexp_lastgreat_of_s_simple(base_exp, goal_exp, original_stacks, 
 			temp_cards.unshift(card);
 		}
 		
-		// u¬Œ÷v‚É’Ç‰Á‚·‚é–‡”
+		// ã€ŒæˆåŠŸã€ã«è¿½åŠ ã™ã‚‹æšæ•°
 		var counts = null;
 		
 		if (Math.ceil(succeed_exp) + Math.ceil(great_exp) < require_exp) {
-			// ‘«‚è‚È‚¢
+			// è¶³ã‚Šãªã„
 			counts = calc_minexp_counts_of_s(require_exp - (Math.ceil(succeed_exp) + Math.ceil(great_exp)), unresolved_stacks);
 			if (counts) {
-				// \•ª
+				// ååˆ†
 				for (var i=0; i<unresolved_stacks.length; i++) {
 					succeed_exp += counts[i] * unresolved_stacks[i].card.exp_as_feed;
 					succeed_value += counts[i] * unresolved_stacks[i].card.exp_as_feed;
@@ -1170,15 +1170,15 @@ function calc_minexp_lastgreat_of_s_simple(base_exp, goal_exp, original_stacks, 
 			}
 		}
 		
-		// ŒoŒ±’lğŒ‚ğ–‚½‚·‘g‚İ‡‚í‚¹
+		// çµŒé¨“å€¤æ¡ä»¶ã‚’æº€ãŸã™çµ„ã¿åˆã‚ã›
 		if (Math.ceil(succeed_exp) + Math.ceil(great_exp) >= require_exp) {
-			// ‘å¬Œ÷‚Ì•”•ª‚Í‚à‚Á‚Æ¬‚³‚­‚È‚é‚©‚à‚µ‚ê‚È‚¢‚Ì‚ÅAÄŒvZ‚·‚é
+			// å¤§æˆåŠŸã®éƒ¨åˆ†ã¯ã‚‚ã£ã¨å°ã•ããªã‚‹ã‹ã‚‚ã—ã‚Œãªã„ã®ã§ã€å†è¨ˆç®—ã™ã‚‹
 			
-			// –¢g—pƒJ[ƒh
+			// æœªä½¿ç”¨ã‚«ãƒ¼ãƒ‰
 			var unres = FKGCardStack.duplicate(unresolved_stacks);
-			// ‰¼‘å¬Œ÷‚Ì‚à‚Ì‚ğ–ß‚µ‚Ä
+			// ä»®å¤§æˆåŠŸã®ã‚‚ã®ã‚’æˆ»ã—ã¦
 			FKGCardStack.fromCards(unres, temp_cards);
-			// ¬Œ÷—˜—p•ª‚ğœ‚­
+			// æˆåŠŸåˆ©ç”¨åˆ†ã‚’é™¤ã
 			if (counts) {
 				for (var i=0; i<unres.length; i++) {
 					unres[i].count -= counts[i];
@@ -1191,7 +1191,7 @@ function calc_minexp_lastgreat_of_s_simple(base_exp, goal_exp, original_stacks, 
 			var unres_great_cards = null;
 			
 			if (free_count > 0 && require_great_exp > 0) {
-				// ‘å¬Œ÷‚ğÄ‘I‘ğ
+				// å¤§æˆåŠŸã‚’å†é¸æŠ
 				unres_great_cards = _get_great_n(require_great_exp, unres, free_count);
 				
 				for (var i=0; i<unres_great_cards.length; i++) {
@@ -1206,7 +1206,7 @@ function calc_minexp_lastgreat_of_s_simple(base_exp, goal_exp, original_stacks, 
 				min_succeed_exp = succeed_exp;
 				
 				var residue_stacks = FKGCardStack.duplicate(unresolved_stacks);
-				// fixed_cards‚ğ•ªŠ„Acounts[]–‡‚ğ‘O•û‚ÉAunres_great_cards‚ğŒã•û‚É’Ç‰Á
+				// fixed_cardsã‚’åˆ†å‰²ã€counts[]æšã‚’å‰æ–¹ã«ã€unres_great_cardsã‚’å¾Œæ–¹ã«è¿½åŠ 
 				var succeed_cards = new Array;
 				if (counts) {
 					for (var i=0; i<residue_stacks.length; i++) {
@@ -1223,14 +1223,14 @@ function calc_minexp_lastgreat_of_s_simple(base_exp, goal_exp, original_stacks, 
 					great_cards = great_cards.concat(unres_great_cards);
 				}
 				
-				// ŒvZ‚Í‚ ‚Æ‚Ü‚í‚µ
+				// è¨ˆç®—ã¯ã‚ã¨ã¾ã‚ã—
 				min_succeed_cards = succeed_cards;
 				min_great_cards = great_cards;
 				min_residue_stacks = residue_stacks;
 			}
 		}
 		
-		// –ß‚·
+		// æˆ»ã™
 		for (var i=0; i<temp_cards.length; i++) {
 			FKGCardStack.push(unresolved_stacks, temp_cards[i]);
 		}
@@ -1240,22 +1240,22 @@ function calc_minexp_lastgreat_of_s_simple(base_exp, goal_exp, original_stacks, 
 	var solution = null;
 	
 	if (min_succeed_cards && min_succeed_cards.length == 0 && min_great_cards.length == 0) {
-		// ‹­‰»‚Ì•K—v‚È‚µ
+		// å¼·åŒ–ã®å¿…è¦ãªã—
 		solution = new PowerupList(base_exp);
 		
 	} else if (min_succeed_cards) {
-		// ‹­‰»ƒpƒ^[ƒ“‚ğŒvZ‚·‚é
+		// å¼·åŒ–ãƒ‘ã‚¿ãƒ¼ãƒ³ã‚’è¨ˆç®—ã™ã‚‹
 		min_great_cards.sort(FKGCard.exp_less);
 		
 		solution = _mingold_lastgreat(min_succeed_cards, min_great_cards);
 		solution.completed = true;
 		
-		// ƒRƒƒ“ƒg‚Ì•ÒW
+		// ã‚³ãƒ¡ãƒ³ãƒˆã®ç·¨é›†
 		var p_compl = fixed_cards.length >= 1 ? COMMENT_POSSIBLY_COMPLETE : COMMENT_COMPLETE;
 		solution.setOnceComments(1, goal_exp, p_compl, COMMENT_RECALC, COMMENT_COMPLETE, COMMENT_LACK);
 		
 	} else {
-		// ‘S•”g‚Á‚Ä‚à–Ú•WƒŒƒxƒ‹‚É“’B‚µ‚È‚¢
+		// å…¨éƒ¨ä½¿ã£ã¦ã‚‚ç›®æ¨™ãƒ¬ãƒ™ãƒ«ã«åˆ°é”ã—ãªã„
 		fixed_cards = fixed_cards.concat(FKGCardStack.toCards(unresolved_stacks));
 		fixed_cards.sort(FKGCard.exp_less);
 		
@@ -1272,10 +1272,10 @@ function calc_minexp_lastgreat_of_s_simple(base_exp, goal_exp, original_stacks, 
 	
 	
 	function _mingold_lastgreat(succeed_cards, great_cards){
-		// succeed_cards‚Å¬Œ÷‹­‰»‚µ‚Ä
+		// succeed_cardsã§æˆåŠŸå¼·åŒ–ã—ã¦
 		var pl = calc_mingold_powerup(base_exp, goal_exp, succeed_cards, limit_level, exp_table, gold_table, once_min_count, GREAT_NOTHING);
 		
-		// ‘å¬Œ÷‚Ì‹­‰»‚ğ•t‚¯‰Á‚¦‚é
+		// å¤§æˆåŠŸã®å¼·åŒ–ã‚’ä»˜ã‘åŠ ãˆã‚‹
 		if (great_cards && great_cards.length >= 1) {
 			var pl2 = calc_mingold_powerup(pl.end_experience, goal_exp, great_cards, limit_level, exp_table, gold_table, 10, GREAT_ALL);
 			var once = pl2.list[0];
@@ -1288,10 +1288,10 @@ function calc_minexp_lastgreat_of_s_simple(base_exp, goal_exp, original_stacks, 
 		return pl;
 	}
 	
-	// stacks ‚©‚çÅ‘å n –‡‘I‚ñ‚Å remain_exp ğŒ‚ğ–‚½‚·‚à‚Ì‚Ì‚¤‚¿A‰¿’l‚ªÅ¬‚Ì‘g‚İ‡‚í‚¹‚ğ’T‚·
-	// ‚Ü‚ 10–‡ˆÈ‰º‚¾‚µ‘S’Tõ‚Å‚¢‚Á‚Ä‚İ‚æ[
-	// stacks ‚ÍuŒoŒ±’lv‚ª‘å‚«‚¢•û‚©‚çƒ\[ƒg‚³‚ê‚Ä‚¢‚é‚Æ‰¼’è‚·‚é
-	// –ß‚è’l: card‚Ì”z—ñ
+	// stacks ã‹ã‚‰æœ€å¤§ n æšé¸ã‚“ã§ remain_exp æ¡ä»¶ã‚’æº€ãŸã™ã‚‚ã®ã®ã†ã¡ã€ä¾¡å€¤ãŒæœ€å°ã®çµ„ã¿åˆã‚ã›ã‚’æ¢ã™
+	// ã¾ã‚10æšä»¥ä¸‹ã ã—å…¨æ¢ç´¢ã§ã„ã£ã¦ã¿ã‚ˆãƒ¼
+	// stacks ã¯ã€ŒçµŒé¨“å€¤ã€ãŒå¤§ãã„æ–¹ã‹ã‚‰ã‚½ãƒ¼ãƒˆã•ã‚Œã¦ã„ã‚‹ã¨ä»®å®šã™ã‚‹
+	// æˆ»ã‚Šå€¤: cardã®é…åˆ—
 	function _get_great_n(arg_remain_exp, arg_stacks, n){
 		var cur_array = new Array;
 		for (var i=0; i<arg_stacks.length; i++) {
@@ -1319,7 +1319,7 @@ function calc_minexp_lastgreat_of_s_simple(base_exp, goal_exp, original_stacks, 
 			var card_value = st.card.value_as_feed;
 			
 			var climit = Math.ceil(remain_exp / card_exp);
-			// ŠÈˆÕF‚à‚µ‚à[pos]‚ÌƒJ[ƒh(–‡”§ŒÀ‚È‚µ)‚Åc‚è‚ğ–„‚ß‚Ä‚à‘«‚è‚È‚¢‚È‚çA‚à‚¤ğŒ‚ğ–‚½‚·‚±‚Æ‚Í‚È‚¢
+			// ç°¡æ˜“ï¼šã‚‚ã—ã‚‚[pos]ã®ã‚«ãƒ¼ãƒ‰(æšæ•°åˆ¶é™ãªã—)ã§æ®‹ã‚Šã‚’åŸ‹ã‚ã¦ã‚‚è¶³ã‚Šãªã„ãªã‚‰ã€ã‚‚ã†æ¡ä»¶ã‚’æº€ãŸã™ã“ã¨ã¯ãªã„
 			if (empty_count < climit) return false;
 			
 			var cmax = climit;
@@ -1347,7 +1347,7 @@ function calc_minexp_lastgreat_of_s_simple(base_exp, goal_exp, original_stacks, 
 					}
 					
 				} else {
-					// pos == stacks.length - 1 ‚È‚Ì‚ÅA‚±‚êˆÈã‚ÍˆÓ–¡‚ª‚È‚¢
+					// pos == stacks.length - 1 ãªã®ã§ã€ã“ã‚Œä»¥ä¸Šã¯æ„å‘³ãŒãªã„
 					break;
 				}
 			}
@@ -1359,13 +1359,13 @@ function calc_minexp_lastgreat_of_s_simple(base_exp, goal_exp, original_stacks, 
 }
 
 
-// ‘±‚«‚àŒvZ
+// ç¶šãã‚‚è¨ˆç®—
 function calc_minexp_lastgreat_of_s(base_exp, goal_exp, arg_stacks, limit_level, exp_table, gold_table, once_min_count){
 	var stacks = FKGCardStack.duplicate(arg_stacks);
 	var solution = calc_minexp_lastgreat_of_s_simple(base_exp, goal_exp, stacks, limit_level, exp_table, gold_table, once_min_count);
 	
 	if (solution && solution.list.length >= 1) {
-		// ‘±‚«‚ÌŒvZ
+		// ç¶šãã®è¨ˆç®—
 		var last_once = solution.list[solution.list.length - 1];
 		var succeed_exp = last_once.before_experience + last_once.recalcExp(false);
 		var once_count = solution.list.length;
@@ -1374,17 +1374,17 @@ function calc_minexp_lastgreat_of_s(base_exp, goal_exp, arg_stacks, limit_level,
 		var fixed_stacks = new Array;
 		var unresolved_stacks = new Array;
 		FKGCardStack.separateFixedStacks(fixed_stacks, unresolved_stacks, stacks);
-		// g‚Á‚½ƒJ[ƒh‚ğœŠO
-		// ‚±‚ê‚Å unresolved_stacks ‚ªc‚è‚ÌƒJ[ƒhAŒÅ’è‚Í‚à‚¤‚È‚¢
+		// ä½¿ã£ãŸã‚«ãƒ¼ãƒ‰ã‚’é™¤å¤–
+		// ã“ã‚Œã§ unresolved_stacks ãŒæ®‹ã‚Šã®ã‚«ãƒ¼ãƒ‰ã€å›ºå®šã¯ã‚‚ã†ãªã„
 		_remove_list_cards(unresolved_stacks, solution);
 		
 		while (succeed_exp < goal_exp) {
-			// ¬Œ÷‚©‚ç‚ÌŒvZ
+			// æˆåŠŸã‹ã‚‰ã®è¨ˆç®—
 			var pl = calc_minexp_lastgreat_of_s_simple(succeed_exp, goal_exp, unresolved_stacks, limit_level, exp_table, gold_table, once_min_count);
 			
 			if (!pl.completed) break;
 			
-			// solution‚Ö‚Ì’Ç‰Á
+			// solutionã¸ã®è¿½åŠ 
 			for (var i=0; i<pl.list.length; i++) {
 				var once = pl.list[i];
 				once.number = ++once_count;
@@ -1392,7 +1392,7 @@ function calc_minexp_lastgreat_of_s(base_exp, goal_exp, arg_stacks, limit_level,
 				once.total_gold_to_powerup = total_gold;
 				
 				if (i == pl.list.length - 1) {
-					// ƒ‰ƒXƒg‚Í‚â‚Á‚Ï‚è¬Œ÷ˆµ‚¢‚Å‘±s
+					// ãƒ©ã‚¹ãƒˆã¯ã‚„ã£ã±ã‚ŠæˆåŠŸæ‰±ã„ã§ç¶šè¡Œ
 					once.suppose_great = false;
 					once.gain_experience = once.recalcExp(false);
 					once.end_experience = once.before_experience + once.gain_experience;
@@ -1401,13 +1401,13 @@ function calc_minexp_lastgreat_of_s(base_exp, goal_exp, arg_stacks, limit_level,
 				solution.push_back(once, 2);
 			}
 			
-			// unresolved_stacks ‚ÌXV
+			// unresolved_stacks ã®æ›´æ–°
 			_remove_list_cards(unresolved_stacks, pl);
 			
 			succeed_exp = last_once.end_experience;
 		}
 		
-		// ƒRƒƒ“ƒg‚Ì(’Ç‰Á)•ÒW
+		// ã‚³ãƒ¡ãƒ³ãƒˆã®(è¿½åŠ )ç·¨é›†
 		if (solution.sublist.length >= 1) {
 			solution.setLastComment(1, COMMENT_TO_NTH(solution.list.length + 1), COMMENT_COMPLETE);
 			solution.setOnceComments(2, goal_exp, COMMENT_COMPLETE, COMMENT_RECALC, COMMENT_COMPLETE, COMMENT_LACK);
@@ -1417,7 +1417,7 @@ function calc_minexp_lastgreat_of_s(base_exp, goal_exp, arg_stacks, limit_level,
 	return solution;
 	
 	
-	// stack‚©‚çpl‚Åg—p‚µ‚½ƒJ[ƒh‚ğæ‚èœ‚­
+	// stackã‹ã‚‰plã§ä½¿ç”¨ã—ãŸã‚«ãƒ¼ãƒ‰ã‚’å–ã‚Šé™¤ã
 	function _remove_list_cards(stacks, pl){
 		for (var i=0; i<pl.list.length; i++) {
 			FKGCardStack.removeCards(stacks, pl.list[i].materials);

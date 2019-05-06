@@ -1,35 +1,35 @@
 
-// ƒf[ƒ^
-// const‚Í‹C•ª
+// ãƒ‡ãƒ¼ã‚¿
+// constã¯æ°—åˆ†
 const SHIPTYPE_TP_DEFINITION = [
-	{id: 0 , name: "‚È‚µ"      , tp_s: 0, viewname: "-"},
+	{id: 0 , name: "ãªã—"      , tp_s: 0, viewname: "-"},
 	
-	{id: 1 , name: "‹ì’€ŠÍ"    , tp_s: 5},
-	{id: 2 , name: "Œy„—mŠÍ"  , tp_s: 2},
-	{id: 11, name: "‹S“{‰ü“ñ"  , tp_s: 10, viewname: "Œy„—mŠÍ (‹S“{‰ü“ñ)"},
-	{id: 3 , name: "…ã‹@•êŠÍ", tp_s: 9},
-	{id: 4 , name: "q‹ó„—mŠÍ", tp_s: 4},
-	{id: 5 , name: "q‹óíŠÍ"  , tp_s: 7},
-	{id: 6 , name: "—ûK„—mŠÍ", tp_s: 6},
-	{id: 7 , name: "•â‹‹ŠÍ"    , tp_s: 15},
-	{id: 8 , name: "—g—¤ŠÍ"    , tp_s: 12},
-	{id: 9 , name: "ö…‹ó•ê"  , tp_s: 1},
-	{id: 10, name: "ö…•êŠÍ"  , tp_s: 7},
+	{id: 1 , name: "é§†é€è‰¦"    , tp_s: 5},
+	{id: 2 , name: "è»½å·¡æ´‹è‰¦"  , tp_s: 2},
+	{id: 11, name: "é¬¼æ€’æ”¹äºŒ"  , tp_s: 10, viewname: "è»½å·¡æ´‹è‰¦ (é¬¼æ€’æ”¹äºŒ)"},
+	{id: 3 , name: "æ°´ä¸Šæ©Ÿæ¯è‰¦", tp_s: 9},
+	{id: 4 , name: "èˆªç©ºå·¡æ´‹è‰¦", tp_s: 4},
+	{id: 5 , name: "èˆªç©ºæˆ¦è‰¦"  , tp_s: 7},
+	{id: 6 , name: "ç·´ç¿’å·¡æ´‹è‰¦", tp_s: 6},
+	{id: 7 , name: "è£œçµ¦è‰¦"    , tp_s: 15},
+	{id: 8 , name: "æšé™¸è‰¦"    , tp_s: 12},
+	{id: 9 , name: "æ½œæ°´ç©ºæ¯"  , tp_s: 1},
+	{id: 10, name: "æ½œæ°´æ¯è‰¦"  , tp_s: 7},
 	
-	// ˆÈ‰º‚ÍTP0
-	{id: 101, name: "íŠÍ"        , tp_s: 0},
-	{id: 102, name: "³‹K‹ó•ê"    , tp_s: 0},
-	{id: 103, name: "Œy‹ó•ê"      , tp_s: 0},
-	{id: 104, name: "d„—mŠÍ"    , tp_s: 0},
-	{id: 105, name: "d—‹‘•„—mŠÍ", tp_s: 0},
-	{id: 106, name: "ŠC–hŠÍ"      , tp_s: 0},
+	// ä»¥ä¸‹ã¯TP0
+	{id: 101, name: "æˆ¦è‰¦"        , tp_s: 0},
+	{id: 102, name: "æ­£è¦ç©ºæ¯"    , tp_s: 0},
+	{id: 103, name: "è»½ç©ºæ¯"      , tp_s: 0},
+	{id: 104, name: "é‡å·¡æ´‹è‰¦"    , tp_s: 0},
+	{id: 105, name: "é‡é›·è£…å·¡æ´‹è‰¦", tp_s: 0},
+	{id: 106, name: "æµ·é˜²è‰¦"      , tp_s: 0},
 ];
 
 const EQUIPMENT_TP_DEFINITION = [
-	{id: 1, name: "ƒhƒ‰ƒ€ŠÊ"    , tp_s: 5},
-	{id: 2, name: "‘å”­“®’ø"    , tp_s: 8},
-	{id: 3, name: "“Á“ñ®“à‰Î’ø", tp_s: 2},
-	{id: 4, name: "í“¬—ÆH"    , tp_s: 1},
+	{id: 1, name: "ãƒ‰ãƒ©ãƒ ç¼¶"    , tp_s: 5},
+	{id: 2, name: "å¤§ç™ºå‹•è‰‡"    , tp_s: 8},
+	{id: 3, name: "ç‰¹äºŒå¼å†…ç«è‰‡", tp_s: 2},
+	{id: 4, name: "æˆ¦é—˜ç³§é£Ÿ"    , tp_s: 1},
 ];
 
 const SHIP_MAX_COUNT = 12;
@@ -41,13 +41,13 @@ document.addEventListener("DOMContentLoaded", kancolle_tp_init);
 
 // -------------------------------------------------------------------------------------------------
 function kancolle_tp_init(){
-	// ‰Šú‰»‚ÆƒCƒxƒ“ƒg‚Ìİ’è
+	// åˆæœŸåŒ–ã¨ã‚¤ãƒ™ãƒ³ãƒˆã®è¨­å®š
 	function _set_change_ev(id, ev){
 		let elem = DOM(id);
 		if (elem) {
 			elem.addEventListener("change", ev);
 		} else {
-			console.log("id: " + id + " ‚ªŒ©‚Â‚©‚è‚Ü‚¹‚ñ");
+			console.log("id: " + id + " ãŒè¦‹ã¤ã‹ã‚Šã¾ã›ã‚“");
 		}
 	}
 	
@@ -72,22 +72,22 @@ function kancolle_tp_init(){
 	_set_change_ev("use_noerror", ev_change_use_noerror);
 	DOM("clear_button").addEventListener("click", ev_click_clear_button);
 	
-	// D&D‚Å“ü‚ê‘Ö‚¦‰Â”\‚É‚·‚é
+	// D&Dã§å…¥ã‚Œæ›¿ãˆå¯èƒ½ã«ã™ã‚‹
 	init_dragdrop();
 	
-	// ƒf[ƒ^‚Ì“Ç‚İ‚İ
+	// ãƒ‡ãƒ¼ã‚¿ã®èª­ã¿è¾¼ã¿
 	load_formdata();
 	
-	// ƒZƒ‹•\¦‚Æ‘¾š
+	// ã‚»ãƒ«è¡¨ç¤ºã¨å¤ªå­—
 	refresh_table();
 	
-	// ŒvZ
+	// è¨ˆç®—
 	calc_tp();
 	
-	// ƒqƒ“ƒg
+	// ãƒ’ãƒ³ãƒˆ
 	init_hint_table();
 	
-	console.log("‚à");
+	console.log("ã‚‚");
 }
 
 
@@ -95,15 +95,15 @@ function init_shiplist(select){
 	remove_children(select);
 	
 	var group_t = document.createElement("optgroup");
-	group_t.label = "TP‚ ‚è";
+	group_t.label = "TPã‚ã‚Š";
 	var group_tp0 = document.createElement("optgroup");
-	group_tp0.label = "TP‚È‚µ";
+	group_tp0.label = "TPãªã—";
 	
 	for (let i=0; i<SHIPTYPE_TP_DEFINITION.length; i++) {
 		let d = SHIPTYPE_TP_DEFINITION[i];
 		let opt = new Option(d.viewname || d.name, d.id);
 		
-		// ƒOƒ‹[ƒv‰»‚·‚é
+		// ã‚°ãƒ«ãƒ¼ãƒ—åŒ–ã™ã‚‹
 		if (d.tp_s > 0) {
 			group_t.appendChild(opt);
 		} else if (d.id > 0) {
@@ -140,7 +140,7 @@ function init_hint_table(){
 	remove_children(table);
 	
 	let cap = document.createElement("caption");
-	cap.textContent = "ŠÍíTP‚Ìˆê——";
+	cap.textContent = "è‰¦ç¨®TPã®ä¸€è¦§";
 	table.appendChild(cap);
 	
 	let tbody = document.createElement("tbody");
@@ -159,14 +159,14 @@ function init_hint_table(){
 	
 	let row_length = Math.ceil(show_arr.length / 2);
 	
-	// ŠÍí,SŸ—˜,AŸ—˜ ‚ğ2‚Â•À‚×‚é
+	// è‰¦ç¨®,Så‹åˆ©,Aå‹åˆ© ã‚’2ã¤ä¸¦ã¹ã‚‹
 	tbody.appendChild( create_row([
 		create_cell("th"),
-		create_cell("th", "SŸ—˜"),
-		create_cell("th", "AŸ—˜"),
+		create_cell("th", "Så‹åˆ©"),
+		create_cell("th", "Aå‹åˆ©"),
 		create_cell("th"),
-		create_cell("th", "SŸ—˜"),
-		create_cell("th", "AŸ—˜"),
+		create_cell("th", "Så‹åˆ©"),
+		create_cell("th", "Aå‹åˆ©"),
 	]) );
 	
 	for (let i=0; i<row_length; i++) {
@@ -176,8 +176,8 @@ function init_hint_table(){
 		tbody.appendChild(tr);
 	}
 	
-	// TP0‚ÌƒŠƒXƒg
-	let tp0_text = "¦ " + tp0_names.join("A") + "‚ÌTP‚Í0‚Å‚·";
+	// TP0ã®ãƒªã‚¹ãƒˆ
+	let tp0_text = "â€» " + tp0_names.join("ã€") + "ã®TPã¯0ã§ã™";
 	tbody.appendChild(create_cell("td", tp0_text, 6, 1, "comment"));
 	
 	table.appendChild(tbody);
@@ -237,21 +237,21 @@ function ev_change_use_noerror(){
 
 function ev_click_clear_button(){
 	clear_form();
-	// ŒëƒNƒŠƒA‚Ì‚Æ‚«‚ÍƒŠƒ[ƒh‚·‚é‚ÆƒLƒƒƒ“ƒZƒ‹
-	// ‚½‚¾‚µƒuƒ‰ƒEƒU‚Éƒf[ƒ^‚ğ•Û‘¶‚µ‚Ä‚¢‚éê‡‚Ì‚İ
-	// ‚Æ‚¢‚¤‘½•ªg‚í‚ê‚È‚¢‹@”\
+	// èª¤ã‚¯ãƒªã‚¢ã®ã¨ãã¯ãƒªãƒ­ãƒ¼ãƒ‰ã™ã‚‹ã¨ã‚­ãƒ£ãƒ³ã‚»ãƒ«
+	// ãŸã ã—ãƒ–ãƒ©ã‚¦ã‚¶ã«ãƒ‡ãƒ¼ã‚¿ã‚’ä¿å­˜ã—ã¦ã„ã‚‹å ´åˆã®ã¿
+	// ã¨ã„ã†å¤šåˆ†ä½¿ã‚ã‚Œãªã„æ©Ÿèƒ½
 	//record_formdata(); 
 	calc_tp();
 }
 
 // dragdrop
 function ev_dragstart(e){
-	// dataTransfer‚Ì—˜—p‚É‚æ‚Á‚Äƒhƒ‰ƒbƒO‰Â”\‚É‚È‚é
+	// dataTransferã®åˆ©ç”¨ã«ã‚ˆã£ã¦ãƒ‰ãƒ©ãƒƒã‚°å¯èƒ½ã«ãªã‚‹
 	e.dataTransfer.setData("drag_id", e.target.id);
 }
 
 function ev_dragover(e){
-	// ƒfƒtƒHƒ‹ƒg‚ğƒLƒƒƒ“ƒZƒ‹‚µ‚½—v‘f‚ªƒhƒƒbƒv‰Â”\‚ÈêŠ
+	// ãƒ‡ãƒ•ã‚©ãƒ«ãƒˆã‚’ã‚­ãƒ£ãƒ³ã‚»ãƒ«ã—ãŸè¦ç´ ãŒãƒ‰ãƒ­ãƒƒãƒ—å¯èƒ½ãªå ´æ‰€
 	let drag_id = e.dataTransfer.getData("drag_id");
 	if (drag_id != e.target.id) {
 		e.preventDefault();
@@ -259,11 +259,11 @@ function ev_dragover(e){
 }
 
 function ev_drop(e){
-	// ƒhƒƒbƒv
+	// ãƒ‰ãƒ­ãƒƒãƒ—
 	e.preventDefault();
 	let drag_id = e.dataTransfer.getData("drag_id");
 	
-	// Ctrl‚Ì‚İ‚ğ‰Ÿ‚µ‚Ä‚¢‚éê‡‚ÍƒRƒs[
+	// Ctrlã®ã¿ã‚’æŠ¼ã—ã¦ã„ã‚‹å ´åˆã¯ã‚³ãƒ”ãƒ¼
 	if (e.ctrlKey && !e.shiftKey && !e.altKey) {
 		copy_ship(_id_to_num(drag_id), _id_to_num(e.target.id));
 	} else {
@@ -288,7 +288,7 @@ function set_shipTP_SA(number){
 		let val = parseInt(input.value, 10);
 		let param = get_param_by_id(SHIPTYPE_TP_DEFINITION, val);
 		
-		// AŸ—˜‚ÍŒë·‚È‚µ‚ğ•\¦
+		// Aå‹åˆ©ã¯èª¤å·®ãªã—ã‚’è¡¨ç¤º
 		cell_s.textContent = (val > 0 && param) ? param.tp_s : "";
 		cell_a.textContent = (val > 0 && param) ? float_to_string(param.tp_s * 7 / 10, 1) : "";
 	}
@@ -301,12 +301,12 @@ function set_userTP_A(number){
 	
 	if (tp_s && cell_a) {
 		let val = formstr_to_float(tp_s.value, 0, 0);
-		// AŸ—˜‚ÍŒë·‚È‚µ‚ğ•\¦
+		// Aå‹åˆ©ã¯èª¤å·®ãªã—ã‚’è¡¨ç¤º
 		cell_a.textContent = float_to_string(val.value * 7 / 10, 1, -1);
 	}
 }
 
-// input‚Ì‘¾š‚ğİ’è
+// inputã®å¤ªå­—ã‚’è¨­å®š
 function set_input_bold(input){
 	let val = parseFloat(input.value, 10);
 	if (val > 0) input.classList.add("bold");
@@ -314,7 +314,7 @@ function set_input_bold(input){
 }
 
 
-// ‘S‚Ä‚Ì•\¦‚É‚Â‚¢‚ÄÄİ’è
+// å…¨ã¦ã®è¡¨ç¤ºã«ã¤ã„ã¦å†è¨­å®š
 function refresh_table(){
 	let counts = [
 		"drum", "daihatsu", "naikatei", "onigiri",
@@ -333,13 +333,13 @@ function refresh_table(){
 }
 
 
-// a”Ô‚Æb”Ô‚ÌŠÍ‚ğ“ü‚ê‘Ö‚¦
+// aç•ªã¨bç•ªã®è‰¦ã‚’å…¥ã‚Œæ›¿ãˆ
 function swap_ship(a, b){
 	let ship_a = DOM("ship_" + a);
 	let ship_b = DOM("ship_" + b);
 	
 	if (!ship_a || !ship_b) {
-		console.log("swap‚Å‚«‚Ü‚¹‚ñ:", a, b);
+		console.log("swapã§ãã¾ã›ã‚“:", a, b);
 		return;
 	}
 	
@@ -352,13 +352,13 @@ function swap_ship(a, b){
 }
 
 
-// a”Ô‚ğb”Ô‚ÉƒRƒs[
+// aç•ªã‚’bç•ªã«ã‚³ãƒ”ãƒ¼
 function copy_ship(a, b){
 	let ship_a = DOM("ship_" + a);
 	let ship_b = DOM("ship_" + b);
 	
 	if (!ship_a || !ship_b) {
-		console.log("swap‚Å‚«‚Ü‚¹‚ñ:", a, b);
+		console.log("swapã§ãã¾ã›ã‚“:", a, b);
 		return;
 	}
 	
@@ -368,12 +368,12 @@ function copy_ship(a, b){
 }
 
 
-// ƒtƒH[ƒ€‚ÆlocalStorage --------------------------------------------------------------------------
-// ƒtƒH[ƒ€‚Ìƒf[ƒ^•Û‘¶ŠÖŒW
-// •¶š—ñ‚ğ‚»‚Ì‚Ü‚Ü•Û‘¶‚·‚é‚à‚Ì‚Æ‚·‚é
+// ãƒ•ã‚©ãƒ¼ãƒ ã¨localStorage --------------------------------------------------------------------------
+// ãƒ•ã‚©ãƒ¼ãƒ ã®ãƒ‡ãƒ¼ã‚¿ä¿å­˜é–¢ä¿‚
+// æ–‡å­—åˆ—ã‚’ãã®ã¾ã¾ä¿å­˜ã™ã‚‹ã‚‚ã®ã¨ã™ã‚‹
 
 function get_value_ids(){
-	// value ‚ğ•Û‘¶‚·‚é‚à‚Ì
+	// value ã‚’ä¿å­˜ã™ã‚‹ã‚‚ã®
 	let value_ids = new Array;
 	
 	for (let i=1; i<=SHIP_MAX_COUNT; i++) {
@@ -394,7 +394,7 @@ function get_checked_ids(){
 
 
 function save_formdata(){
-	// checked ‚ğ•Û‘¶‚·‚é‚à‚Ì
+	// checked ã‚’ä¿å­˜ã™ã‚‹ã‚‚ã®
 	let value_ids = get_value_ids();
 	let checked_ids = get_checked_ids();
 	
@@ -429,7 +429,7 @@ function remove_formdata(){
 }
 
 
-// İ’è‚ÉŠî‚Ã‚¢‚Ä‹L˜^‚âíœ‚ğs‚¤
+// è¨­å®šã«åŸºã¥ã„ã¦è¨˜éŒ²ã‚„å‰Šé™¤ã‚’è¡Œã†
 function record_formdata(){
 	let savemode = DOM("record_data").checked;
 	
@@ -441,8 +441,8 @@ function record_formdata(){
 }
 
 
-// ƒtƒH[ƒ€‚ğƒNƒŠƒA
-// ƒIƒvƒVƒ‡ƒ“‚Íc‚·
+// ãƒ•ã‚©ãƒ¼ãƒ ã‚’ã‚¯ãƒªã‚¢
+// ã‚ªãƒ—ã‚·ãƒ§ãƒ³ã¯æ®‹ã™
 function clear_form(){
 	let value_ids = get_value_ids();
 	
@@ -461,7 +461,7 @@ function clear_form(){
 
 
 
-// ”Ä—p
+// æ±ç”¨
 function get_element_values(out, ids){
 	for (let i=0; i<ids.length; i++) {
 		let e = DOM(ids[i]);
@@ -516,15 +516,15 @@ function set_element_checks(data, ids, ignore_nodata){
 
 
 // calc --------------------------------------------------------------------------------------------
-// ‡Œv‚ÌTP“™‚ğŒvZ‚µ‚Ä•\¦
+// åˆè¨ˆã®TPç­‰ã‚’è¨ˆç®—ã—ã¦è¡¨ç¤º
 function calc_tp(){
-	// form‚©‚ç“Ç‚İæ‚é
+	// formã‹ã‚‰èª­ã¿å–ã‚‹
 	let totaltp_s = 0;
 	let remaining_tp = 0;
 	let noerror_mode = DOM("use_noerror").checked;
 	let form_error = false;
 	
-	// ŠÍí
+	// è‰¦ç¨®
 	for (let i=1; i<=SHIP_MAX_COUNT; i++) {
 		let input = DOM("ship_" + i);
 		let id = formstr_to_int(input.value);
@@ -533,20 +533,20 @@ function calc_tp(){
 			let param = get_param_by_id(SHIPTYPE_TP_DEFINITION, id.value);
 			
 			if (!param) {
-				console.log("ŠÍí‚ÌTP‚ª’è‹`‚É‚È‚¢‚Å‚¿", id.value);
+				console.log("è‰¦ç¨®ã®TPãŒå®šç¾©ã«ãªã„ã§ã¡", id.value);
 				continue;
 			}
 			totaltp_s += param.tp_s;
 		}
 	}
-	// ‘•”õ
-	_add_equip_tp("ƒhƒ‰ƒ€ŠÊ"    , "drum"    );
-	_add_equip_tp("‘å”­“®’ø"    , "daihatsu");
-	_add_equip_tp("“Á“ñ®“à‰Î’ø", "naikatei");
-	_add_equip_tp("í“¬—ÆH"    , "onigiri" );
-	// ’¼Ú“ü—Í
+	// è£…å‚™
+	_add_equip_tp("ãƒ‰ãƒ©ãƒ ç¼¶"    , "drum"    );
+	_add_equip_tp("å¤§ç™ºå‹•è‰‡"    , "daihatsu");
+	_add_equip_tp("ç‰¹äºŒå¼å†…ç«è‰‡", "naikatei");
+	_add_equip_tp("æˆ¦é—˜ç³§é£Ÿ"    , "onigiri" );
+	// ç›´æ¥å…¥åŠ›
 	for (let i=1; i<=3; i++) _add_user_tp(i);
-	// c‚èTP
+	// æ®‹ã‚ŠTP
 	let rem = formstr_to_int(DOM("remaining_tp").value);
 	if (!rem.good() || rem.value < 0) {
 		form_error = true;
@@ -554,17 +554,17 @@ function calc_tp(){
 		remaining_tp = rem.value;
 	}
 	
-	// ¬”“ü—Íb’è‘Î‰
-	// ‚Ü‚ g‚í‚È‚¢‚©
+	// å°æ•°å…¥åŠ›æš«å®šå¯¾å¿œ
+	// ã¾ã‚ä½¿ã‚ãªã„ã‹
 	totaltp_s = Math.floor(totaltp_s);
 	
 	
-	// ã‚Åg‚¤ŠÖ”
+	// ä¸Šã§ä½¿ã†é–¢æ•°
 	function _add_equip_tp(name, input_id){
 		let elem = DOM(input_id);
 		let param = get_param_by_name(EQUIPMENT_TP_DEFINITION, name);
 		if (!param) {
-			console.log("‘•”õ‚ÌTP‚ª’è‹`‚É‚È‚¢‚Å‚¿", name);
+			console.log("è£…å‚™ã®TPãŒå®šç¾©ã«ãªã„ã§ã¡", name);
 			return;
 		}
 		let val = formstr_to_int(elem.value);
@@ -587,7 +587,7 @@ function calc_tp(){
 		totaltp_s += tp.value * count.value;
 	}
 	
-	// “Ç‚İ‚İ‚±‚±‚Ü‚Å
+	// èª­ã¿è¾¼ã¿ã“ã“ã¾ã§
 	
 	
 	let s_text = "";
@@ -597,10 +597,10 @@ function calc_tp(){
 	let comment = "";
 	
 	if (!form_error) {
-		// “Ç‚İ‚İOK
+		// èª­ã¿è¾¼ã¿OK
 		
-		// 0.7”{‚µ‚Ä‚©‚çØ‚èÌ‚Ä‚È‚Ì‚ÅAŒvZŒë·‚ª”­¶‚·‚éê‡‚ª‚ ‚é
-		// JavaScript‚Æ“¯‚¶‚©‚Í•s–¾
+		// 0.7å€ã—ã¦ã‹ã‚‰åˆ‡ã‚Šæ¨ã¦ãªã®ã§ã€è¨ˆç®—èª¤å·®ãŒç™ºç”Ÿã™ã‚‹å ´åˆãŒã‚ã‚‹
+		// JavaScriptã¨åŒã˜ã‹ã¯ä¸æ˜
 		let totaltp_a_raw = Math.floor(totaltp_s * 0.7);
 		let totaltp_a_noerror = Math.floor(totaltp_s * 7 / 10);
 		
@@ -613,7 +613,7 @@ function calc_tp(){
 			s_count_text = float_to_string(remaining_tp / totaltp_s, 2, 1);
 			a_count_text = totaltp_a > 0 ? float_to_string(remaining_tp / totaltp_a, 2, 1) : "-";
 			
-			// •K—v‰ñ”
+			// å¿…è¦å›æ•°
 			let req = Math.ceil(remaining_tp / totaltp_s);
 			let over = totaltp_s * req - remaining_tp;
 			
@@ -621,20 +621,20 @@ function calc_tp(){
 			let s_req = req - a_req;
 			
 			let arr = [];
-			if (s_req > 0) arr.push("SŸ—˜" + s_req + "‰ñ");
-			if (a_req > 0) arr.push("AŸ—˜" + a_req + "‰ñ");
+			if (s_req > 0) arr.push("Så‹åˆ©" + s_req + "å›");
+			if (a_req > 0) arr.push("Aå‹åˆ©" + a_req + "å›");
 			
-			comment = arr.join("‚Æ") + "‚Å’B¬‚Å‚«‚Ü‚·B<br>";
+			comment = arr.join("ã¨") + "ã§é”æˆã§ãã¾ã™ã€‚<br>";
 			
 		} else {
 			s_count_text = "-";
 			a_count_text = "-";
 		}
 		
-		// Œë·‚ÌŒx
+		// èª¤å·®ã®è­¦å‘Š
 		if (totaltp_a_raw != totaltp_a_noerror) {
 			a_text += "*";
-			comment += "AŸ—˜AŒvZŒë·‚ª”­¶‚·‚é‰Â”\«‚ª‚ ‚è‚Ü‚·B<br>Œë·‚È‚µAŸ—˜TP: " + totaltp_a_noerror;
+			comment += "Aå‹åˆ©æ™‚ã€è¨ˆç®—èª¤å·®ãŒç™ºç”Ÿã™ã‚‹å¯èƒ½æ€§ãŒã‚ã‚Šã¾ã™ã€‚<br>èª¤å·®ãªã—Aå‹åˆ©TP: " + totaltp_a_noerror;
 		}
 	}
 	

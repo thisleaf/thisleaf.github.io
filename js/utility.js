@@ -1,7 +1,7 @@
-// ‚¢‚ë‚¢‚ë‚Èƒy[ƒW‚Åg‚¦‚éŠÖ”‚Ì‚Ü‚Æ‚ß
+// ã„ã‚ã„ã‚ãªãƒšãƒ¼ã‚¸ã§ä½¿ãˆã‚‹é–¢æ•°ã®ã¾ã¨ã‚
 
-// ‚±‚Ìƒtƒ@ƒCƒ‹‚Åg‚í‚ê‚éƒNƒ‰ƒX --------------------------------------------------------------------
-// ƒtƒH[ƒ€‚Ì•¶š—ñ‚È‚Ç‚Ì•ÏŠ·Œ‹‰Ê
+// ã“ã®ãƒ•ã‚¡ã‚¤ãƒ«ã§ä½¿ã‚ã‚Œã‚‹ã‚¯ãƒ©ã‚¹ --------------------------------------------------------------------
+// ãƒ•ã‚©ãƒ¼ãƒ ã®æ–‡å­—åˆ—ãªã©ã®å¤‰æ›çµæœ
 ConvertResult.prototype = {
 	value: 0,
 	error: false,
@@ -44,21 +44,21 @@ function ConvertResult_static_good(x){
 }
 
 
-// ”Ä—pŠÖ” ----------------------------------------------------------------------------------------
-// 2¬”‚É‚Â‚¢‚ÄA‹ß‚­‚É‚ ‚é‚©
+// æ±ç”¨é–¢æ•° ----------------------------------------------------------------------------------------
+// 2å°æ•°ã«ã¤ã„ã¦ã€è¿‘ãã«ã‚ã‚‹ã‹
 function is_near(x, y, d){
 	return Math.abs(x - y) <= d;
 }
 
 // xor (boolean)
-// ‚Ü‚  != ‚È‚ñ‚Å‚¿‚¯‚Ç
+// ã¾ã‚ != ãªã‚“ã§ã¡ã‘ã©
 function xor(a, b){
 	return (a ? 1 : 0) != (b ? 1 : 0);
 }
 
 
-// ‚Ä‚«[‚Æ‚È•ÏŠ·ŠÖ”
-// x‚Æ‚©flen‚ª‘å‚«‚­‚È‚é‚Æ‚¤‚Ü‚­•ÏŠ·‚Å‚«‚È‚¢‚©‚à
+// ã¦ããƒ¼ã¨ãªå¤‰æ›é–¢æ•°
+// xã¨ã‹flenãŒå¤§ãããªã‚‹ã¨ã†ã¾ãå¤‰æ›ã§ããªã„ã‹ã‚‚
 function float_to_string(x, flen, dir){
 	if (!(flen >= 0)) flen = 0;
 	
@@ -83,8 +83,8 @@ function float_to_string(x, flen, dir){
 }
 
 
-// ©“®id‚Ì’Ç‰Á
-// —v‘f‚ğ’Ç‰Á‚µ‚½‚Æ‚«‚Éid‚ª•Ï‚í‚Á‚Ä‚µ‚Ü‚¤‚©‚à‚µ‚ê‚È‚¢‚Ì‚Í”÷–­‚©‚à
+// è‡ªå‹•idã®è¿½åŠ 
+// è¦ç´ ã‚’è¿½åŠ ã—ãŸã¨ãã«idãŒå¤‰ã‚ã£ã¦ã—ã¾ã†ã‹ã‚‚ã—ã‚Œãªã„ã®ã¯å¾®å¦™ã‹ã‚‚
 function add_autoid(json, begin){
 	for (var i=0; i<json.length; i++) {
 		if (json[i] && !json[i].hasOwnProperty("id")) {
@@ -94,15 +94,15 @@ function add_autoid(json, begin){
 	return json;
 }
 
-// id -> ƒf[ƒ^ ‚Ìƒ}ƒbƒv‚ğì¬
-// json: id‚ğƒvƒƒpƒeƒB‚É‚ÂƒIƒuƒWƒFƒNƒg(ƒf[ƒ^)‚Ì”z—ñ
+// id -> ãƒ‡ãƒ¼ã‚¿ ã®ãƒãƒƒãƒ—ã‚’ä½œæˆ
+// json: idã‚’ãƒ—ãƒ­ãƒ‘ãƒ†ã‚£ã«æŒã¤ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆ(ãƒ‡ãƒ¼ã‚¿)ã®é…åˆ—
 function makemap_by_id(json){
 	var map = new Object;
 	for (var i=0; i<json.length; i++) {
 		if (json[i] && json[i].hasOwnProperty("id")) {
 			if (map.hasOwnProperty(json[i].id)) {
-				// d•¡‚ÌŒx
-				console.log("warning: id‚ªd•¡‚µ‚Ä‚¢‚Ü‚·(" + json[i].id + ")");
+				// é‡è¤‡ã®è­¦å‘Š
+				console.log("warning: idãŒé‡è¤‡ã—ã¦ã„ã¾ã™(" + json[i].id + ")");
 			}
 			map[json[i].id] = json[i];
 		}
@@ -110,14 +110,14 @@ function makemap_by_id(json){
 	return map;
 }
 
-// name”Å
+// nameç‰ˆ
 function makemap_by_name(json){
 	var map = new Object;
 	for (var i=0; i<json.length; i++) {
 		if (json[i] && json[i].hasOwnProperty("name")) {
 			if (map.hasOwnProperty(json[i].name)) {
-				// d•¡‚ÌŒx
-				console.log("warning: name‚ªd•¡‚µ‚Ä‚¢‚Ü‚·(" + json[i].name + ")");
+				// é‡è¤‡ã®è­¦å‘Š
+				console.log("warning: nameãŒé‡è¤‡ã—ã¦ã„ã¾ã™(" + json[i].name + ")");
 			}
 			map[json[i].name] = json[i];
 		}
@@ -125,8 +125,8 @@ function makemap_by_name(json){
 	return map;
 }
 
-// id‚©‚çQÆ
-// æ“ª‚©‚ç‡‚ÉŒ©‚Ä‚¢‚­‚½‚ßA‚½‚­‚³‚ñ‚Ìƒf[ƒ^‚ğQÆ‚·‚éê‡‚Íã‚ÌŠÖ”‚ÅƒIƒuƒWƒFƒNƒg‚ğì‚Á‚½‚Ù‚¤‚ª‘‚¢
+// idã‹ã‚‰å‚ç…§
+// å…ˆé ­ã‹ã‚‰é †ã«è¦‹ã¦ã„ããŸã‚ã€ãŸãã•ã‚“ã®ãƒ‡ãƒ¼ã‚¿ã‚’å‚ç…§ã™ã‚‹å ´åˆã¯ä¸Šã®é–¢æ•°ã§ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆã‚’ä½œã£ãŸã»ã†ãŒæ—©ã„
 function get_param_by_id(json, id){
 	for (var i=0; i<json.length; i++) {
 		if (json[i] && json[i].hasOwnProperty("id") && json[i].id == id) {
@@ -136,7 +136,7 @@ function get_param_by_id(json, id){
 	return null;
 }
 
-// name”Å
+// nameç‰ˆ
 function get_param_by_name(json, name){
 	for (var i=0; i<json.length; i++) {
 		if (json[i] && json[i].hasOwnProperty("name") && json[i].name == name) {
@@ -146,7 +146,7 @@ function get_param_by_name(json, name){
 	return null;
 }
 
-// x‚ª‹U‚¾‚Á‚½ê‡‚É—áŠO‚ğ“Š‚°‚é
+// xãŒå½ã ã£ãŸå ´åˆã«ä¾‹å¤–ã‚’æŠ•ã’ã‚‹
 function assert(x, message){
 	if (!x) {
 		if (!message) message = "assertion failed!";
@@ -157,8 +157,8 @@ function assert(x, message){
 
 
 
-// DOMŠÖŒW -----------------------------------------------------------------------------------------
-// jQuery ‚É‚Í $ ‚Á‚Ä‚â‚Â‚ª‚ ‚é‚ç‚µ‚¢‚ËH
+// DOMé–¢ä¿‚ -----------------------------------------------------------------------------------------
+// jQuery ã«ã¯ $ ã£ã¦ã‚„ã¤ãŒã‚ã‚‹ã‚‰ã—ã„ã­ï¼Ÿ
 function DOM(id){
 	return document.getElementById(id);
 }
@@ -232,7 +232,7 @@ function create_row(cells, className){
 }
 
 
-// qƒm[ƒh‚ğ‚·‚×‚Äíœ
+// å­ãƒãƒ¼ãƒ‰ã‚’ã™ã¹ã¦å‰Šé™¤
 function remove_children(elem){
 	while (elem.firstChild) {
 		elem.removeChild(elem.firstChild);
@@ -240,7 +240,7 @@ function remove_children(elem){
 }
 
 
-// select‚ÌƒNƒ‰ƒX‚ğ‘I‘ğ’†‚Ìoption‚ÌƒNƒ‰ƒX‚É‚·‚é
+// selectã®ã‚¯ãƒ©ã‚¹ã‚’é¸æŠä¸­ã®optionã®ã‚¯ãƒ©ã‚¹ã«ã™ã‚‹
 function option_class_inheritancer(ev){
 	var e = ev.srcElement;
 	if (e.selectedIndex >= 0) {
@@ -249,9 +249,9 @@ function option_class_inheritancer(ev){
 }
 
 
-// ƒXƒ^ƒCƒ‹‚Ì“®“I•ÏX
-// id=style_changer ‚Ìstyle—v‘f‚ª•K—v
-// ŒÃ‚¢ƒXƒ^ƒCƒ‹‚Íã‘‚«‚³‚ê‚é
+// ã‚¹ã‚¿ã‚¤ãƒ«ã®å‹•çš„å¤‰æ›´
+// id=style_changer ã®styleè¦ç´ ãŒå¿…è¦
+// å¤ã„ã‚¹ã‚¿ã‚¤ãƒ«ã¯ä¸Šæ›¸ãã•ã‚Œã‚‹
 function change_style(selector, text){
 	var style = document.getElementById("style_changer");
 	if (!style) return;
@@ -268,9 +268,9 @@ function change_style(selector, text){
 	sheet.insertRule(css, 0);
 }
 
-// •¶š—ñ‚©‚ç”’l‚Ö‚Ì•ÏŠ·
-// –ß‚è’l‚Í ConvertResult
-// ƒtƒH[ƒ€‚Ì“Ç‚İæ‚è‚È‚Ç‚É
+// æ–‡å­—åˆ—ã‹ã‚‰æ•°å€¤ã¸ã®å¤‰æ›
+// æˆ»ã‚Šå€¤ã¯ ConvertResult
+// ãƒ•ã‚©ãƒ¼ãƒ ã®èª­ã¿å–ã‚Šãªã©ã«
 function formstr_to_int(value, empty_value, error_value){
 	var res = new ConvertResult;
 	
@@ -306,8 +306,8 @@ function formstr_to_float(value, empty_value, error_value){
 }
 
 
-// •¶šÀ‘ÌQÆ‚ğ“WŠJ
-// str: “WŠJ‚·‚é•¶š—ñ
+// æ–‡å­—å®Ÿä½“å‚ç…§ã‚’å±•é–‹
+// str: å±•é–‹ã™ã‚‹æ–‡å­—åˆ—
 function unescape_charref(str){
 	if (!unescape_charref.element) {
 		unescape_charref.element = document.createElement("pre");
@@ -319,7 +319,7 @@ function unescape_charref(str){
 }
 
 
-// checkbox, radio‚Ì‚İ
+// checkbox, radioã®ã¿
 function get_form_checks(obj, ids){
 	for (var i=0; i<ids.length; i++) {
 		var e = document.getElementById(ids[i]);

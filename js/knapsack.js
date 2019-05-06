@@ -3,15 +3,15 @@ KnapsackItem.prototype = {
 	name  : "",
 	price : 0,
 	weight: 0,
-	// Å‘åŒÂ”
+	// æœ€å¤§å€‹æ•°
 	max_count: Infinity,
-	// ‘Ş”ğ—p
+	// é€€é¿ç”¨
 	max_count_orig: Infinity,
-	// ‘I‘ğ—Dæ“x
+	// é¸æŠå„ªå…ˆåº¦
 	priority: 0,
-	// ŒÄ‚Ño‚µ‘¤‚Å©—R‚Ég‚¦‚é•Ï”
+	// å‘¼ã³å‡ºã—å´ã§è‡ªç”±ã«ä½¿ãˆã‚‹å¤‰æ•°
 	tag: null,
-	// Œ³‚Ìƒf[ƒ^•œŒ³‚Ì‚½‚ß‚Ìƒf[ƒ^
+	// å…ƒã®ãƒ‡ãƒ¼ã‚¿å¾©å…ƒã®ãŸã‚ã®ãƒ‡ãƒ¼ã‚¿
 	index_orig: 0,
 	restore_tag: null,
 	
@@ -104,11 +104,11 @@ function restore_indices(items, subarray){
 }
 
 
-// ƒiƒbƒvƒTƒbƒN–â‘è‚ğ‰ğ‚­
-// weight ‡Œv‚ª max_weight ˆÈ‰º‚©‚Â price ‚ªÅ‘å‚É‚È‚é‚à‚Ì‚ğ’T‚·
-// items: KnapsackItem ‚Ì”z—ñAŒvZ’†‚Éƒ\[ƒg‚³‚ê‚é‰Â”\«‚ª‚ ‚é
-// max_weight: Å‘åd‚³
-// –ß‚è’l: ‘I‘ğ”‚Ì”z—ñ‚Ì”z—ñ
+// ãƒŠãƒƒãƒ—ã‚µãƒƒã‚¯å•é¡Œã‚’è§£ã
+// weight åˆè¨ˆãŒ max_weight ä»¥ä¸‹ã‹ã¤ price ãŒæœ€å¤§ã«ãªã‚‹ã‚‚ã®ã‚’æ¢ã™
+// items: KnapsackItem ã®é…åˆ—ã€è¨ˆç®—ä¸­ã«ã‚½ãƒ¼ãƒˆã•ã‚Œã‚‹å¯èƒ½æ€§ãŒã‚ã‚‹
+// max_weight: æœ€å¤§é‡ã•
+// æˆ»ã‚Šå€¤: é¸æŠæ•°ã®é…åˆ—ã®é…åˆ—
 function solve_knapsack(items, max_weight){
 	var dynamic_cache = new Object;
 	var len = items.length;
@@ -118,18 +118,18 @@ function solve_knapsack(items, max_weight){
 		if (!(items[i].weight > 0 && items[i].price >= 0)) return null;
 	}
 	
-	// —Dæ“x‚ª‚‚¢‡
+	// å„ªå…ˆåº¦ãŒé«˜ã„é †
 	items.sort(_priority_greater);
-	// i .. len - 1 ‚Ì–§“x‚ª‘å‚«‚¢‡‚à—pˆÓ‚µ‚Ä‚¨‚­
+	// i .. len - 1 ã®å¯†åº¦ãŒå¤§ãã„é †ã‚‚ç”¨æ„ã—ã¦ãŠã
 	var d_subitems = new Array;
 	for (var i=0; i<items.length; i++) {
 		d_subitems[i] = items.slice(i);
 		d_subitems[i].sort(_density_greater);
 	}
 	
-	// ŒvZ
+	// è¨ˆç®—
 	
-	// d‚³‚É‚Â‚¢‚ÄAŒö–ñ”‚ÅŠ„‚Á‚Ä‚¨‚­‚±‚Æ‚ÅŒvZ—Ê‚ğŒ¸‚ç‚·‚İ
+	// é‡ã•ã«ã¤ã„ã¦ã€å…¬ç´„æ•°ã§å‰²ã£ã¦ãŠãã“ã¨ã§è¨ˆç®—é‡ã‚’æ¸›ã‚‰ã™è©¦ã¿
 	var wsc = true;
 	var weight_scale;
 	var original_max_weight;
@@ -149,8 +149,8 @@ function solve_knapsack(items, max_weight){
 	var obj;
 	//if (0) {
 /*
-		// “®“IŒv‰æ–@
-		// max_weight ‚ª‘å‚«‚­‚Ä–³‘Ê‚ª‘½‚»‚¤
+		// å‹•çš„è¨ˆç”»æ³•
+		// max_weight ãŒå¤§ããã¦ç„¡é§„ãŒå¤šãã†
 		for (var i=0; i<len-1; i++) {
 			for (var j=0; j<=max_weight; j++) {
 				_dynamic(i, j);
@@ -160,7 +160,7 @@ function solve_knapsack(items, max_weight){
 */
 		
 	//} else {
-		// •ª}ŒÀ’è–@
+		// åˆ†æé™å®šæ³•
 		obj = _branch();
 	//}
 	
@@ -186,7 +186,7 @@ function solve_knapsack(items, max_weight){
 		if (imax > items[pos].max_count) imax = items[pos].max_count;
 		
 		for (var i=imax; i>=0; i--) {
-			// pos ”Ô–Ú‚ğ i ŒÂ‘‚â‚µ‚Äƒ`ƒFƒbƒN
+			// pos ç•ªç›®ã‚’ i å€‹å¢—ã‚„ã—ã¦ãƒã‚§ãƒƒã‚¯
 			var dp = i * items[pos].price;
 			
 			if (pos < len - 1) {
@@ -197,11 +197,11 @@ function solve_knapsack(items, max_weight){
 				cur.price += dp;
 				cur.weight += dw;
 				
-				// æÃ—~–@‚É‚æ‚éãŠE
+				// è²ªæ¬²æ³•ã«ã‚ˆã‚‹ä¸Šç•Œ
 				var upper = _branch_greedy_price(cur, pos + 1, sp);
 				
 				if (upper > max_price) {
-					// Ä‹A@[‚³‚Í•Ï”‚Ì”‚Ü‚Å‚È‚Ì‚ÅA‚»‚¤‚»‚¤ƒI[ƒo[ƒtƒ[‚µ‚È‚¢‚Í‚¸
+					// å†å¸°ã€€æ·±ã•ã¯å¤‰æ•°ã®æ•°ã¾ã§ãªã®ã§ã€ãã†ãã†ã‚ªãƒ¼ãƒãƒ¼ãƒ•ãƒ­ãƒ¼ã—ãªã„ã¯ãš
 					var temp = _branch_sub(cur, max_sol, pos + 1, sp);
 					if (temp.price > max_price) {
 						max_sol = temp;
@@ -216,7 +216,7 @@ function solve_knapsack(items, max_weight){
 			} else {
 				var price = cur.price + dp;
 				
-				if (price > max_price) { // == ‚ğ“ü‚ê‚È‚¯‚ê‚Î‘O‚Ì•û‚ª—Dæ“x‚‚­‚È‚é‚Í‚¸
+				if (price > max_price) { // == ã‚’å…¥ã‚Œãªã‘ã‚Œã°å‰ã®æ–¹ãŒå„ªå…ˆåº¦é«˜ããªã‚‹ã¯ãš
 					max_sol = cur.clone();
 					max_sol.counts[pos] += i;
 					max_sol.price = price;
@@ -231,11 +231,11 @@ function solve_knapsack(items, max_weight){
 	
 	function _branch_greedy_price(cur, pos, space){
 		var price = cur.price;
-		var subs = d_subitems[pos]; // pos .. len-1‚ª”äd‚ª‘å‚«‚¢‚Ù‚¤‚©‚çƒ\[ƒg‚³‚ê‚Ä‚¢‚é
+		var subs = d_subitems[pos]; // pos .. len-1ãŒæ¯”é‡ãŒå¤§ãã„ã»ã†ã‹ã‚‰ã‚½ãƒ¼ãƒˆã•ã‚Œã¦ã„ã‚‹
 		
 		for (var i=pos; i<len; i++) {
 			var j = i - pos;
-			// ”í•¢‚Å‚«‚éÅ¬”
+			// è¢«è¦†ã§ãã‚‹æœ€å°æ•°
 			var c = Math.ceil(space / subs[j].weight);
 			if (c > subs[j].max_count) c = subs[j].max_count;
 			
@@ -243,13 +243,13 @@ function solve_knapsack(items, max_weight){
 				var cw = c * subs[j].weight;
 				
 				if (space <= cw) {
-					// c‚è‚Íi‚Å–„‚ß‚é
+					// æ®‹ã‚Šã¯iã§åŸ‹ã‚ã‚‹
 					price += space * subs[j].price / subs[j].weight;
 					space = 0;
 					break;
 					
 				} else {
-					// ‘S•”
+					// å…¨éƒ¨
 					price += subs[j].price * c;
 					space -= cw;
 				}
@@ -258,15 +258,15 @@ function solve_knapsack(items, max_weight){
 		return price;
 	}
 	
-	/* // priority–¢‘Î‰
-	// “®“IŒv‰æ–@
-	// pos”Ô–Ú‚Ü‚Å‚Ì—v‘f‚ÉŒÀ’è‚µ‚Ä‰ğ‚ğ‹‚ß‚é
+	/* // priorityæœªå¯¾å¿œ
+	// å‹•çš„è¨ˆç”»æ³•
+	// posç•ªç›®ã¾ã§ã®è¦ç´ ã«é™å®šã—ã¦è§£ã‚’æ±‚ã‚ã‚‹
 	function _dynamic(pos, space){
 		var hash = pos + "," + space;
 		if (dynamic_cache.hasOwnProperty(hash)) return dynamic_cache[hash];
 		
 		var sol = null;
-		// “ü‚ê‚ç‚ê‚é”Å‘å
+		// å…¥ã‚Œã‚‰ã‚Œã‚‹æ•°æœ€å¤§
 		var cmax = Math.floor(space / items[pos].weight);
 		if (cmax > remains[pos]) cmax = remains[pos];
 		
@@ -279,13 +279,13 @@ function solve_knapsack(items, max_weight){
 		} else {
 			var max_price = -Infinity;
 			
-			// —v‘f‚ğ‚¢‚­‚Â“ü‚ê‚é‚©
+			// è¦ç´ ã‚’ã„ãã¤å…¥ã‚Œã‚‹ã‹
 			for (var c=0; c<=cmax; c++) {
 				var dw = c * items[pos].weight;
 				var dp = c * items[pos].price;
 				var sp = space - dw;
 				
-				// ”äd‚Åƒ\[ƒg‚³‚ê‚Ä‚¢‚é‚Ì‚ÅApos‚Ì—v‘f‚ğ‘‚â‚·‚Æupper‚Í‰º‚ª‚Á‚Ä‚¢‚­‚Í‚¸
+				// æ¯”é‡ã§ã‚½ãƒ¼ãƒˆã•ã‚Œã¦ã„ã‚‹ã®ã§ã€posã®è¦ç´ ã‚’å¢—ã‚„ã™ã¨upperã¯ä¸‹ãŒã£ã¦ã„ãã¯ãš
 				var upper = _dynamic_greedy_price(pos - 1, sp) + dp;
 				if (upper <= max_price) break;
 				
@@ -306,24 +306,24 @@ function solve_knapsack(items, max_weight){
 		return sol;
 	}
 	
-	// æÃ—~–@‚ÅÅ‘åprice‚ğ•Ô‚·
+	// è²ªæ¬²æ³•ã§æœ€å¤§priceã‚’è¿”ã™
 	function _dynamic_greedy_price(pos, free){
 		if (free <= 0) return 0;
 		
 		var price = 0;
 		for (var i=0; i<=pos; i++) {
 			if (remains[i] > 0) {
-				// ”äd‚ª‘å‚«‚¢‚Ù‚¤‚©‚çƒ\[ƒg‚³‚ê‚Ä‚¢‚é
-				// ‘S‚Ä“ü‚ê‚½ê‡‚Ìd‚³
+				// æ¯”é‡ãŒå¤§ãã„ã»ã†ã‹ã‚‰ã‚½ãƒ¼ãƒˆã•ã‚Œã¦ã„ã‚‹
+				// å…¨ã¦å…¥ã‚ŒãŸå ´åˆã®é‡ã•
 				var iw = remains[i] * items[i].weight;
 				
 				if (free <= iw) {
-					// c‚è‚Íi‚Å–„‚ß‚é
+					// æ®‹ã‚Šã¯iã§åŸ‹ã‚ã‚‹
 					price += free * items[i].price / items[i].weight;
 					free = 0;
 					break;
 				} else {
-					// ‘S•”
+					// å…¨éƒ¨
 					price += items[i].price * remains[i];
 					free -= items[i].weight * remains[i];
 				}
@@ -334,23 +334,23 @@ function solve_knapsack(items, max_weight){
 	}
 	*/
 	
-	// ”äd‚ª‘å‚«‚¢•û‚©‚ç~‡‚Éƒ\[ƒg
+	// æ¯”é‡ãŒå¤§ãã„æ–¹ã‹ã‚‰é™é †ã«ã‚½ãƒ¼ãƒˆ
 	function _density_greater(a, b){
 		var da = a.price / a.weight;
 		var db = b.price / b.weight;
 		
 		var c = db - da;
-		// —Dæ“x
+		// å„ªå…ˆåº¦
 		if (c == 0) c = b.priority - a.priority;
-		// ƒAƒ‹ƒSƒŠƒYƒ€ãAˆê‚Â‚Ìd‚³‚ª‘å‚«‚¢•û‚ğ‘O‚É‚µ‚½‚Ù‚¤‚ª‘¬‚¢
+		// ã‚¢ãƒ«ã‚´ãƒªã‚ºãƒ ä¸Šã€ä¸€ã¤ã®é‡ã•ãŒå¤§ãã„æ–¹ã‚’å‰ã«ã—ãŸã»ã†ãŒé€Ÿã„
 		if (c == 0) c = b.weight - a.weight;
 		if (c == 0) c = a.name > b.name ? 1 : a.name == b.name ? 0 : -1;
 		return c;
 	}
 	
-	// —Dæ“x‘æˆê
+	// å„ªå…ˆåº¦ç¬¬ä¸€
 	function _priority_greater(a, b){
-		// —Dæ“x~‡
+		// å„ªå…ˆåº¦é™é †
 		var c = b.priority - a.priority;
 		if (c == 0) c = _density_greater(a, b);
 		return c;
@@ -358,9 +358,9 @@ function solve_knapsack(items, max_weight){
 }
 
 
-// min_weight ˆÈã‚ğ–‚½‚·‘g‚İ‡‚í‚¹‚Ì‚¤‚¿Aprice Å¬‚Ì‚à‚Ì‚ğ’T‚·
-// —]‚è‚ğ‚Ç‚¤Å‘å‰»‚·‚é‚©‚Æl‚¦‚ê‚ÎƒiƒbƒvƒTƒbƒN–â‘è‚É‹A’…‚³‚ê‚é
-// ‰ğ‚È‚µ‚Í null
+// min_weight ä»¥ä¸Šã‚’æº€ãŸã™çµ„ã¿åˆã‚ã›ã®ã†ã¡ã€price æœ€å°ã®ã‚‚ã®ã‚’æ¢ã™
+// ä½™ã‚Šã‚’ã©ã†æœ€å¤§åŒ–ã™ã‚‹ã‹ã¨è€ƒãˆã‚Œã°ãƒŠãƒƒãƒ—ã‚µãƒƒã‚¯å•é¡Œã«å¸°ç€ã•ã‚Œã‚‹
+// è§£ãªã—ã¯ null
 function solve_conjugate_knapsack(items, min_weight){
 	var len = items.length;
 	
@@ -371,13 +371,13 @@ function solve_conjugate_knapsack(items, min_weight){
 	}
 	
 	for (var i=0; i<len; i++) {
-		// ‚‘¬‰»
-		// ‘I‘ğ‚³‚ê‚é”‚Íu1í—Ş‚¾‚¯‘I‚ñ‚¾ê‡‚ÌŒÂ”v‚ğ’´‚¦‚È‚¢
+		// é«˜é€ŸåŒ–
+		// é¸æŠã•ã‚Œã‚‹æ•°ã¯ã€Œ1ç¨®é¡ã ã‘é¸ã‚“ã å ´åˆã®å€‹æ•°ã€ã‚’è¶…ãˆãªã„
 		var ub = Math.ceil(min_weight / items[i].weight);
 		items[i].max_count_orig = items[i].max_count;
 		if (items[i].max_count > ub) items[i].max_count = ub;
 		
-		// —Dæ“x‚Ì”½“]
+		// å„ªå…ˆåº¦ã®åè»¢
 		items[i].priority = -items[i].priority;
 		
 		wsum += items[i].weight * items[i].max_count;
@@ -386,10 +386,10 @@ function solve_conjugate_knapsack(items, min_weight){
 	var sol = null;
 	
 	if (wsum >= min_weight) {
-		// —]‚è‚ÌÅ‘å‰»
+		// ä½™ã‚Šã®æœ€å¤§åŒ–
 		var mod = solve_knapsack(items, wsum - min_weight);
 		
-		// •ÏŠ·
+		// å¤‰æ›
 		sol = new KnapsackSolution(len);
 		for (var i=0; i<len; i++) {
 			sol.counts[i] = items[i].max_count - mod.counts[i];
@@ -398,7 +398,7 @@ function solve_conjugate_knapsack(items, min_weight){
 		}
 	}
 	
-	// –ß‚·
+	// æˆ»ã™
 	for (var i=0; i<len; i++) {
 		items[i].max_count = items[i].max_count_orig;
 		delete items[i].max_count_orig;

@@ -1,39 +1,39 @@
 /*
-—İŒvŒoŒ±’lE‹­‰»‚É•K—v‚ÈƒS[ƒ‹ƒh‚Ìƒe[ƒuƒ‹
-ŒoŒ±’l0‚©‚çƒŒƒxƒ‹‚ª lv ‚É‚È‚é‚½‚ß‚É•K—v‚ÈŒoŒ±’l
-  TOTALEXP_STAR2[lv - 1]  // š2
-ƒŒƒxƒ‹‚ª lv ‚ÌƒLƒƒƒ‰‚ğ‹­‰»‚·‚é‚Æ‚«‚ÉA‘fŞ1–‡‚ ‚½‚èÁ”ï‚·‚éƒS[ƒ‹ƒh
+ç´¯è¨ˆçµŒé¨“å€¤ãƒ»å¼·åŒ–ã«å¿…è¦ãªã‚´ãƒ¼ãƒ«ãƒ‰ã®ãƒ†ãƒ¼ãƒ–ãƒ«
+çµŒé¨“å€¤0ã‹ã‚‰ãƒ¬ãƒ™ãƒ«ãŒ lv ã«ãªã‚‹ãŸã‚ã«å¿…è¦ãªçµŒé¨“å€¤
+  TOTALEXP_STAR2[lv - 1]  // â˜…2
+ãƒ¬ãƒ™ãƒ«ãŒ lv ã®ã‚­ãƒ£ãƒ©ã‚’å¼·åŒ–ã™ã‚‹ã¨ãã«ã€ç´ æ1æšã‚ãŸã‚Šæ¶ˆè²»ã™ã‚‹ã‚´ãƒ¼ãƒ«ãƒ‰
   GOLDCOST_TABLE1[lv - 1]
 */
 
-// wiki‚Ìƒf[ƒ^A’Pƒ‚É˜a‚ğ‚Æ‚Á‚Ä‚à–µ‚‚µ‚Ä‚é‚Æ‚±‚ë‚ªEEE
+// wikiã®ãƒ‡ãƒ¼ã‚¿ã€å˜ç´”ã«å’Œã‚’ã¨ã£ã¦ã‚‚çŸ›ç›¾ã—ã¦ã‚‹ã¨ã“ã‚ãŒãƒ»ãƒ»ãƒ»
 
-// š2 (š3)
+// â˜…2 (â˜…3)
 var TOTALEXP_STAR2 = [
 	0    , 33   , 67   , 126  , 209  , 323  , 475  , 664   , 895   , 1171  ,
 	1494 , 1867 , 2293 , 2772 , 3309 , 3906 , 4561 , 5282  , 6067  , 6919  ,
 	7840 , 8830 , 9895 , 11033, 12245, 13536, 14907, 16356 , 17889 , 19502 ,
 	21204, 22990, 24864, 26829, 28883, 31029, 33269, 35604 , 38033 , 40563 ,
 	43188, 45913, 48740, 51669, 54703, 57839, 61083, 64434 , 67892 , 71460 ,
-	// 51-60 i‰»
+	// 51-60 é€²åŒ–
 	75138, 78926, 82829, 86845, 90977, 95224, 99588, 104070, 108672, 113392
 ];
 
-// š3
+// â˜…3
 var TOTALEXP_STAR3 = TOTALEXP_STAR2;
 
-// š4
+// â˜…4
 var TOTALEXP_STAR4 = [
 	0    , 34   , 71   , 133  , 225   , 354   , 522   , 733   , 991   , 1299  , 
 	1662 , 2078 , 2556 , 3093 , 3694  , 4365  , 5101  , 5908  , 6789  , 7747  , 
 	8781 , 9894 , 11088, 12367, 13730 , 15180 , 16719 , 18347 , 20070 , 21885 , 
 	23796, 25803, 27912, 30119, 32427 , 34842 , 37359 , 39984 , 42715 , 45558 , 
 	48510, 51574, 54752, 58047, 61456 , 64983 , 68631 , 72399 , 76287 , 80298 , 
-	// 51-60 i‰»
+	// 51-60 é€²åŒ–
 	84433, 88696, 93084, 97600, 102245, 107021, 111928, 116969, 122145, 127453
 ];
 
-// š5
+// â˜…5
 var TOTALEXP_STAR5 = [
 	0     , 34    , 75    , 140   , 241   , 382   , 568   , 801   , 1086  , 1427  , 
 	1827  , 2290  , 2817  , 3413  , 4081  , 4822  , 5640  , 6537  , 7513  , 8574  , 
@@ -41,13 +41,13 @@ var TOTALEXP_STAR5 = [
 	26388 , 28618 , 30957 , 33409 , 35973 , 38652 , 41448 , 44361 , 47397 , 50553 , 
 	53831 , 57235 , 60764 , 64422 , 68210 , 72127 , 76178 , 80362 , 84682 , 89136 , 
 	93730 , 98465 , 103338, 108355, 113515, 118820, 124271, 129870, 135618, 141515, 
-	// 61-70 i‰»
+	// 61-70 é€²åŒ–
 	147564, 153765, 160122, 166635, 173302, 180127, 187111, 194256, 201563, 209032, 
-	// 71-80 ŠJ‰Ô
+	// 71-80 é–‹èŠ±
 	216742, 224629, 232694, 240939, 249367, 257978, 266775, 275760, 284934, 294299
 ];
 
-// š6
+// â˜…6
 var TOTALEXP_STAR6 = [
 	0     , 34    , 75    , 144   , 249   , 395   , 586   , 828   , 1124  , 1477  , 
 	1894  , 2373  , 2921  , 3543  , 4234  , 5005  , 5856  , 6785  , 7803  , 8905  , 
@@ -55,19 +55,19 @@ var TOTALEXP_STAR6 = [
 	27424 , 29743 , 32176 , 34725 , 37392 , 40177 , 43084 , 46114 , 49269 , 52551 , 
 	55960 , 59500 , 63171 , 66975 , 70912 , 74986 , 79197 , 83548 , 88039 , 92673 , 
 	97449 , 102371, 107440, 112657, 118022, 123540, 129208, 135030, 141007, 147140, 
-	// 61-70 i‰»
+	// 61-70 é€²åŒ–
 	153430, 159880, 166488, 173260, 180195, 187293, 194556, 201985, 209584, 217351, 
-	// 71-80 ŠJ‰Ô
-	225369, 233571, 241958, 250533, 259297, 268252, 277400, 286743, 296283, 306022, // 71: wiki‚É‚Í225359‚Æ‚ ‚é‚ªƒ~ƒX‚©H
-	// 81-100 ãŒÀ“Ë”j
+	// 71-80 é–‹èŠ±
+	225369, 233571, 241958, 250533, 259297, 268252, 277400, 286743, 296283, 306022, // 71: wikiã«ã¯225359ã¨ã‚ã‚‹ãŒãƒŸã‚¹ã‹ï¼Ÿ
+	// 81-100 ä¸Šé™çªç ´
 	315961, 326103, 336449, 347002, 357763, 368734, 379917, 391304, 402916, 414746, 
 	426795, 439066, 451560, 464279, 477225, 490400, 503806, 517444, 531317, 545426
 ];
 
 
 
-// Á”ïƒS[ƒ‹ƒh
-// i‰»‘O
+// æ¶ˆè²»ã‚´ãƒ¼ãƒ«ãƒ‰
+// é€²åŒ–å‰
 var GOLDCOST_TABLE1 = [
 	100 , 200 , 270 , 340 , 410 , 480 , 550 , 620 , 690 , 760 , 
 	830 , 900 , 970 , 1040, 1110, 1180, 1250, 1320, 1390, 1460, 
@@ -77,7 +77,7 @@ var GOLDCOST_TABLE1 = [
 	3630, 3700, 3770, 3840, 3910, 3980, 4050, 4120, 4190, 4260
 ];
 
-// i‰»EŠJ‰ÔŒã
+// é€²åŒ–ãƒ»é–‹èŠ±å¾Œ
 var GOLDCOST_TABLE2 = [
 	100 , 200 , 300 , 400 , 500 , 600 , 700 , 800 , 900 , 1000, 
 	1100, 1200, 1300, 1400, 1500, 1600, 1700, 1800, 1900, 2000, 
@@ -87,16 +87,16 @@ var GOLDCOST_TABLE2 = [
 	5100, 5200, 5300, 5400, 5500, 5600, 5700, 5800, 5900, 6000, 
 	6100, 6200, 6300, 6400, 6500, 6600, 6700, 6800, 6900, 7000, 
 	7100, 7200, 7300, 7400, 7500, 7600, 7700, 7800, 7900, 8000, 
-	// ãŒÀ“Ë”j
+	// ä¸Šé™çªç ´
 	8000, 8000, 8000, 8000, 8000, 8000, 8000, 8000, 8000, 8000, 
 	8000, 8000, 8000, 8000, 8000, 8000, 8000, 8000, 8000, 8000
 ];
 
-// Å‘åƒŒƒxƒ‹
+// æœ€å¤§ãƒ¬ãƒ™ãƒ«
 // MAX_LEVELS[STAR - 2][growth]
 var MAX_LEVELS = [
-	// š2‚©‚ç [i‰»‘O, i‰»Œã, ŠJ‰ÔŒã]
-	// 0‚Í‚È‚µ
+	// â˜…2ã‹ã‚‰ [é€²åŒ–å‰, é€²åŒ–å¾Œ, é–‹èŠ±å¾Œ]
+	// 0ã¯ãªã—
 	[50, 60, 0],
 	[50, 60, 0],
 	[50, 60, 0],
@@ -104,8 +104,8 @@ var MAX_LEVELS = [
 	[60, 70, 80]
 ];
 
-// “Áê‘fŞ—p’è”
-// š2-6‚Í‚»‚Ì‚Ü‚Ü‚Ì”’l‚È‚Ì‚ÅA‚»‚êˆÈŠO‚Ì’l‚ğg‚¤
+// ç‰¹æ®Šç´ æç”¨å®šæ•°
+// â˜…2-6ã¯ãã®ã¾ã¾ã®æ•°å€¤ãªã®ã§ã€ãã‚Œä»¥å¤–ã®å€¤ã‚’ä½¿ã†
 var SPCARD_NAE      = 100;
 var SPCARD_SOUKA    = 101;
 var SPCARD_WAZAHANA = 102;
@@ -121,18 +121,18 @@ var GREAT_ONLYLAST = 2;
 var GREAT_ALL      = 3;
 var GREAT_NOTHING_MODIFY = 4;
 
-function COMMENT_TO_NTH(n){ return "[" + n + "]‚Öi‚Ş"; }
-var COMMENT_COMPLETE = "‡¬Š®—¹I";
-var COMMENT_LACK     = "‘fŞ•s‘«";
-var COMMENT_RECALC   = "ÄŒvZ";
-var COMMENT_POSSIBLY_COMPLETE = "‡¬Š®—¹H";
+function COMMENT_TO_NTH(n){ return "[" + n + "]ã¸é€²ã‚€"; }
+var COMMENT_COMPLETE = "åˆæˆå®Œäº†ï¼";
+var COMMENT_LACK     = "ç´ æä¸è¶³";
+var COMMENT_RECALC   = "å†è¨ˆç®—";
+var COMMENT_POSSIBLY_COMPLETE = "åˆæˆå®Œäº†ï¼Ÿ";
 
 
 
-// ‰Ô‹Rm‚ğ‡¬‚µ‚½‚Æ‚«‚ÌŒoŒ±’l(•Ê‘®«)
+// èŠ±é¨å£«ã‚’åˆæˆã—ãŸã¨ãã®çµŒé¨“å€¤(åˆ¥å±æ€§)
 function get_exp_as_feed(rarity, level){
 	if (rarity < 2 || 6 < rarity) return 0;
-	// ‰Šú’l‚Æ1Lv‚²‚Æ‚Ìã¸
+	// åˆæœŸå€¤ã¨1Lvã”ã¨ã®ä¸Šæ˜‡
 	var base = [60, 180, 240, 300, 360];
 	var delta = [12, 36, 30, 37.5, 45];
 	return Math.ceil(base[rarity - 2] + delta[rarity - 2] * (level - 1));
@@ -140,30 +140,30 @@ function get_exp_as_feed(rarity, level){
 
 
 // class -------------------------------------------------------------------------------------------
-// ‰Ô‹Rm‚Ü‚½‚Í‘fŞ
+// èŠ±é¨å£«ã¾ãŸã¯ç´ æ
 FKGCard.prototype = {
-	// –¼‘O
+	// åå‰
 	name: "",
-	// •\¦—p–¼‘OA‹ó•¶š‚È‚çname‚ğg—p
+	// è¡¨ç¤ºç”¨åå‰ã€ç©ºæ–‡å­—ãªã‚‰nameã‚’ä½¿ç”¨
 	viewname: "",
-	// ‘®«ˆê’v
-	// null‚Ìê‡‚Í–³‘®«
+	// å±æ€§ä¸€è‡´
+	// nullã®å ´åˆã¯ç„¡å±æ€§
 	same_element: false,
-	// ‰¿’l@ŒoŒ±’l‚ğg‚¤‚ÆA‘®«ˆê’v‚Ì—L–³‚Å‰¿’l‚ª•Ï‚í‚Á‚Ä‚µ‚Ü‚¤‚Ì‚ª‚¢‚Ü‚¢‚¿‚È‚Ì‚Å
+	// ä¾¡å€¤ã€€çµŒé¨“å€¤ã‚’ä½¿ã†ã¨ã€å±æ€§ä¸€è‡´ã®æœ‰ç„¡ã§ä¾¡å€¤ãŒå¤‰ã‚ã£ã¦ã—ã¾ã†ã®ãŒã„ã¾ã„ã¡ãªã®ã§
 	value_as_feed: 0,
-	// Šî‘bŒoŒ±’l
-	// Šeíƒ{[ƒiƒX‚Ì‚È‚¢ŒoŒ±’lH
+	// åŸºç¤çµŒé¨“å€¤
+	// å„ç¨®ãƒœãƒ¼ãƒŠã‚¹ã®ãªã„çµŒé¨“å€¤ï¼Ÿ
 	basic_exp_as_feed: 0,
-	// —Dæ“x
+	// å„ªå…ˆåº¦
 	priority     : 0,
-	// ”„‹pA‚±‚ÌƒJ[ƒh‚ğì‚é‚½‚ß‚ÌƒRƒXƒg‚È‚Ç‚àH
+	// å£²å´ã€ã“ã®ã‚«ãƒ¼ãƒ‰ã‚’ä½œã‚‹ãŸã‚ã®ã‚³ã‚¹ãƒˆãªã©ã‚‚ï¼Ÿ
 	sell_gold    : 0,
-	// ƒLƒƒƒ“ƒy[ƒ“”{—¦
+	// ã‚­ãƒ£ãƒ³ãƒšãƒ¼ãƒ³å€ç‡
 	exp_factor: 1,
 	
-	// ŒoŒ±’l
-	// setFeedExp‚Åİ’è
-	// ®”‰»‚Í‚³‚ê‚Ä‚¢‚È‚¢‚à‚Ì‚Æ‚·‚é
+	// çµŒé¨“å€¤
+	// setFeedExpã§è¨­å®š
+	// æ•´æ•°åŒ–ã¯ã•ã‚Œã¦ã„ãªã„ã‚‚ã®ã¨ã™ã‚‹
 	exp_as_feed  : 0,
 	
 	setFeedExp: FKGCard_setFeedExp,
@@ -175,12 +175,12 @@ Object.assign(FKGCard, {
 	calcFeedExp: FKGCard_calcFeedExp,
 });
 
-// FKGCard‚É–‡”î•ñ‚ğ’Ç‰Á‚µ‚½‚è
+// FKGCardã«æšæ•°æƒ…å ±ã‚’è¿½åŠ ã—ãŸã‚Š
 FKGCardStack.prototype = {
 	// FKGCard
 	card : null,
 	count: 0,
-	allin: false,  // ‘S•”g—p‚·‚é
+	allin: false,  // å…¨éƒ¨ä½¿ç”¨ã™ã‚‹
 	clone: FKGCardStack_clone,
 };
 
@@ -196,34 +196,34 @@ Object.assign(FKGCardStack, {
 });
 
 
-// ˆê‰ñ‚Ì‹­‰»‚ğ•\‚·
+// ä¸€å›ã®å¼·åŒ–ã‚’è¡¨ã™
 PowerupOnce.prototype = {
-	// ‘fŞƒŠƒXƒg (FKGCard[])
+	// ç´ æãƒªã‚¹ãƒˆ (FKGCard[])
 	materials: null,
-	// ‘fŞ‚Ìindex ŒvZ’†‚É–ˆ‰ñ”z—ñ‚ğì‚é‚Ì‚Í–³‘Ê‚È‚Ì‚Å
+	// ç´ æã®index è¨ˆç®—ä¸­ã«æ¯å›é…åˆ—ã‚’ä½œã‚‹ã®ã¯ç„¡é§„ãªã®ã§
 	mat_begin: 0,
 	mat_end  : 0,
 	
-	// ‚±‚ÌƒZƒbƒg‚É‚Â‚¢‚Ä
-	// ŠÇ—”Ô†
+	// ã“ã®ã‚»ãƒƒãƒˆã«ã¤ã„ã¦
+	// ç®¡ç†ç•ªå·
 	number: 0,
-	// ‹­‰»‘O
+	// å¼·åŒ–å‰
 	before_experience: 0,
 	before_level: 1,
-	// ƒS[ƒ‹ƒh
+	// ã‚´ãƒ¼ãƒ«ãƒ‰
 	gold_to_powerup: 0,
-	// ¬Œ÷
+	// æˆåŠŸæ™‚
 	comment_succeed: "",
-	// ‘å¬Œ÷
+	// å¤§æˆåŠŸæ™‚
 	comment_great  : "",
 	
-	// ‘z’è’Ê‚è‚Ìê‡
+	// æƒ³å®šé€šã‚Šã®å ´åˆ
 	suppose_great: false,
 	gain_experience: 0,
 	end_experience: 0,
 	end_level: 1,
 	
-	// •\¦—p
+	// è¡¨ç¤ºç”¨
 	total_gold_to_powerup: 0,
 	//total_gain_experience: 0,
 	
@@ -240,26 +240,26 @@ Object.assign(PowerupOnce, {
 });
 
 
-// PowerupOnce ‚ğ•¡”W‚ß‚½‚à‚Ì
+// PowerupOnce ã‚’è¤‡æ•°é›†ã‚ãŸã‚‚ã®
 PowerupList.prototype = {
-	// PowerupOnce‚Ì”z—ñ
-	// ƒƒCƒ“A‘z’è‚µ‚½İ’è‚Å‹­‰»‚µ‚½ê‡‚ÌƒŠƒXƒg‚ÅA˜A‘±‚µ‚Ä‚¢‚é
+	// PowerupOnceã®é…åˆ—
+	// ãƒ¡ã‚¤ãƒ³ã€æƒ³å®šã—ãŸè¨­å®šã§å¼·åŒ–ã—ãŸå ´åˆã®ãƒªã‚¹ãƒˆã§ã€é€£ç¶šã—ã¦ã„ã‚‹
 	list: null,
-	// ƒTƒu
+	// ã‚µãƒ–
 	sublist: null,
 	
-	// ƒƒCƒ“’Ê‚è‚É‹­‰»‚³‚ê‚½ê‡‚Ì’l
+	// ãƒ¡ã‚¤ãƒ³é€šã‚Šã«å¼·åŒ–ã•ã‚ŒãŸå ´åˆã®å€¤
 	gold_to_powerup: 0,
 	gain_experience: 0,
 	end_experience : 0,
 	
-	// –Ú“I‚ª’B¬‚³‚ê‚½‚©(Å‘åLv‚Ü‚Åã‚ª‚Á‚½‚©‚Ç‚¤‚©‚È‚Ç)
+	// ç›®çš„ãŒé”æˆã•ã‚ŒãŸã‹(æœ€å¤§Lvã¾ã§ä¸ŠãŒã£ãŸã‹ã©ã†ã‹ãªã©)
 	completed   : false,
 	use_sub     : false,
 	comment_main: "(main)",
 	comment_sub : "(sub)",
 	
-	// g‚Á‚½‚à‚ÌAc‚Á‚½‚à‚Ì
+	// ä½¿ã£ãŸã‚‚ã®ã€æ®‹ã£ãŸã‚‚ã®
 	//used_stacks   : null,
 	//residue_stacks: null,
 	
@@ -278,7 +278,7 @@ PowerupList.prototype = {
 FlowerFormData.prototype = {
 	error: false,
 	
-	// ‹­‰»Œ³
+	// å¼·åŒ–å…ƒ
 	rarity   : 0,
 	growth   : 0,
 	level    : 0,
@@ -286,25 +286,25 @@ FlowerFormData.prototype = {
 	next_exp : 0,
 	total_exp: 0,
 	
-	// ‘fŞ
+	// ç´ æ
 	stacks: null,
 	cards : null,
 	
-	// “Áê‚Ì–¼‘O
+	// ç‰¹æ®Šã®åå‰
 	special_names: null,
 	
-	// ƒIƒvƒVƒ‡ƒ“
+	// ã‚ªãƒ—ã‚·ãƒ§ãƒ³
 	exp_factor     : 1,
 	search_priority: PRIORITY_GOLD,
 	search_great   : GREAT_NOTHING,
 	once_min_count : 0,
 	
-	// ŒvZE•ÏŠ·‚³‚ê‚½ƒf[ƒ^“™
+	// è¨ˆç®—ãƒ»å¤‰æ›ã•ã‚ŒãŸãƒ‡ãƒ¼ã‚¿ç­‰
 	exp_table : null,
 	gold_table: null,
 	goal_exp  : 0,
-	level2    : -1, // ÄŒvZ
-	next_exp2 : -1, // ÄŒvZ
+	level2    : -1, // å†è¨ˆç®—
+	next_exp2 : -1, // å†è¨ˆç®—
 };
 
 
@@ -327,8 +327,8 @@ function FKGCard_setFeedExp(){
 	if (this.same_element) e *= 1.5;
 	e *= this.exp_factor;
 	
-	// b’è
-	// 15%ƒAƒbƒv‚ÅŒë·‚ªo‚½‚è‚·‚é‚±‚Æ‚ª‚ ‚é
+	// æš«å®š
+	// 15%ã‚¢ãƒƒãƒ—ã§èª¤å·®ãŒå‡ºãŸã‚Šã™ã‚‹ã“ã¨ãŒã‚ã‚‹
 	const sc = 10000;
 	e = Math.round(e * sc) / sc;
 	//this.exp_as_feed = Math.floor(e);
@@ -344,13 +344,13 @@ function FKGCard_setFeedExp(){
 }
 
 function FKGCard_toString(){
-	var str = this.same_element === null ? "" : this.same_element ? "“¯‘®«<br>" : "•Ê‘®«<br>";
+	var str = this.same_element === null ? "" : this.same_element ? "åŒå±æ€§<br>" : "åˆ¥å±æ€§<br>";
 	str += this.viewname ? this.viewname : this.name;
 	return str;
 }
 
-// ŒoŒ±’l‚ª¬‚³‚¢•û‚©‚ç
-// “¯ŒoŒ±’l‚Í—Dæ“x‚ª‚‚¢•û‚ª‘O
+// çµŒé¨“å€¤ãŒå°ã•ã„æ–¹ã‹ã‚‰
+// åŒçµŒé¨“å€¤ã¯å„ªå…ˆåº¦ãŒé«˜ã„æ–¹ãŒå‰
 function FKGCard_exp_less(a, b){
 	var c = a.exp_as_feed - b.exp_as_feed;
 	if (c == 0) c = b.priority - a.priority;
@@ -382,8 +382,8 @@ function FKGCardStack_clone(){
 	return out;
 }
 
-// ŒoŒ±’l‚ª‘å‚«‚¢•û‚©‚ç
-// “¯ŒoŒ±’l‚Í—Dæ“x‚ª‚‚¢•û‚ª‘O
+// çµŒé¨“å€¤ãŒå¤§ãã„æ–¹ã‹ã‚‰
+// åŒçµŒé¨“å€¤ã¯å„ªå…ˆåº¦ãŒé«˜ã„æ–¹ãŒå‰
 function FKGCardStack_exp_greater(a, b){
 	var c = b.card.exp_as_feed - a.card.exp_as_feed;
 	if (c == 0) c = b.card.priority - a.card.priority;
@@ -391,7 +391,7 @@ function FKGCardStack_exp_greater(a, b){
 }
 
 function FKGCardStack_duplicate(stacks){
-	// stack‚Ì”z—ñ‚ğ•¡»‚·‚é
+	// stackã®é…åˆ—ã‚’è¤‡è£½ã™ã‚‹
 	var arr = new Array;
 	for (var i=0; i<stacks.length; i++) {
 		arr[i] = stacks[i].clone();
@@ -481,28 +481,28 @@ function PowerupOnce(){
 
 function PowerupOnce_recalcExp(great){
 /*
-	// materials ‚©‚çŒoŒ±’l‚ğÄŒvZ
+	// materials ã‹ã‚‰çµŒé¨“å€¤ã‚’å†è¨ˆç®—
 	var sum = 0;
 	for (var i=0; i<this.materials.length; i++) {
 		var exp = this.materials[i].exp_as_feed;
-		//if (great) exp = Math.floor(exp * 1.5); // b’è
+		//if (great) exp = Math.floor(exp * 1.5); // æš«å®š
 		if (great) exp = exp * 1.5;
 		sum += exp;
 	}
 	
-	// ‘¼‚ÌƒAƒ‹ƒSƒŠƒYƒ€‚Æ‚Ì®‡«‚Í–¢ƒ`ƒFƒbƒNc
+	// ä»–ã®ã‚¢ãƒ«ã‚´ãƒªã‚ºãƒ ã¨ã®æ•´åˆæ€§ã¯æœªãƒã‚§ãƒƒã‚¯â€¦
 	sum = Math.ceil(sum);
 */
 	return PowerupOnce.calcExp(this.materials, 0, this.materials.length, great);
 }
 
-// static”Å
+// staticç‰ˆ
 function PowerupOnce_static_calcExp(cards, begin, end, great){
-	// ˆê‚É‡¬‚µ‚½ê‡‚ÌŒoŒ±’l‚ğŒvZ
+	// ä¸€ç·’ã«åˆæˆã—ãŸå ´åˆã®çµŒé¨“å€¤ã‚’è¨ˆç®—
 	var sum = 0;
 	for (var i=begin; i<end; i++) {
 		var exp = cards[i].exp_as_feed;
-		//if (great) exp = Math.floor(exp * 1.5); // b’è
+		//if (great) exp = Math.floor(exp * 1.5); // æš«å®š
 		if (great) exp = exp * 1.5;
 		sum += exp;
 	}
@@ -530,7 +530,7 @@ function PowerupOnce_setSupposedComment(goal_exp, arg_succeed, arg_great){
 
 function PowerupOnce_setUnsupposedComment(goal_exp, arg_succeed, arg_great){
 	if (!this.suppose_great) {
-		// ¬Œ÷‚È‚Ì‚Å‘å¬Œ÷ƒRƒƒ“ƒg‚ğƒZƒbƒg
+		// æˆåŠŸãªã®ã§å¤§æˆåŠŸã‚³ãƒ¡ãƒ³ãƒˆã‚’ã‚»ãƒƒãƒˆ
 		var exp = this.before_experience + this.recalcExp(true);
 		this.comment_great = exp >= goal_exp ? arg_succeed : arg_great;
 	} else {
@@ -542,7 +542,7 @@ function PowerupOnce_setUnsupposedComment(goal_exp, arg_succeed, arg_great){
 function PowerupOnce_toString(){
 	var m = "[" + this.materials.join(",") + "](" + this.materials.length +") ";
 	var a = [];
-	if (this.suppose_great) a.push("‘å¬Œ÷");
+	if (this.suppose_great) a.push("å¤§æˆåŠŸ");
 	a.push(this.gain_experience + "exp");
 	a.push(this.gold_to_powerup + "gold");
 	return m + a.join("/");
@@ -558,11 +558,11 @@ function PowerupList(end_exp){
 
 function PowerupList_push_back(once, listnum){
 	if (listnum == 2) {
-		// sublist‚É’Ç‰Á‚·‚é
+		// sublistã«è¿½åŠ ã™ã‚‹
 		this.sublist.push(once);
 		
 	} else {
-		// list‚É’Ç‰Á‚·‚é
+		// listã«è¿½åŠ ã™ã‚‹
 		this.gold_to_powerup += once.gold_to_powerup;
 		this.gain_experience += once.gain_experience;
 		this.end_experience  += once.gain_experience;
@@ -593,8 +593,8 @@ function PowerupList_clone(){
 	out.list = new Array;
 	out.sublist = new Array;
 	
-	// deepcopy‚µ‚È‚¢‚Æ
-	// ‚½‚¾‚µAƒJ[ƒh‚É‚Â‚¢‚Ä‚ÍƒRƒs[‚µ‚È‚¢
+	// deepcopyã—ãªã„ã¨
+	// ãŸã ã—ã€ã‚«ãƒ¼ãƒ‰ã«ã¤ã„ã¦ã¯ã‚³ãƒ”ãƒ¼ã—ãªã„
 	for (var i=0; i<this.list.length; i++) {
 		out.list[i] = this.list[i].clone();
 	}
@@ -604,7 +604,7 @@ function PowerupList_clone(){
 	return out;
 }
 
-// ƒRƒƒ“ƒg‚ğƒZƒbƒg
+// ã‚³ãƒ¡ãƒ³ãƒˆã‚’ã‚»ãƒƒãƒˆ
 function PowerupList_setOnceComments(number, goal_exp, digressed_complete, digressed_recalc, last_complete, last_recalc){
 	var list = number == 2 ? this.sublist : this.list;
 	var count = number == 2 ? this.list.length : 0;

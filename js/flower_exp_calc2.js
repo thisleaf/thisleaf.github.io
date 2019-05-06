@@ -2,7 +2,7 @@
 function powerup2_rearrangement(pl, base_exp, goal_exp, stacks, limit_level, exp_table, gold_table, once_min_count){
 	let has_fixed = false;
 	for (let i=0; i<stacks.length; i++) {
-		// ƒ\[ƒg—p
+		// ã‚½ãƒ¼ãƒˆç”¨
 		stacks[i].card.fixed = stacks[i].allin ? 1 : 0;
 		
 		if (stacks[i].allin && stacks[i].count > 0) {
@@ -13,14 +13,14 @@ function powerup2_rearrangement(pl, base_exp, goal_exp, stacks, limit_level, exp
 	for (let pos=0; pos<pl.list.length; pos++) {
 		let once = pl.list[pos];
 		
-		// LvMaxŒã‚Ì‹­‰»‚ÍƒXƒ‹[
+		// LvMaxå¾Œã®å¼·åŒ–ã¯ã‚¹ãƒ«ãƒ¼
 		if (once.before_experience >= goal_exp) break;
 		
-		// ‚à‚µ‚±‚Ì‰ñ‚Å‘å¬Œ÷‚ª”­¶‚µ‚½AŠ®‘S‚É–³‘Ê‚É‚È‚Á‚Ä‚µ‚Ü‚¤ƒJ[ƒh‚ª‚ ‚Á‚½‚çœŠO‚µ‚ÄŒã‚ë‚ğÄ”z’u‚·‚é
+		// ã‚‚ã—ã“ã®å›ã§å¤§æˆåŠŸãŒç™ºç”Ÿã—ãŸæ™‚ã€å®Œå…¨ã«ç„¡é§„ã«ãªã£ã¦ã—ã¾ã†ã‚«ãƒ¼ãƒ‰ãŒã‚ã£ãŸã‚‰é™¤å¤–ã—ã¦å¾Œã‚ã‚’å†é…ç½®ã™ã‚‹
 		let great_end = once.before_experience + once.recalcExp(true);
 		if (great_end < goal_exp) continue;
 		
-		// ŒÅ’è‚ğ‘O‚É
+		// å›ºå®šã‚’å‰ã«
 		let materials = once.materials.concat();
 		materials.sort(function (a, b){
 			let c = b.fixed - a.fixed;
@@ -30,7 +30,7 @@ function powerup2_rearrangement(pl, base_exp, goal_exp, stacks, limit_level, exp
 		
 		let removable = 0;
 		for (let i=1; i<materials.length; i++) {
-			// 0 .. i-1 ‚Ìi–‡‚ÌƒJ[ƒh‚Å‹­‰»‚ğl‚¦‚é
+			// 0 .. i-1 ã®iæšã®ã‚«ãƒ¼ãƒ‰ã§å¼·åŒ–ã‚’è€ƒãˆã‚‹
 			let gain_exp = PowerupOnce.calcExp(materials, 0, i, true);
 			if (once.before_experience + gain_exp >= goal_exp) {
 				removable = materials.length - i;
@@ -39,21 +39,21 @@ function powerup2_rearrangement(pl, base_exp, goal_exp, stacks, limit_level, exp
 		}
 		if (removable == 0) continue;
 		
-		// Ä”z’u
-		// ŒÅ’è‚ª‘I‘ğ‚³‚ê‚é‰Â”\«‚ª‚ ‚é‚ª“ï‰ğ‚È‚Ì‚Åd—l‚Æ‚·‚é
+		// å†é…ç½®
+		// å›ºå®šãŒé¸æŠã•ã‚Œã‚‹å¯èƒ½æ€§ãŒã‚ã‚‹ãŒé›£è§£ãªã®ã§ä»•æ§˜ã¨ã™ã‚‹
 		let rearranges = materials.slice(-removable);
 		rearranges.sort(FKGCard.exp_less);
 		
-		// Œã•û‚Í–³Œø‚É‚È‚é
+		// å¾Œæ–¹ã¯ç„¡åŠ¹ã«ãªã‚‹
 		for (let i=pos+1; i<pl.list.length; i++) {
 			rearranges = rearranges.concat(pl.list[i].materials);
 		}
-		// once‚Ü‚ÅœŠO
+		// onceã¾ã§é™¤å¤–
 		while (pl.list.length > pos) {
 			pl.pop_back(1);
 		}
 		
-		// once‚©‚çœŠO
+		// onceã‹ã‚‰é™¤å¤–
 		once.materials = materials.slice(0, -removable);
 		once.materials.sort(FKGCard.exp_less);
 		//once.mat_end -= removable;
@@ -79,7 +79,7 @@ function powerup2_rearrangement(pl, base_exp, goal_exp, stacks, limit_level, exp
 			for (let i=0; i<ilim; i++) {
 				materials.push(rearranges[i]);
 				
-				// Å‘å‚Ü‚Å‹­‰»‚³‚ê‚Ä‚¢‚é‚È‚ç•ªŠ„‚·‚éˆÓ–¡‚Í‚È‚¢‚Ì‚Å
+				// æœ€å¤§ã¾ã§å¼·åŒ–ã•ã‚Œã¦ã„ã‚‹ãªã‚‰åˆ†å‰²ã™ã‚‹æ„å‘³ã¯ãªã„ã®ã§
 				if (end_exp < goal_exp) {
 					let great_exp = PowerupOnce.calcExp(materials, 0, i + 1, true);
 					if (end_exp + great_exp >= goal_exp) break;
@@ -106,7 +106,7 @@ function powerup2_rearrangement(pl, base_exp, goal_exp, stacks, limit_level, exp
 			pl.push_back(once, 2);
 		}
 		
-		// ƒRƒƒ“ƒg
+		// ã‚³ãƒ¡ãƒ³ãƒˆ
 		var p_comm = has_fixed ? COMMENT_POSSIBLY_COMPLETE : COMMENT_COMPLETE;
 		pl.setOnceComments(1, goal_exp, null, null, p_comm, null);
 		last_once.comment_succeed = COMMENT_TO_NTH(last_once.number + 1);
@@ -122,30 +122,30 @@ function powerup2_rearrangement(pl, base_exp, goal_exp, stacks, limit_level, exp
 
 
 
-// ‘å¬Œ÷‚È‚µ(‘å¬Œ÷l—¶) x ƒS[ƒ‹ƒh—Dæ
-// ‚Ü‚¸‘å¬Œ÷‚È‚µ‚ÅŒvZ‚·‚é‚ªAÅŒã‚Ì•û‚Å‘å¬Œ÷‚É‚æ‚éƒI[ƒo[•ª‚ª‚ ‚Ü‚èo‚È‚¢‚æ‚¤‚É’²®‚·‚é
+// å¤§æˆåŠŸãªã—(å¤§æˆåŠŸè€ƒæ…®) x ã‚´ãƒ¼ãƒ«ãƒ‰å„ªå…ˆ
+// ã¾ãšå¤§æˆåŠŸãªã—ã§è¨ˆç®—ã™ã‚‹ãŒã€æœ€å¾Œã®æ–¹ã§å¤§æˆåŠŸã«ã‚ˆã‚‹ã‚ªãƒ¼ãƒãƒ¼åˆ†ãŒã‚ã¾ã‚Šå‡ºãªã„ã‚ˆã†ã«èª¿æ•´ã™ã‚‹
 function calc_mingold_powerup2_of_s(base_exp, goal_exp, stacks, limit_level, exp_table, gold_table, once_min_count){
-	// ƒx[ƒX
+	// ãƒ™ãƒ¼ã‚¹
 	let pl = calc_mingold_powerup_of_s(base_exp, goal_exp, stacks, limit_level, exp_table, gold_table, once_min_count, GREAT_NOTHING);
 	
 	powerup2_rearrangement(pl, base_exp, goal_exp, stacks, limit_level, exp_table, gold_table, once_min_count);
 	
-	pl.comment_main = "‘å¬Œ÷‚È‚µ(‘å¬Œ÷l—¶)<br>‘z’èÅ—Ç’l";
-	pl.comment_sub  = "‘å¬Œ÷‚È‚µ(‘å¬Œ÷l—¶)<br>‘z’èÅˆ«’l";
+	pl.comment_main = "å¤§æˆåŠŸãªã—(å¤§æˆåŠŸè€ƒæ…®)<br>æƒ³å®šæœ€è‰¯å€¤";
+	pl.comment_sub  = "å¤§æˆåŠŸãªã—(å¤§æˆåŠŸè€ƒæ…®)<br>æƒ³å®šæœ€æ‚ªå€¤";
 	
 	return pl;
 }
 
 
-// ‘å¬Œ÷‚È‚µ(‘å¬Œ÷l—¶) x ŒoŒ±’l—Dæ
+// å¤§æˆåŠŸãªã—(å¤§æˆåŠŸè€ƒæ…®) x çµŒé¨“å€¤å„ªå…ˆ
 function calc_minexp_powerup2_of_s(base_exp, goal_exp, stacks, limit_level, exp_table, gold_table, once_min_count){
-	// ƒx[ƒX
+	// ãƒ™ãƒ¼ã‚¹
 	let pl = calc_minexp_powerup_of_s(base_exp, goal_exp, stacks, limit_level, exp_table, gold_table, once_min_count, GREAT_NOTHING);
 	
 	powerup2_rearrangement(pl, base_exp, goal_exp, stacks, limit_level, exp_table, gold_table, once_min_count);
 	
-	pl.comment_main = "‘å¬Œ÷‚È‚µ(‘å¬Œ÷l—¶)<br>‘z’èÅ—Ç’l";
-	pl.comment_sub  = "‘å¬Œ÷‚È‚µ(‘å¬Œ÷l—¶)<br>‘z’èÅˆ«’l";
+	pl.comment_main = "å¤§æˆåŠŸãªã—(å¤§æˆåŠŸè€ƒæ…®)<br>æƒ³å®šæœ€è‰¯å€¤";
+	pl.comment_sub  = "å¤§æˆåŠŸãªã—(å¤§æˆåŠŸè€ƒæ…®)<br>æƒ³å®šæœ€æ‚ªå€¤";
 	
 	return pl;
 }

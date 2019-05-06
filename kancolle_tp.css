@@ -11,7 +11,7 @@ table#input_table {
 	margin-right: auto;
 }
 
-/* ƒ{[ƒ_[‚Ì‰ğŒˆ‚Í‹­‚¢ü‚ª—DæA“¯‚¶‚Í\‘¢‡ */
+/* ãƒœãƒ¼ãƒ€ãƒ¼ã®è§£æ±ºã¯å¼·ã„ç·šãŒå„ªå…ˆã€åŒã˜æ™‚ã¯æ§‹é€ é † */
 table.black_border {
 	border-collapse: collapse;
 	text-align: center;
@@ -68,7 +68,7 @@ table#input_table th.green {
 	background-color: #c8fac8;
 }
 
-/* nth-child ‚Ì”®‚Í n=0,1,2... ‚Å“–‚Ä‚Í‚Ü‚é®”‚Éƒ}ƒbƒ` */
+/* nth-child ã®æ•°å¼ã¯ n=0,1,2... ã§å½“ã¦ã¯ã¾ã‚‹æ•´æ•°ã«ãƒãƒƒãƒ */
 table#input_table tbody.input_area tr:nth-child(-n+6) td:first-child {
 	cursor: default;
 	background-color: #def;
