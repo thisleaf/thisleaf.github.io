@@ -1,0 +1,77 @@
+
+:root {
+	--graycolor: #aaa;
+}
+
+
+h1.little_header {
+	font-size: 100%;
+}
+
+h2 {
+	font-size: 120%;
+}
+
+p {
+	margin-left: 1em;
+}
+
+hr {
+	border-width: 0px 0px 1px 0px;
+}
+
+
+/* テーブル汎用 */
+table.black_border {
+	border-collapse: collapse;
+	border: 1px solid black;
+	margin: 5px;
+	text-align: center;
+}
+
+table.black_border.around2 {
+	border-width: 2px;
+}
+
+table.black_border td
+, table.black_border th
+{
+	border: 1px solid black;
+}
+
+table.center {
+	margin-left: auto;
+	margin-right: auto;
+}
+
+
+/* 家具コイン */
+#furniture_table {
+	min-width: 550px;
+}
+
+input.fbox {
+	text-align: right;
+	width: 50px;
+}
+input.fcoin {
+	text-align: right;
+	width: 65px;
+}
+
+.fopen {
+	line-height: 1.1;
+	padding: 3px;
+	color: blue;
+	cursor: pointer;
+}
+
+.fopen.null {
+	color: black;
+}
+
+.fopen.over {
+	color: red;
+}
+
+

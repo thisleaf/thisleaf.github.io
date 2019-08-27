@@ -358,7 +358,7 @@ function copy_ship(a, b){
 	let ship_b = DOM("ship_" + b);
 	
 	if (!ship_a || !ship_b) {
-		console.log("swapできません:", a, b);
+		console.log("copyできません:", a, b);
 		return;
 	}
 	

@@ -22,33 +22,11 @@ label.disabled {
 }
 
 
-/* テーブル汎用 */
-table.black_border {
-	border-collapse: collapse;
-	border: 1px solid black;
-	margin: 5px;
-	margin-left: auto;
-	margin-right: auto;
-	text-align: center;
-}
-
-table.black_border.around2 {
-	border-width: 2px;
-}
-
-table.black_border td
-, table.black_border th
-{
-	border: 1px solid black;
-}
-
-table.center {
-	margin-left: auto;
-	margin-right: auto;
-}
-
-
 /* 強化する花騎士 */
+table#input_table {
+	margin-bottom: 5px;
+}
+
 table#input_table tr.width_set td
 , table#input_table tr.width_set th
 {

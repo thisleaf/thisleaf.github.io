@@ -1,56 +1,19 @@
 
-:root {
-	--graycolor: #aaa;
-}
-
-
-
+/* ボーダーの解決は強い線が優先、同じ時は構造順 */
 table#input_table {
 	margin-left: 2em;
-	/*margin-left: auto;*/
 	margin-right: auto;
 }
 
-/* ボーダーの解決は強い線が優先、同じ時は構造順 */
-table.black_border {
-	border-collapse: collapse;
-	text-align: center;
-	margin: 5px;
-	margin-right: auto;
-}
-
-table.black_border th,
-table.black_border td {
+table#input_table th
+, table#input_table td
+{
 	padding: 2px;
-	border: 1px solid black;
 }
 
-table.black_border tr {
-	border: 1px solid var(--graycolor);
-}
-
-table.black_border col {
-	border: 1px solid var(--graycolor);
-}
-
-table.black_border td.equipment {
+table#input_table td.equipment {
 	text-align: left;
 	white-space: nowrap;
-	padding-left: 10px;
-}
-
-table.black_border td.n_all {
-	border-width: 0px;
-}
-
-table.black_border th.n_tb,
-table.black_border td.n_tb {
-	border-top-width: 0px;
-	border-bottom-width: 0px;
-}
-
-table.black_border td.left {
-	text-align: left;
 	padding-left: 10px;
 }
 
@@ -58,6 +21,10 @@ table#input_table td#totaltp_comment {
 	text-align: left;
 	/*vertical-align: top;*/
 	padding-left: 0.5em;
+}
+
+table#input_table .option {
+	padding-left: 10px;
 }
 
 

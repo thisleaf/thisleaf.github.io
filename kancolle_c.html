@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<meta name="description" content="艦これのちょっとした計算機の寄せ集めです。">
+<title>その他の計算機＠艦これ</title>
+<link rel="icon" type="image/png" href="./icon-192x192.png">
+<link rel="apple-touch-icon" type="image/png" href="./apple-touch-icon-180x180.png">
+<link rel="stylesheet" type="text/css" href="style.css">
+
+<!-- Global site tag (gtag.js) - Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-46408606-2"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-46408606-2');
+</script>
+
+<link rel="stylesheet" type="text/css" href="kancolle_c.css">
+<script type="text/JavaScript" src="js/utility.js"></script>
+<script type="text/JavaScript" src="js/kancolle_furniture.js"></script>
+</head>
+<body>
+
+<noscript>
+<font color="red">
+！JavaScriptが無効になっています。有効にしないと動きません！
+</font>
+</noscript>
+
+<p>
+	ちょっとした計算機の寄せ集め(予定)です。
+	
+<!--
+	目次<br>
+	<a href="#furniture">家具コイン計算</a>
+-->
+</p>
+
+<hr>
+
+<h2 id="furniture">家具コイン計算</h2>
+
+<table id="furniture_table" class="black_border">
+<tbody>
+	<tr>
+		<th></th>
+		<th title="200枚/1箱">家具箱(小)</th>
+		<th title="400枚/1箱">家具箱(中)</th>
+		<th title="700枚/1箱">家具箱(大)</th>
+		<th>家具コイン</th>
+	</tr><tr>
+		<th>所持数</th>
+		<td><input id="fbox_S" type="number" min="0" value="" class="fbox"></td>
+		<td><input id="fbox_M" type="number" min="0" value="" class="fbox"></td>
+		<td><input id="fbox_L" type="number" min="0" value="" class="fbox"></td>
+		<td rowspan="2"><input id="furniture_coin" type="number" min="0" max="200000" step="10" value="" class="fcoin"></td>
+	</tr><tr>
+		<th>コイン換算</th>
+		<td id="fbox_coin_S"></td>
+		<td id="fbox_coin_M"></td>
+		<td id="fbox_coin_L"></td>
+	</tr><tr>
+		<th>全部開ける</th>
+		<td id="fbox_open_all_S" class="fopen"></td>
+		<td id="fbox_open_all_M" class="fopen"></td>
+		<td id="fbox_open_all_L" class="fopen"></td>
+		<th>総コイン</th>
+	</tr><tr>
+		<th>半分開ける</th>
+		<td id="fbox_open_half_S" class="fopen"></td>
+		<td id="fbox_open_half_M" class="fopen"></td>
+		<td id="fbox_open_half_L" class="fopen"></td>
+		<td id="fcoin_total" rowspan="2"></td>
+	</tr><tr>
+		<th>10個開ける</th>
+		<td id="fbox_open_10_S" class="fopen"></td>
+		<td id="fbox_open_10_M" class="fopen"></td>
+		<td id="fbox_open_10_L" class="fopen"></td>
+	</tr>
+</tbody>
+</table>
+
+<p>
+	現在の家具コインと家具箱の所持数を入力。家具箱を開けたときに家具コインが溢れないかを計算します。<br>
+	最大は20万コインです。表をダブルクリックすると開けた後を計算。
+</p>
+
+
+<div class="footer">
+	<hr>
+	<a href="index.html">トップページへ</a>
+</div>
+
+</body>
+</html>

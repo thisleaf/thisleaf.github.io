@@ -23,3 +23,85 @@ a.refer {
 	float: right;
 }
 
+
+/* テーブル汎用 */
+/* th, td に black の線 */
+table.black_border {
+	border-collapse: collapse;
+}
+
+table.black_border th
+, table.black_border td
+{
+	border: 1px solid black;
+}
+
+/* th, td 以外に --table_graycolor の線をつける */
+/* th, td が優先になるはずだが、Firefox がうまく解決してくれない場合が・・・ */
+:root {
+	--table_graycolor: #aaa;
+}
+
+table.back_border
+, table.back_border thead
+, table.back_border tbody
+, table.back_border tfoot
+, table.back_border tr
+, table.back_border col
+{
+	border: 1px solid var(--table_graycolor);
+}
+
+/* こっちで指定も可 */
+table.black_border.gray_all, table.black_border *.gray_all {
+	border: 1px solid var(--table_graycolor);
+}
+table.black_border.gray_tb, table.black_border *.gray_tb {
+	border-top: 1px solid var(--table_graycolor);
+	border-bottom: 1px solid var(--table_graycolor);
+}
+table.black_border.gray_rl, table.black_border *.gray_rl {
+	border-right: 1px solid var(--table_graycolor);
+	border-left: 1px solid var(--table_graycolor);
+}
+
+/* ボーダーを消す */
+table.black_border.n_all, table.black_border *.n_all {
+	border-width: 0px;
+}
+table.black_border.n_tb, table.black_border *.n_tb {
+	border-top-width: 0px;
+	border-bottom-width: 0px;
+}
+table.black_border.n_rl, table.black_border *.n_rl {
+	border-right-width: 0px;
+	border-left-width: 0px;
+}
+
+/* 周囲を太く */
+table.black_border.around2 {
+	border-width: 2px;
+}
+
+
+/* table 自体を真ん中に */
+table.center {
+	margin-left: auto;
+	margin-right: auto;
+}
+
+/* セルのテキスト */
+table.center_text {
+	text-align: center;
+}
+
+th.left, td.left {
+	text-align: left;
+}
+th.right, td.right {
+	text-align: right;
+}
+th.center, td.center {
+	text-align: center;
+}
+

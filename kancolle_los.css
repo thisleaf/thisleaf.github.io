@@ -1,0 +1,242 @@
+input[type="number"] {
+	text-align: right;
+	width: 50px;
+}
+
+.helper {
+	text-align: left;
+}
+
+/* ポップアップでヒントが出る */
+*[title] {
+	cursor: help;
+}
+*[title=""] {
+	cursor: default;
+}
+
+.notice {
+	border-left: 4px gray solid;
+	padding-left: 0.5em;
+	margin-top: 1em;
+	margin-bottom: 1em;
+}
+
+table {
+	margin: 0px;
+}
+
+table th {
+	background-color: lavender;
+}
+table *.green {
+	background-color: #c8fac8;
+}
+
+
+/* 選択状態を非表示に */
+#equip_table, #hint_table {
+	user-select: none;
+	-moz-user-select: none;
+	-webkit-user-select: none;
+}
+
+
+/* 編成の保存 */
+#header_tool {
+	margin: 0.5em 0em;
+}
+#header_tool > div {
+	display: inline-block;
+	margin-right: 1em;
+}
+
+#header_tool select, #header_tool button {
+	margin: 0px 1px;
+}
+
+#header_tool .hidden {
+	display: none;
+}
+
+#savelist {
+	width: 200px;
+}
+
+#fleet_name {
+	width: 200px;
+	margin: 1px 3px;
+}
+
+#save_button {
+	min-width: 100px;
+}
+
+
+/* 計算結果 */
+#score_table {
+	float: left;
+	margin-right: 8px;
+	margin-bottom: 8px;
+}
+
+#score_table tr.width_set th {
+	min-width: 50px;
+}
+
+#memo_cell {
+	padding: 0px;
+	text-align: left;
+}
+
+#memo {
+	height: 6em;
+	width: calc(100% - 6px);
+	/*width: 446px;*/
+	margin: 2px;
+	border: 0px;
+}
+
+
+/* 艦娘索敵値/入力補助 */
+#fleet_table {
+	float: left;
+	margin-right: 4px;
+	margin-bottom: 4px;
+}
+
+#fleet_table tbody tr:nth-child(-n+6) td:nth-child(1) {
+	cursor: default;
+	background-color: #def;
+}
+#fleet_table tbody tr:nth-child(-n+6) td:nth-child(3) {
+	cursor: default;
+	background-color: #fed;
+}
+
+#chara_name {
+	margin-left: 2px;
+	margin-right: 2px;
+	width: 180px;
+}
+
+#chara_restriction {
+	margin-left: 2px;
+	margin-right: 2px;
+	width: 180px;
+}
+
+#ship_select {
+	margin-left: 2px;
+	margin-right: 2px;
+	width: 180px;
+}
+
+#bonus_info {
+	text-align: left;
+	vertical-align: top;
+	padding: 4px;
+	font-size: 80%;
+}
+
+
+/* 索敵装備 */
+#equip_table {
+	float: left;
+	clear: left;
+	margin-right: 4px;
+	margin-bottom: 4px;
+}
+
+#equip_table .equiplist {
+	width: 300px;
+}
+
+#equip_table .number {
+	cursor: default;
+	background-color: white;
+}
+
+#equip_table .category {
+	width: 121px;
+}
+
+#equip_table .improvement {
+	color: gray;
+}
+#equip_table .improvement.effective {
+	color: #45a9a5;
+}
+#equip_table .improvement.nothing {
+	color: gray;
+}
+
+
+
+
+/* 装備リスト */
+#hint_table {
+	float: left;
+	margin-bottom: 4px;
+}
+
+#hint_table tbody {
+	line-height: 1.0;
+	font-size: 80%;
+}
+
+#hint_table th.header {
+	padding: 0px;
+}
+
+#hint_table td.name {
+	width: 200px;
+	padding: 0px;
+	cursor: pointer;
+	overflow: hidden;
+	/*background: linear-gradient(90deg, #afa 0%, #FFFFFF 100%) no-repeat 0% 50% / 10% 100%;*/
+}
+
+#hint_table td.name div {
+	width: 200px;
+}
+
+#hint_table td.name div, #hint_table th.header div {
+	padding: 2px 4px;
+	margin: 0;
+	white-space: nowrap;
+}
+
+#hint_table td.los {
+	min-width: 24px;
+	text-align: center;
+}
+
+#hint_table td.empty {
+	border-width: 0px;
+}
+
+
+/* 索敵スコアのまとめ */
+#score_hint_table {
+	clear: both;
+	margin-left: auto;
+	margin-right: auto;
+	text-align: center;
+}
+
+#score_hint_table th {
+	padding: 1px 4px;
+}
+
+#score_hint_table td {
+	font-size: 80%;
+	line-height: 1.1;
+	padding: 4px;
+}
+
+.verification_data {
+	font-size: 75%;
+}
+
+

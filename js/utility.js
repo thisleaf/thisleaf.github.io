@@ -2,21 +2,22 @@
 
 // このファイルで使われるクラス --------------------------------------------------------------------
 // フォームの文字列などの変換結果
-ConvertResult.prototype = {
+Object.assign(ConvResult.prototype, {
 	value: 0,
 	error: false,
 	empty: false,
 	message: null,
 	
-	good   : ConvertResult_good,
-	get    : ConvertResult_get,
-	valueOf: ConvertResult_valueOf
-};
+	in_range: ConvResult_in_range,
+	good    : ConvResult_good,
+	get     : ConvResult_get,
+	valueOf : ConvResult_valueOf,
+});
 
-ConvertResult.good = ConvertResult_static_good;
+ConvResult.good = ConvResult_static_good;
 
 
-function ConvertResult(){
+function ConvResult(){
 	switch (arguments.length) {
 	default:
 	case 4: this.message = arguments[3];
@@ -27,19 +28,24 @@ function ConvertResult(){
 	}
 }
 
-function ConvertResult_good(){
+// [a, b]の区間にあるか
+function ConvResult_in_range(a, b){
+	return a <= this.value && this.value <= b;
+}
+
+function ConvResult_good(){
 	return !this.empty && !this.error;
 }
 
-function ConvertResult_get(def){
+function ConvResult_get(def){
 	return this.good() ? this.value : def;
 }
 
-function ConvertResult_valueOf(){
+function ConvResult_valueOf(){
 	return this.value;
 }
 
-function ConvertResult_static_good(x){
+function ConvResult_static_good(x){
 	return x && x.good();
 }
 
@@ -78,6 +84,23 @@ function float_to_string(x, flen, dir){
 			fill = flen;
 		}
 		for (var i=0; i<fill; i++) str += "0";
+	}
+	return str;
+}
+
+// 整数の変換関数。例によって大きい数などは考慮されていない
+// n: 変換する整数
+// len: 数値の(最低)文字数。不足している場合は0を補完する
+// plus: 0以上の場合に+を補完する
+function int_to_string(n, len, plus){
+	let str = String(n < 0 ? -n : n);
+	if (/^\d+$/.test(str)) {
+		while (str.length < len) str = "0" + str;
+	}
+	if (n < 0) {
+		str = "-" + str;
+	} else if (plus) {
+		str = "+" + str;
 	}
 	return str;
 }
@@ -155,6 +178,125 @@ function assert(x, message){
 	return x;
 }
 
+
+// 日付を文字列に
+function strYMD(d){
+	return d.getFullYear() + "/" + int_to_string(d.getMonth() + 1, 2) + "/" + int_to_string(d.getDate(), 2);
+}
+
+function strYMDHM(d){
+	return strYMD(d) + " " + int_to_string(d.getHours(), 2) + ":" + int_to_string(d.getMinutes(), 2);
+}
+
+
+// 通信, csv ---------------------------------------------------------------------------------------
+// csvファイルのロード。データはすべて文字列だが、改行は\nに置き換えられる
+// url       : URL
+// use_header: 1行目をヘッダーとみなす。各行はヘッダー行をキーとする連想配列になる (false の場合は通常の配列)
+// func(obj) : 読み込み完了時に呼ばれる関数。obj には行データの配列。ただしエラーの場合は null
+// 戻り値: XMLHttpRequest, GCに回収されないようにロード中は保持しておく
+function httpload_csv_async(url, use_header, func){
+	let data = null;
+	let xml = new XMLHttpRequest;
+	
+	// リクエスト成功時イベント
+	xml.addEventListener("load", function (){
+		data = parse_csv_text(xml.responseText, use_header);
+	});
+	// リクエスト終了時のイベント(loadの後)
+	xml.addEventListener("loadend", function (){
+		func(data);
+	});
+	
+	xml.open("GET", url);
+	xml.send();
+	return xml;
+}
+
+
+// csvのパース
+// src: csvデータ
+// use_header: 1行目をヘッダーとみなす
+function parse_csv_text(src, use_header){
+	let text = src.replace(/\r\n|\r/g, "\n");
+	
+	let separated = new Array;
+	let line = new Array;
+	
+	while (text != "") {
+		let str, delim;
+		
+		// ダブルクオーテーションの展開
+		// "あ""い""う" → あ"い"う
+		if (/^((?:"[^"]*")+)([,\n]|$)/.test(text)) {
+			str = RegExp.$1;
+			delim = RegExp.$2;
+			text = RegExp.rightContext;
+			
+			str = str.replace(/^"|"$/g, "").replace(/""/g, "\"");
+			
+		} else if (/^([^,\n]*)([,\n]|$)/.test(text)) {
+			str = RegExp.$1;
+			delim = RegExp.$2;
+			text = RegExp.rightContext;
+			
+		} else {
+			// ここにはこないはず
+			console.log("parse_csv_text(): 内部エラー");
+			break;
+		}
+		
+		line.push(str);
+		
+		if (delim != ",") {
+			separated.push(line);
+			line = new Array;
+		}
+	}
+	
+	if (line.length > 0) separated.push(line);
+	
+	// ヘッダー変換なしならそのまま
+	if (!use_header) {
+		return separated;
+	}
+	
+	// ヘッダー変換
+	let data = new Array;
+	let header_line = separated[0];
+	
+	if (header_line) {
+		for (let i=1; i<separated.length; i++) {
+			let obj = new Object;
+			for (let j=0; j<header_line.length; j++) {
+				obj[header_line[j]] = separated[i][j] || "";
+			}
+			data.push(obj);
+		}
+	}
+	
+	return data;
+}
+
+
+// csv データの lastModified 列をチェック
+// 一番新しい日付を返す
+function get_csv_last_modified(csv){
+	let lastmod = null;
+	if (csv) {
+		for (let x of csv) {
+			if (x.lastModified) {
+				let d = new Date(x.lastModified);
+				if ( d.getTime() > 0 &&
+					(!lastmod || lastmod.getTime() < d.getTime()) )
+				{
+					lastmod = d;
+				}
+			}
+		}
+	}
+	return lastmod;
+}
 
 
 // DOM関係 -----------------------------------------------------------------------------------------
@@ -269,10 +411,10 @@ function change_style(selector, text){
 }
 
 // 文字列から数値への変換
-// 戻り値は ConvertResult
+// 戻り値は ConvResult
 // フォームの読み取りなどに
 function formstr_to_int(value, empty_value, error_value){
-	var res = new ConvertResult;
+	var res = new ConvResult;
 	
 	if (/^[\+\-]?\d+$/.test(value)) {
 		res.value =  parseInt(value, 10);
@@ -289,7 +431,7 @@ function formstr_to_int(value, empty_value, error_value){
 }
 
 function formstr_to_float(value, empty_value, error_value){
-	var res = new ConvertResult;
+	var res = new ConvResult;
 	
 	if (/^[\+\-]?\d+(?:\.\d+)?$/.test(value)) {
 		res.value = parseFloat(value);
@@ -377,9 +519,9 @@ function set_form_values(obj, ids){
 		var e = document.getElementById(ids[i]);
 		if (e) {
 			if (e.tagName == "INPUT" && e.type == "checkbox") {
-				e.checked = obj[ids[i]];
+				e.checked = obj[ids[i]] || false;
 			} else {
-				e.value = obj[ids[i]];
+				e.value = obj[ids[i]] || "";
 			}
 		}
 	}
@@ -396,5 +538,21 @@ function clear_error_class(id){
 	e.classList.remove(FORM_ERROR_CLASSNAME);
 }
 
+
+// title属性の"\n"を改行に置き換える
+// document中の全ての要素が対象
+function expand_title_newline(){
+	let elems = document.querySelectorAll("*[title]");
+	
+	for (let i=0; i<elems.length; i++) {
+		let e = elems[i];
+		let str = e.title;
+		let expanded = str.replace(/\\n/g, "\n");
+		
+		if (str != expanded) {
+			e.title = expanded;
+		}
+	}
+}
 
 

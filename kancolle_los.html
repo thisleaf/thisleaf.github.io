@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<meta name="description" content="艦これの33式索敵スコア計算機です。">
+<title>艦これ索敵計算機</title>
+<link rel="icon" type="image/png" href="./icon-192x192.png">
+<link rel="apple-touch-icon" type="image/png" href="./apple-touch-icon-180x180.png">
+<link rel="stylesheet" type="text/css" href="style.css">
+<link rel="stylesheet" type="text/css" href="kancolle_los.css">
+
+<!-- Global site tag (gtag.js) - Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-46408606-2"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-46408606-2');
+</script>
+</head>
+<body>
+
+
+<h2>艦これ索敵計算機</h2>
+
+<noscript>
+<font color="red">
+！JavaScriptが無効になっています。有効にしないと動きません！
+</font>
+</noscript>
+
+<div class="notice">
+作りたてのベータ版です。
+</div>
+
+
+<!-- 保存・読み込み -->
+<div id="header_tool">
+	<div>
+		保存された編成: <select id="savelist"></select><button id="load_button">読込</button><button id="delete_button" class="hidden">削除</button>
+	</div><div>
+		編成名<input id="fleet_name" type="text"><button id="save_button" disabled>保存(新規)</button><button id="allclear_button" class="hidden">クリア</button>
+	</div><div>
+		<label><input id="show_button_check" type="checkbox">他のボタンを表示</label>
+	</div>
+</div>
+
+<!-- 計算結果 -->
+<table id="score_table" class="black_border center_text">
+<tbody>
+	<tr>
+		<th>司令部レベル</td>
+		<td><input id="HQ_level" type="number" min="1" max="120" value="120"></td>
+		<th>艦数</th>
+		<td id="ship_count"></td>
+		<td></td>
+	</tr><tr>
+		<th title="分岐点によって計算式が違う可能性が示されています。\n司令部レベル120ならば関係ありません。(どちらも同じ値になるように補正)">司令部補正</td>
+		<td colspan="2">
+			<select id="HQ_level_modify">
+				<option value="hqm040">ceil(0.4 * Lv)</option>
+				<option value="hqm035p6">ceil(0.35 * Lv) + 6</option>
+			</select> =
+		</td>
+		<td id="HQ_level_modify_cell"></td>
+		<td></td>
+	</tr><tr>
+		<th colspan="5">計算結果 (33式)</th>
+	</tr><tr class="width_set">
+		<th width="120" class="green">分岐点係数</th>
+		<th width="80" class="green">1</th>
+		<th width="80" class="green">2</th>
+		<th width="80" class="green">3</th>
+		<th width="80" class="green">4</th>
+	</tr><tr>
+		<th class="green">索敵スコア</th>
+		<td id="los_score_1"></td>
+		<td id="los_score_2"></td>
+		<td id="los_score_3"></td>
+		<td id="los_score_4"></td>
+	</tr><tr>
+		<th colspan="5">メモ</th>
+	</tr><tr>
+		<td id="memo_cell" colspan="5">
+			<textarea id="memo"></textarea>
+		</td>
+	</tr>
+</tbody>
+</table>
+
+
+<table id="fleet_table" class="black_border center_text">
+<thead>
+	<tr>
+		<th colspan="4" title="艦娘の素の索敵値。\nただし装備ボーナスのうち、艦娘索敵値に加算されるものは加算する。">艦娘索敵値</th>
+		<td class="n_all"></td>
+		<th id="assist_header" colspan="4">入力補助β</th>
+	</tr>
+</thead>
+<tbody>
+	<tr>
+		<td width="24">1</td>
+		<td width="60"><input id="ship_los_1" type="number" min="0" tabindex="1"></td>
+		<td width="24">7</td>
+		<td width="60"><input id="ship_los_7" type="number" min="0" tabindex="7"></td>
+		<td width="2" class="n_all"></td>
+		<th width="110" rowspan="2">艦</th>
+		<td colspan="2" class="left">
+			<select id="chara_name"></select><select id="chara_restriction"></select>
+		</td>
+	</tr><tr>
+		<td>2</td><td><input id="ship_los_2" type="number" class="ship_los" min="0" tabindex="2"></td>
+		<td>8</td><td><input id="ship_los_8" type="number" class="ship_los" min="0" tabindex="8"></td>
+		<td class="n_all"></td>
+		<td class="left">
+			<select id="ship_select"></select>
+		</td>
+		<td width="120">Lv <input id="ship_level" type="number" min="1" max="175" value="99"></td>
+	</tr><tr>
+		<td>3</td><td><input id="ship_los_3" type="number" class="ship_los" min="0" tabindex="3"></td>
+		<td>9</td><td><input id="ship_los_9" type="number" class="ship_los" min="0" tabindex="9"></td>
+		<td class="n_all"></td>
+		<th>装備ボーナス</th>
+		<td colspan="2">艦娘索敵値+<input id="equip_bonus" type="number" min="0" value="0"></td>
+	</tr><tr>
+		<td>4</td><td><input id="ship_los_4" type="number" class="ship_los" min="0" tabindex="4"></td>
+		<td>10</td><td><input id="ship_los_10" type="number" class="ship_los" min="0" tabindex="10"></td>
+		<td class="n_all"></td>
+		<td id="bonus_info" colspan="3" rowspan="4"></td>
+	</tr><tr>
+		<td>5</td><td><input id="ship_los_5" type="number" class="ship_los" min="0" tabindex="5"></td>
+		<td>11</td><td><input id="ship_los_11" type="number" class="ship_los" min="0" tabindex="11"></td>
+		<td class="n_all"></td>
+	</tr><tr>
+		<td>6</td><td><input id="ship_los_6" type="number" class="ship_los" min="0" tabindex="6"></td>
+		<td>12</td><td><input id="ship_los_12" type="number" class="ship_los" min="0" tabindex="12"></td>
+		<td class="n_all"></td>
+	</tr><tr>
+		<th colspan="2" title="平方根の和">スコア</th>
+		<td id="fleet_score" colspan="2"></td>
+		<td class="n_all"></td>
+	</tr><tr>
+		<td colspan="4" class="right"><button id="clear_ship_los">クリア</button></td>
+		<td class="n_all"></td>
+		<th>艦娘索敵値</th>
+		<td id="assist_los"></td>
+		<td><button id="append_assist_los" title="空いている枠に追加します">追加</button></td>
+	</tr>
+</tbody>
+</table>
+
+
+<table id="equip_table" class="black_border center_text">
+<thead>
+	<tr>
+		<th colspan="6">索敵装備</th>
+	</tr><tr>
+		<th width="24"></th>
+		<th style="min-width: 200px;">装備名</th>
+		<th style="min-width: 100px;">種別</th>
+		<th width="60">改修</th>
+		<th width="60">索敵</th>
+		<th width="70" title="分岐点係数1のスコア">スコア1</th>
+	</tr>
+</thead>
+<tfoot>
+	<tr>
+		<td rowspan="2"></td>
+		<td colspan="3" class="left"><button id="increase_rows">ふやす</button> <button id="decrease_rows">へらす</button></td>
+		<th>合計</th>
+		<td id="equip_score"></td>
+	</tr><tr>
+		<td colspan="5" class="right"><button id="clear_equiplist">クリア</button></td>
+	</tr>
+</tfoot>
+<tbody>
+	<tr></tr>
+</tbody>
+</table>
+
+
+<table id="hint_table" class="black_border">
+<thead>
+	<tr>
+		<th id="hint_table_header" colspan="12" title="索敵値を持つ装備のリスト。ダブルクリックで入力できます。">装備リスト(索敵値あり)</th>
+	</tr>
+</thead>
+<tbody>
+</tbody>
+</table>
+
+<div style="clear: both;"></div>
+<hr size="1">
+
+<!-- 海域の索敵スコア情報など -->
+<table id="score_hint_table" class="black_border">
+<thead>
+<tr>
+	<th colspan="8">海域情報</th>
+</tr>
+<tr>
+	<th>分岐マス</th>
+	<th>分岐点係数</th>
+	<th>司令部補正係数</th>
+	<th title="成功確定のボーダーです。この値以上になると確実に成功。\nここに&quot;X以上&quot;と書いてある場合、ボーダーがX以上という意味なので、索敵値に少し余裕を持ったほうが良いかもしれません。">成功確定</th>
+	<th title="失敗確定のボーダーです。この値未満になると確実に失敗。">成功下限</th>
+	<th>成功</th>
+	<th>失敗</th>
+	<th>備考・ソース</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+	<td>1-6 M<br>(上ルート道中)</td>
+	<td>3</td><td></td>
+	<td>30*</td><td></td>
+	<td>J<br>(上)</td><td>L<br>(下)</td>
+	<td>
+		編成による<br>
+		<a href="https://docs.google.com/spreadsheets/d/17im0Ko8BjWkDEetnmXZRMjJYm85eXcDNNjrt0q_LUlo/edit#gid=504143548" target="_blank">Mマス*</a>
+	</td>
+</tr><tr>
+	<td>2-5 I<br>(中央ルート)</td>
+	<td>1</td><td>0.4</td>
+	<td>34</td><td title="司令部レベル43,44のスコア30で到達例あり">31</td>
+	<td>O<br>(ボス)</td><td>H<br>(帰投)</td>
+	<td>
+		<a href="https://twitter.com/CC_jabberwock/status/1031499907876540417" target="_blank">Iマス</a>
+		<a href="https://twitter.com/FlatIsNice/status/1035864260159696896" target="_blank">I,J,Gマス</a>
+		<a href="https://twitter.com/FlatIsNice/status/1062451532896104450" target="_blank">司令部補正</a>
+	</td>
+</tr><tr>
+	<td>2-5 J<br>(上ルート)</td>
+	<td>1</td><td>0.4</td>
+	<td>49</td><td>42</td>
+	<td>O<br>(ボス)</td><td>H<br>(帰投)</td>
+	<td>編成による</td>
+</tr><tr>
+	<td>2-5 G<br>(下ルート渦潮)</td>
+	<td>1</td><td>0.4</td>
+	<td>41</td><td>35以下</td>
+	<td>L<br>(ボス前)</td><td>K<br>(帰投)</td>
+	<td>編成による</td>
+</tr><tr>
+	<td>3-5 H<br>(ほっぽ)</td>
+	<td>4</td><td>0.35</td>
+	<td title="39で逸れ例あり">40以上</td><td title="38で到達例あり">38以下</td>
+	<td>K<br>(ボス)</td><td>J<br>(弾薬&amp;帰投)</td>
+	<td>
+		編成による<br>
+		<a href="https://docs.google.com/spreadsheets/d/1MMN5yoXv15q3qx16PHv2_2RoY5kUCeKyCcdMrs2BC8M/edit#gid=1299712435" target="_blank">3-5H,4-5Kなど</a>
+	</td>
+</tr><tr>
+	<td>3-5 G<br>(下ルート)</td>
+	<td>4</td><td>0.35</td>
+	<td>28*</td><td>23*</td>
+	<td>K<br>(ボス)</td><td>I<br>(帰投)</td>
+	<td>
+		<a href="https://docs.google.com/spreadsheets/d/1bALtITtWX8w_ZPrxcuvbD7_1y71rVzaPeUKEDZWY_gk/edit#gid=1060130956" target="_blank">G(一期G)マス*</a>
+		<a href="https://twitter.com/CC_jabberwock/status/852525344124948480" target="_blank">司令部補正*</a>
+	</td>
+</tr><tr>
+	<td>4-5 K<br>(軽巡棲鬼)</td>
+	<td>2</td><td></td>
+	<td>71</td><td>63以下</td>
+	<td>T<br>(ボス)</td><td>L<br>(帰投)</td>
+	<td>編成による</td>
+</tr><tr>
+	<td>4-5 Q<br>(左上)</td>
+	<td>2</td><td></td>
+	<td>59以上</td><td>56以下</td>
+	<td>O or N</td><td>P<br>(帰投)</td>
+	<td>成功時の到達先は編成による？<br>情報不足</td>
+</tr><tr>
+	<td>4-5 O<br>(最遠ルート)</td>
+	<td>2</td><td></td>
+	<td></td><td></td>
+	<td>T?</td><td>N<br>(補給艦)</td>
+	<td>編成による？成功時もランダム？<br>情報不足</td>
+</tr><tr>
+	<td>5-2 F<br>(ボス前)</td>
+	<td>2</td><td>0.35</td>
+	<td>70</td><td>64以下</td>
+	<td>O or I<br>(ボスor航空戦)</td><td>H<br>(帰投)</td>
+	<td>
+		成功時の行き先は編成による<br>
+		<a href="https://twitter.com/CC_jabberwock/status/1040906996545810432" target="_blank">Fマス1</a>
+		<a href="https://twitter.com/FlatIsNice/status/1035978449134018560" target="_blank">Fマス2</a>
+	</td>
+</tr><tr>
+	<td>5-2 L<br>(遠回り空襲)</td>
+	<td>2</td><td>0.35</td>
+	<td>62</td><td>60以下</td>
+	<td>K<br>(ボス前)</td><td>M<br>(渦潮)</td>
+	<td>
+		編成による<br>
+		<a href="https://wikiwiki.jp/kancolle/%E5%8D%97%E6%96%B9%E6%B5%B7%E5%9F%9F/5-2/%E3%83%AD%E3%82%B01" target="_blank" title="2019-03-25 (月) 01:07:44 の木">Lマス1</a>
+		<a href="https://twitter.com/CC_jabberwock/status/1115576508548931584" target="_blank">Lマス2</a>
+	</td>
+</tr><tr>
+	<td>5-4 L<br>(上ルート)</td>
+	<td>2</td><td>0.35</td>
+	<td>59?</td><td></td>
+	<td>P<br>(ボス)</td><td>N<br>(帰投)</td>
+	<td>
+		編成による<br>
+		<span title="編成逸れでないと思われるデータのうち、スコア60では逸れなし
+スコア59では3件あるものの、司令部112や105(係数0.35なら1ずれる)
+2019/07/20">TsunDB</span>
+	</td>
+</tr><tr>
+	<td>5-4 M<br>(下ルート)</td>
+	<td>2</td><td>0.35</td>
+	<td>45</td><td>41以下</td>
+	<td>P<br>(ボス)</td><td>O<br>(帰投)</td>
+	<td>
+		編成による<br>
+		<a href="https://twitter.com/CC_jabberwock/status/1090569433964105728" target="_blank">Mマス1</a>
+		<a href="https://twitter.com/CainRavenK/status/1089761682539335681" target="_blank" title="成功下限">Mマス2</a>
+	</td>
+</tr><tr>
+	<td>5-5 P<br>(上ルート)</td>
+	<td>2</td><td></td>
+	<td>80</td><td>73</td>
+	<td>S<br>(ボス)</td><td>Q<br>(帰投)</td>
+	<td>
+		<span title="戦空5以上は1/3逸れ判定かつ索敵判定?">編成による</span><br>
+		<a href="https://twitter.com/Lambda39/status/1121436276471631872" target="_blank">Pマス</a>
+	</td>
+</tr><tr>
+	<td>5-5 O<br>(下ルート)</td>
+	<td>2</td><td></td>
+	<td>66</td><td>63</td>
+	<td>S<br>(ボス)</td><td>R<br>(帰投)</td>
+	<td>
+		データは補給艦編成、他の編成は不明<br>
+		<a href="https://twitter.com/CC_jabberwock/status/1119249346065653760" target="_blank" title="補給艦1戦艦2空母1駆逐2">Oマス</a>
+	</td>
+</tr><tr>
+	<td>6-1 G<br>(1回目の索敵)</td>
+	<td>4</td><td></td>
+	<td>16*</td><td>12*</td>
+	<td>H<br>(ボス前)</td><td>I<br>(空母棲鬼)</td>
+	<td>
+		<span title="Hに行ける編成でも潜水母艦(大鯨)を含まないと稀に逸れる">編成による</span><br>
+		<a href="https://wikiwiki.jp/kancolle/%E4%B8%AD%E9%83%A8%E6%B5%B7%E5%9F%9F" target="_blank">中部海域</a>
+		<a href="https://docs.google.com/spreadsheets/d/1wCsKZf151LPPhlmaJkabvdiJIg1eK9XEzpmI4ebjKSY/edit#gid=1827825350" target="_blank">大鯨編成*</a>
+		<a href="https://docs.google.com/spreadsheets/d/1JasF5jVznj8JY_xIWj3rJkh0atqD1ifIO5QJHOgm2pA/edit#gid=504143548" target="_blank">空母編成*</a>
+	</td>
+</tr><tr>
+	<td rowspan="2">6-1 H<br>(2回目の索敵)</td>
+	<td rowspan="2">4</td><td rowspan="2"></td>
+	<td>25*</td><td>20*</td>
+	<td>K<br>(ボス)</td><td>E<br>(帰投)</td>
+	<td>
+		潜水母艦を含む場合
+	</td>
+</tr><tr>
+	<td>36*</td><td>20*</td>
+	<td colspan="2">
+		36以上: K (ボス)<br>
+		36未満25以上: K or J (右下) <br>
+		25未満20以上: K or J or E<br>
+		20未満: E (帰投)
+	</td>
+	<td>
+		潜水母艦を含まない場合<br>
+		上の 25/20 の 成功 or E 判定の後に<br>36/20 の K or J 判定があるということか？
+	</td>
+</tr><tr>
+	<td>6-2 E<br>(下ルート)</td>
+	<td>3</td><td>0.35</td>
+	<td>50*</td><td>43*</td>
+	<td>J<br>(ボス前(下))</td><td>I<br>(ボス前(中央))</td>
+	<td>
+		編成による<br>
+		<a href="https://docs.google.com/spreadsheets/d/1NBcTuhx_gXb3lVROa2TcjxI3uJDoZ3-SwA-FErajr5U/edit#gid=155241526" target="_blank">E,I(一期F,H)マス*</a>
+	</td>
+</tr><tr>
+	<td>6-2 I<br>(ボス前(中央))<br></td>
+	<td>3</td><td>0.35</td>
+	<td>40*</td><td>33*</td>
+	<td>K<br>(ボス)</td><td>G<br>(帰投)</td>
+	<td>
+		<a href="https://docs.google.com/spreadsheets/d/1MMN5yoXv15q3qx16PHv2_2RoY5kUCeKyCcdMrs2BC8M/edit#gid=132998205" target="_blank">司令部補正</a>
+	</td>
+</tr><tr>
+	<td>6-2 H<br>(ボス前(上))</td>
+	<td>3</td><td>0.35</td>
+	<td>32*</td><td></td>
+	<td>K<br>(ボス)</td><td>G<br>(帰投)</td>
+	<td>
+		<a href="https://twitter.com/CC_jabberwock/status/1013467043797000192" target="_blank">H(一期G)マス*</a>
+	</td>
+</tr><tr>
+	<td>6-3 H<br>(ボス前)</td>
+	<td>3</td><td>0.35</td>
+	<td>38*</td><td>36*</td>
+	<td>J<br>(ボス)</td><td>I<br>(帰投)</td>
+	<td>
+		<a href="https://docs.google.com/spreadsheets/d/18Tj5fvSNrztGjc0-who1kPe6pzVFqCjyW7Xbr__QUZs/edit?usp=sharing" target="_blank">H(一期H)マス*</a><br>
+		<a href="https://twitter.com/CC_jabberwock/status/837340048307544064" target="_blank">司令部補正1*</a>
+		<a href="https://twitter.com/yy406_myon/status/837583813886648320" target="_blank">司令部補正2*</a>
+	</td>
+</tr><tr>
+	<td>6-5 G<br>(上ルート)</td>
+	<td>3</td><td></td>
+	<td>50*</td><td>48以下*</td>
+	<td>M<br>(ボス)</td><td>K<br>(帰投)</td>
+	<td>
+		<a href="https://docs.google.com/spreadsheets/d/1btSucuHqfWeBB8nDgrfyWRTHVCVUV9PPN_hklV5_UeM/edit#gid=504143548" target="_blank">Gマス*</a>
+	</td>
+</tr><tr>
+	<td>6-5 J<br>(下ルート)</td>
+	<td>3</td><td></td>
+	<td title="34(HQ117)で逸れ例あり@TsunDB">(35以上)</td><td></td>
+	<td>M<br>(ボス)</td><td>L<br>(帰投)</td>
+	<td>
+		データ不足だがほぼ通れる
+	</td>
+</tr><tr>
+	<td>7-2 E<br>(第一ボス前)</td>
+	<td>4</td><td></td>
+	<td></td><td></td>
+	<td>G<br>(ボス)</td><td>F<br>(帰投)</td>
+	<td>
+		索敵エフェクトが出たり出なかったり<br>詳細不明
+	</td>
+</tr><tr>
+	<td>7-2 I<br>(第二ボス前)</td>
+	<td>4</td><td></td>
+	<td>69</td><td></td>
+	<td>M or J<br>(ボス or 北)</td><td>L<br>(帰投)</td>
+	<td>
+		成功時の行き先は編成による<br>
+		<a href="https://twitter.com/CC_jabberwock/status/1065304831869341696" target="_blank">Iマス</a>
+	</td>
+</tr>
+</tbody>
+</table>
+
+<ul>
+<li>スコアが成功確定以上の場合は100%索敵成功、成功下限未満の場合は100%索敵失敗、それ以外はランダムと考えられています</li>
+<li>少し分かりにくいですが、成功確定の&quot;X以上&quot;は成功確定のボーダーがX以上ということを表します。Xちょうどでは逸れるかも</li>
+<li>編成によると書いてあるマスは、索敵スコア以外の要因で逸れたり、別のマスに行くことがあります</li>
+<li>*のついているデータは1期の検証をもとにしています</li>
+<li>データ不足、検証不足の項目を多く含みます(特に司令部補正)。空欄は不明</li>
+</ul>
+
+
+<h3>使い方</h3>
+<p>
+あとで書きます。ふぃーりんぐでつかうのだ
+</p>
+
+
+<div class="verification_data">
+その他の検証データリンク<br>
+<a href="https://twitter.com/CC_jabberwock/status/1045663438062596097" target="_blank" title="種別係数0.6">
+5inch単装砲 Mk.30改+GFCS Mk.37
+</a>/<a href="https://twitter.com/CC_jabberwock/status/1122065780546265088" target="_blank" title="種別係数0.6, 改修係数0">
+オ号改二
+</a>/<a href="https://twitter.com/CC_jabberwock/status/1146384973605195776" target="_blank" title="改修係数0">
+艦攻改修
+</a>/<a href="https://twitter.com/CC_jabberwock/status/1094913431050678275" target="_blank" title="改修係数1.2">
+二式艦偵改修
+</a>/<a href="https://twitter.com/CC_jabberwock/status/1094916046950035456" target="_blank" title="素索敵に加算">
+二式艦偵フィット
+</a>/<a href="https://twitter.com/CC_jabberwock/status/1089154587628466177" target="_blank" title="効果なし">
+SG レーダー(初期型)フィット
+</a>/<a href="https://twitter.com/CC_jabberwock/status/1147091191864975360" target="_blank" title="素索敵に加算">
+Laté 298Bフィット
+</a>
+</div>
+
+
+<div class="footer">
+<hr>
+<a href="index.html">トップページへ</a>
+</div>
+
+<!-- スクリプトの読み込み -->
+<script type="text/JavaScript" src="js/utility.js"></script>
+<script type="text/JavaScript" src="js/kancolle_los.js"></script>
+<script type="text/JavaScript" src="js/kancolle_los_assist.js"></script>
+<script type="text/JavaScript" src="js/kancolle_los_io.js"></script>
+
+</body>
+</html>
