@@ -181,6 +181,10 @@ FKGCardStack.prototype = {
 	card : null,
 	count: 0,
 	allin: false,  // 全部使用する
+	// 関連するformのID
+	form_count_id: "",
+	form_allin_id: "",
+	
 	clone: FKGCardStack_clone,
 };
 
@@ -223,7 +227,8 @@ PowerupOnce.prototype = {
 	end_experience: 0,
 	end_level: 1,
 	
-	// 表示用
+	// ここまでの合計
+	// オプションの値は含めない
 	total_gold_to_powerup: 0,
 	//total_gain_experience: 0,
 	
@@ -299,6 +304,10 @@ FlowerFormData.prototype = {
 	search_great   : GREAT_NOTHING,
 	once_min_count : 0,
 	
+	// 追加コスト
+	extracost_gold : 0,
+	extracost_exp  : 0,
+	
 	// 計算・変換されたデータ等
 	exp_table : null,
 	gold_table: null,
@@ -370,10 +379,12 @@ function FKGCard_calcFeedExp(base, fit, factor){
 
 
 // -------------------------------------------------------------------------------------------------
-function FKGCardStack(card, count, allin){
+function FKGCardStack(card, count, allin, count_id, allin_id){
 	if (card) this.card = card;
 	if (count > 0) this.count = count;
 	if (allin) this.allin = allin;
+	if (count_id) this.form_count_id = count_id;
+	if (allin_id) this.form_allin_id = allin_id;
 }
 
 function FKGCardStack_clone(){
@@ -381,6 +392,8 @@ function FKGCardStack_clone(){
 	Object.assign(out, this);
 	return out;
 }
+
+// 以下 static な関数
 
 // 経験値が大きい方から
 // 同経験値は優先度が高い方が前

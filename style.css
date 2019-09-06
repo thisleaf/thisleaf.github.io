@@ -77,6 +77,18 @@ table.black_border.n_rl, table.black_border *.n_rl {
 	border-right-width: 0px;
 	border-left-width: 0px;
 }
+table.black_border.n_t, table.black_border *.n_t {
+	border-top-width: 0px;
+}
+table.black_border.n_r, table.black_border *.n_r {
+	border-right-width: 0px;
+}
+table.black_border.n_b, table.black_border *.n_b {
+	border-bottom-width: 0px;
+}
+table.black_border.n_l, table.black_border *.n_l {
+	border-left-width: 0px;
+}
 
 /* 周囲を太く */
 table.black_border.around2 {

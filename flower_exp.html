@@ -42,7 +42,7 @@
 
 <table id="input_table" class="black_border center center_text">
 <thead>
-	<tr><th colspan="6">強化する花騎士</th></tr>
+	<tr><th colspan="7">強化する花騎士</th></tr>
 </thead>
 <tbody>
 	<tr>
@@ -63,6 +63,7 @@
 			<label><input id="growth_florescence" type="radio" name="growth">開花</label>
 			<label>上限<input id="limit_level" type="number" min="80" max="100" step="5" value="80">Lv</label>
 		</td>
+		<td></td>
 	</tr>
 	<tr class="width_set">
 		<th>現在Lv</th>
@@ -71,6 +72,7 @@
 		<td><input id="next_exp" type="number" min="0" step="1" value="" class="exp"></td>
 		<th>累計経験値</th>
 		<td><input id="total_exp" type="number" min="0" step="1" value="0" class="exp"></td>
+		<td><button id="clear_exp">経験値クリア</button></td>
 	</tr>
 </tbody>
 </table>
@@ -143,7 +145,8 @@
 	</tr>
 	<tr>
 		<th>合計経験値</th>
-		<td id="total_feed_exp" colspan="8"></td>
+		<td id="total_feed_exp" colspan="6" class="n_r"></td>
+		<td colspan="2" class="n_l right"><button id="clear_counts">個数クリア</button></td>
 	</tr>
 </tbody>
 <tbody class="option">
@@ -183,6 +186,14 @@
 			</select>
 			枚以上使用する
 		</td>
+	</tr>
+	<tr>
+		<th title="再計算用。計算結果に加算されるだけです。">追加コスト</th>
+		<td colspan="6" class="n_r">
+			<input id="extracost_gold" type="number" class="exp" min="0" step="1" value="0"> ゴールド &
+			<input id="extracost_exp" type="number" class="exp" min="0" step="1" value="0"> exp
+		</td>
+		<td colspan="2" class="n_l right"><button id="clear_extracosts">追加コストクリア</button></td>
 	</tr>
 </tbody>
 </table>
@@ -241,6 +252,11 @@
 		消費ゴールドを最小にするものを探索すると、しばしば1枚だけで強化するような調整が現れます。<br>
 		しかしこのときに大成功すると、大成功の恩恵はあまりなく消費ゴールドだけが増えてしまうことも。<br>
 		それを嫌う場合のためにこのオプションがあるのですが、それが本当に有効かは別に検討する必要があります。
+	</dd>
+	<dt>追加コスト</dt>
+	<dd>
+		入力すると計算結果に加算されます。主に再計算時の表示用です。強化の手順には関係ありません。経験値は属性一致時のものとします。<br>
+		「ここから再計算」をクリックしたときに、それまでの手順で消費したぶんが加算されます。
 	</dd>
 </dl>
 
@@ -328,7 +344,7 @@
 <li>
 	端数処理の問題により、解の最小性が保証されない場合があります。<br>
 	マニュ、アンプルゥ、キャラ装花、キャラ技花のみの場合は端数が出ないので問題ありません。(キャンペーン1.1倍/1.15倍時両方)<br>
-	これら以外(花騎士等)を素材にした場合かつキャンペーン倍率がかかる場合には近似値ということでお願いします。<br>
+	これら以外(花騎士等)を素材にした場合かつキャンペーン倍率がかかる場合には近似解ということでお願いします。<br>
 	最小は保証されないとはいえ僅かな経験値の差なので、大体は最小になるとは思いますが……
 </li>
 <li>

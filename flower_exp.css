@@ -21,6 +21,10 @@ label.disabled {
 	color: gray;
 }
 
+*[title] {
+	cursor: help;
+}
+
 
 /* 強化する花騎士 */
 table#input_table {
@@ -66,6 +70,9 @@ table#material_table th select
 table#material_table tbody.option td {
 	padding: 3px;
 	text-align: left;
+}
+table#material_table tbody.option td.right {
+	text-align: right;
 }
 
 table#material_table .special_header {
@@ -210,11 +217,14 @@ table#process_table .material.empty {
 	background-color: gainsboro;
 }
 
-
 table#process_table .overexp,
 table#process_table .justexp
 {
 	color: red;
+}
+
+table#process_table button {
+	font-size: 90%;
 }
 
 

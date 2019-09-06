@@ -9,6 +9,10 @@ const special_exp_factor_end = new Date("2019/09/09 14:00");
 const special_exp_factor = 1.15;
 
 
+// 現在表示中の計算結果
+let showing_data_form = null;
+let showing_data_uplist = null;
+
 
 document.addEventListener("DOMContentLoaded", flower_pageinit);
 
@@ -18,6 +22,10 @@ function flower_pageinit(){
 	function _set_change_ev(id, ev_func){
 		var e = DOM(id);
 		if (e) e.addEventListener("change", ev_func);
+	}
+	function _set_click_ev(id, ev_func){
+		var e = DOM(id);
+		if (e) e.addEventListener("click", ev_func);
 	}
 	function _set_minmax(id){
 		var e = DOM(id);
@@ -38,6 +46,8 @@ function flower_pageinit(){
 	_set_change_ev("current_level", ev_change_level);
 	_set_change_ev("next_exp", ev_change_next);
 	_set_change_ev("total_exp", ev_change_total);
+	// 経験値クリア
+	_set_click_ev("clear_exp", ev_clear_exp);
 	// 素材
 	var postids = [
 		"m_m5", "m_m20", "m_m100",
@@ -49,17 +59,22 @@ function flower_pageinit(){
 		_set_change_ev("allin_" + postids[i], ev_change_materials);
 		_set_minmax("count_" + postids[i]);
 	}
+	// 個数クリア
+	_set_click_ev("clear_counts", ev_clear_counts);
 	
 	// オプション
 	var oids = [
 		"exp_factor",
 		"priority_gold", "priority_exp", "priority_gold_all",
 		"great_nothing", "great_onlylast", "great_nothing_modify", // "great_all",
-		"once_min_count"
+		"once_min_count",
+		"extracost_gold", "extracost_exp",
 	];
 	for (var i=0; i<oids.length; i++) {
 		_set_change_ev(oids[i], ev_change_options);
 	}
+	// 追加コストクリア
+	_set_click_ev("clear_extracosts", ev_clear_extracost);
 	
 	// フォームの初期化
 	var exp_factor = DOM("exp_factor");
@@ -74,7 +89,7 @@ function flower_pageinit(){
 	}
 	
 	// 特殊入力欄を初期化する
-	function _sp(char){
+	function _sp(char, idx){
 		var e_rarity = DOM("special_" + char + "_rarity");
 		if (e_rarity) {
 			remove_children(e_rarity);
@@ -86,7 +101,7 @@ function flower_pageinit(){
 			e_rarity.appendChild(new Option("キャラ技花", SPCARD_WAZAHANA));
 			e_rarity.appendChild(new Option("装花(庭園)", SPCARD_GARDEN_SOUKA   ));
 			e_rarity.appendChild(new Option("技花(庭園)", SPCARD_GARDEN_WAZAHANA));
-			e_rarity.selectedIndex = 0;
+			e_rarity.selectedIndex = idx ? idx : 0;
 			e_rarity.addEventListener("change", ev_change_special_rarity);
 		}
 		// こちらでフォームの有効無効をセット
@@ -102,10 +117,10 @@ function flower_pageinit(){
 		_set_minmax("count_o_sp_" + char);
 	}
 	
-	_sp("A");
-	_sp("B");
-	_sp("C");
-	_sp("D");
+	_sp("A", 6);
+	_sp("B", 7);
+	_sp("C", 3);
+	_sp("D", 4);
 	set_total_feed_exp();
 	
 	// デバッグ用ボタン等
@@ -116,6 +131,7 @@ function flower_pageinit(){
 	show_debug_tools(SHOW_DEBUG_BUTTON);
 	
 	ev_change_rarity();
+	expand_title_newline();
 	
 	console.log("でち！");
 }
@@ -160,6 +176,13 @@ function ev_change_total(){
 	main_optimization();
 }
 
+// 経験値クリア
+function ev_clear_exp(){
+	DOM("total_exp").value = 0;
+	set_nextexp();
+	main_optimization();
+}
+
 // 素材のいずれかが変更された
 function ev_change_materials(){
 	set_total_feed_exp();
@@ -184,6 +207,24 @@ function ev_change_special_level(e){
 	}
 }
 
+// 素材の個数をクリア
+function ev_clear_counts(){
+	var postids = [
+		"m_m5", "m_m20", "m_m100",
+		"o_m5", "o_m20", "o_m100",
+		"o_amp",
+		"m_sp_A", "o_sp_A",
+		"m_sp_B", "o_sp_B",
+		"m_sp_C", "o_sp_C",
+		"m_sp_D", "o_sp_D",
+	];
+	for (var i=0; i<postids.length; i++) {
+		DOM("count_" + postids[i]).value = 0;
+	}
+	set_total_feed_exp();
+	main_optimization();
+}
+
 // オプションのいずれかが変更された
 function ev_change_options(){
 	main_optimization();
@@ -196,10 +237,68 @@ function ev_change_special_exp(e){
 	main_optimization();
 }
 
+// 追加コストクリア
+function ev_clear_extracost(){
+	DOM("extracost_gold").value = 0;
+	DOM("extracost_exp").value = 0;
+	main_optimization();
+}
+
 // デバッグ用の表示切り替え
 function ev_show_debug(){
 	var input = DOM("priority_gold_all");
 	show_debug_tools(input.disabled);
+}
+
+
+// ここから再計算をクリック
+function ev_click_recalc(e){
+	if (!showing_data_form || !showing_data_uplist) return;
+	
+	let is_main = +e.target.dataset.main;
+	let index = +e.target.dataset.index;
+	let great = +e.target.dataset.great;
+	
+	let stacks = FKGCardStack.duplicate(showing_data_form.stacks);
+	
+	let list = showing_data_uplist.list;
+	let sublist = showing_data_uplist.sublist;
+	let last_once = is_main ? list[index] : sublist[index];
+	
+	// 累計経験値
+	let last_exp = last_once.before_experience + last_once.recalcExp(great);
+	
+	DOM("total_exp").value = last_exp;
+	set_nextexp();
+	
+	// 使用したカードを除外
+	let main_limit = is_main ? Math.min(list.length, index + 1) : list.length;
+	let sub_limit = is_main ? 0 : Math.min(sublist.length, index + 1);
+	
+	let used = new Array;
+	for (let i=0; i<main_limit; i++) {
+		used = used.concat(list[i].materials);
+	}
+	for (let i=0; i<sub_limit; i++) {
+		used = used.concat(sublist[i].materials);
+	}
+	FKGCardStack.removeCards(stacks, used);
+	
+	for (let i=0; i<stacks.length; i++) {
+		DOM(stacks[i].form_count_id).value = stacks[i].count;
+	}
+	
+	// 追加コスト
+	let value_exp = 0;
+	for (let c of used) {
+		value_exp += FKGCard.calcFeedExp(c.basic_exp_as_feed, c.same_element || c.same_element === false, 1);
+	}
+	
+	DOM("extracost_gold").value = formstr_to_int(DOM("extracost_gold").value, 0, 0).value + last_once.total_gold_to_powerup;
+	DOM("extracost_exp").value = formstr_to_int(DOM("extracost_exp").value, 0, 0).value + value_exp;
+	
+	// 再計算
+	main_optimization();
 }
 
 
@@ -514,9 +613,9 @@ function load_from_document(){
 	// 基本
 	out.rarity    = _int(DOM("rarity"));
 	out.growth    = get_growth();
-	out.level     = _int(DOM("current_level", true));
+	out.level     = _int(DOM("current_level"));
 	out.max_level = get_max_level(out.rarity, out.growth);
-	out.next_exp  = _int(DOM("next_exp", true));
+	out.next_exp  = _int(DOM("next_exp"));
 	out.total_exp = _int(DOM("total_exp"));
 	
 	// オプション
@@ -529,6 +628,10 @@ function load_from_document(){
 			GREAT_ALL;
 	out.once_min_count  = _int(DOM("once_min_count"));
 	
+	// 追加コスト
+	out.extracost_gold = _int(DOM("extracost_gold"));
+	out.extracost_exp = _int(DOM("extracost_exp"));
+	
 	// 素材
 	var safety_limit = MAX_MATERIAL_COUNT; // 最大数・超過はエラー
 	function _stack(card, count_id, allin_id){
@@ -537,7 +640,7 @@ function load_from_document(){
 			out.error = true;
 			count = safety_limit;
 		}
-		return new FKGCardStack(card, count, DOM(allin_id).checked);
+		return new FKGCardStack(card, count, DOM(allin_id).checked, count_id, allin_id);
 	}
 	
 	var c = 0;
@@ -739,7 +842,6 @@ function set_outline(form, uplist){
 		table.removeChild(table.tBodies[0]);
 	}
 	
-	//console.log(uplist.list, form);
 	table.appendChild(_list_to_tbody(uplist.list, uplist.comment_main));
 	
 	if (uplist.use_sub) {
@@ -799,6 +901,9 @@ function set_outline(form, uplist){
 			total_exp += info_obj[i].exp;
 			total_fit_exp += info_obj[i].fit_exp;
 		}
+		// 追加コスト
+		total_exp += form.extracost_exp;
+		total_fit_exp += form.extracost_exp;
 		// 誤差があると文字列が長くなってしまうので
 		const sc = 100;
 		total_exp = Math.round(total_exp * sc) / sc;
@@ -806,6 +911,9 @@ function set_outline(form, uplist){
 		
 		var total_exp_text = total_exp;
 		if (total_fit_exp != total_exp) total_exp_text += "<br>(" + total_fit_exp + ")";
+		
+		let total_gold = last_once ? last_once.total_gold_to_powerup : 0;
+		total_gold += form.extracost_gold;
 		
 		function _numcell(cell, number, numtext){
 			if (numtext) {
@@ -839,7 +947,7 @@ function set_outline(form, uplist){
 			create_cell("td", est_next),
 			create_cell("td", est_exp),
 			_numcell(create_cell("td", "", 1, 1, "exceed"), exceed_exp),
-			_numcell(create_cell("td"), last_once ? last_once.total_gold_to_powerup : 0),
+			_numcell(create_cell("td"), total_gold),
 			_numcell(create_cell("td"), total_exp, total_exp_text)
 		]));
 		
@@ -917,6 +1025,9 @@ function clear_result(){
 	while (table.tBodies.length > 0) {
 		table.removeChild(table.tBodies[0]);
 	}
+	
+	showing_data_form = null;
+	showing_data_uplist = null;
 }
 
 // uplist: PowerupList
@@ -932,13 +1043,13 @@ function set_result(form, uplist){
 	
 	for (var i=0; i<uplist.list.length; i++) {
 		if (show_count >= show_limit) break;
-		table.appendChild(make_once_tbody(uplist.list[i], form.max_level, form.exp_table, false));
+		table.appendChild(make_once_tbody(uplist.list[i], form.max_level, form.exp_table, form.extracost_gold, false, true, i));
 		show_count++;
 	}
 	
 	for (var i=0; i<uplist.sublist.length; i++) {
 		if (show_count >= show_limit) break;
-		table.appendChild(make_once_tbody(uplist.sublist[i], form.max_level, form.exp_table, true));
+		table.appendChild(make_once_tbody(uplist.sublist[i], form.max_level, form.exp_table, form.extracost_gold, true, false, i));
 		show_count++;
 	}
 	
@@ -956,6 +1067,9 @@ function set_result(form, uplist){
 	}
 	
 	set_outline(form, uplist);
+	
+	showing_data_form = form;
+	showing_data_uplist = uplist;
 }
 
 
@@ -982,7 +1096,7 @@ function make_once_thead(form){
 }
 
 // once: PowerupOnce
-function make_once_tbody(once, limit_level, exp_table, extra_row){
+function make_once_tbody(once, limit_level, exp_table, extragold, extra_row, is_main, index){
 	var base_exp = once.before_experience;
 	
 	var tbody = document.createElement("tbody");
@@ -1086,6 +1200,21 @@ function make_once_tbody(once, limit_level, exp_table, extra_row){
 			next_text = once.comment_great;
 		}
 		
+		// next
+		let next_element = create_html_cell("td", next_text, 2, 2);
+		if (next_text == COMMENT_RECALC) {
+			// 再計算の場合、ここから再計算ボタンを表示
+			let button = document.createElement("button");
+			button.textContent = "ここから再計算";
+			button.dataset.main = is_main ? 1 : 0;
+			button.dataset.index = index;
+			button.dataset.great = great ? 1 : 0;
+			button.addEventListener("click", ev_click_recalc);
+			
+			next_element.appendChild(document.createElement("br"));
+			next_element.appendChild(button);
+		}
+		
 		cells_1.push(create_cell("td", est_level));
 		cells_1.push(create_cell("td", est_next));
 		cells_1.push(create_cell("td", est_exp));
@@ -1094,10 +1223,10 @@ function make_once_tbody(once, limit_level, exp_table, extra_row){
 		var class2 = (great ? "great" : "succeed") + " header2";
 		cells_2.push(create_cell("td", "獲得経験値", 1, 1, class2));
 		cells_2.push(create_cell("td", "累計費用", 1, 1, class2));
-		cells_2.push(create_html_cell("td", next_text, 2, 2));
+		cells_2.push(next_element);
 		
 		cells_3.push(create_cell("td", "+" + gain_exp));
-		cells_3.push(create_cell("td", once.total_gold_to_powerup));
+		cells_3.push(create_cell("td", once.total_gold_to_powerup + extragold));
 	}
 	
 	tbody.appendChild(create_row(cells_1));
@@ -1106,7 +1235,5 @@ function make_once_tbody(once, limit_level, exp_table, extra_row){
 	
 	return tbody;
 }
-
-
 
 
