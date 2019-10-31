@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<meta name="description" content="艦これの支援艦隊計算機です。支援艦隊の最適装備を計算します。">
+<title>らくらく支援艦隊 (艦これ支援艦隊計算機)</title>
+<link rel="icon" type="image/png" href="./icon-192x192.png">
+<link rel="apple-touch-icon" type="image/png" href="./apple-touch-icon-180x180.png">
+<link rel="stylesheet" type="text/css" href="style.css">
+<link rel="stylesheet" type="text/css" href="kancolle_support.css">
+<style id="style_changer" type="text/css"></style>
+
+<!-- スクリプトの読み込み -->
+<script type="module" src="./js/utility.mjs" defer></script>
+<script type="module" defer>
+	import {message_bar} from "./js/utility.mjs";
+	message_bar.set_element(document.getElementById("message_bar"));
+	message_bar.show("ロード中！");
+</script>
+<script type="module" src="./js/kc_support.mjs" defer></script>
+
+<!-- Global site tag (gtag.js) - Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-46408606-2"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-46408606-2');
+</script>
+</head>
+<body>
+
+<div style="float: right;" class="debug">
+<button id="test">計算テスト</button>
+<button id="test2">計算テスト2</button>
+<button id="test3">計算テスト3</button>
+</div>
+
+<h2>らくらく支援艦隊</h2>
+
+<noscript>
+<font color="red">
+！JavaScriptが無効になっています。有効にしないと動きません！
+</font>
+</noscript>
+
+<div class="notice">
+ベータ版でございます。
+</div>
+
+<div id="message_bar"></div>
+<div id="header_link">
+<a href="#owns">▽所持装備▽</a><a href="#optimize_tool">▽支援艦隊A▽</a><a href="#support_B">▽支援艦隊B▽</a><a href="#usage">▽使い方▽</a>
+</div>
+
+<div id="owns" class="own_header">
+	<div class="rightfloat noselect">
+		<button id="clear_owns_main" class="equipment_input">本隊装備数クリア</button>
+		<button id="clear_owns" class="equipment_input">所持数クリア</button>
+		<small>[<span id="hide_owns" class="button">非表示</span>]</small>
+	</div>
+	<b>所持装備 (本隊装備数/所持数)</b>
+</div>
+<div id="own_equipment" class="equipment_input"></div>
+
+
+<!-- 保存・読み込み -->
+<div id="header_tool"></div>
+<div id="optimize_tool">
+	<b>装備探索 (砲撃支援)</b>:
+	<button id="fast_optimize">高速探索</button>
+	<button id="random_optimize">ランダム探索</button>
+	<button id="clear_equipment">装備解除</button>
+</div>
+
+<table id="support_A" class="black_border support_table"></table>
+<table id="support_B" class="black_border support_table"></table>
+
+<div style="clear: both;"></div>
+
+<h3 id="usage">使い方</h3>
+<p>
+支援艦隊の最適装備を計算するツールです。<br>
+<ol>
+<li>所持装備の数を入力します。(本隊装備数を入力するとその分は差し引かれます)</li>
+<li>支援艦隊の艦名を入力します。</li>
+<li>目標にする火力(反航戦キャップなど)を入力します。</li>
+<li>探索ボタンをクリック！</li>
+</ol>
+<ul>
+<li>艦名の左の数字や装備のE1,E2などをドラッグ＆ドロップで入れ替えができます</li>
+<li>β版なのでいまあるフォームの分しか入力を保存しておけません (あとでね)</li>
+</ul>
+</p>
+
+<h4>所持装備</h4>
+<p>
+まず最初に、<strong>持っている装備の数</strong>と<strong>本隊で使っている数</strong>を入力します。ブラウザを閉じても記録されているので、一回入力してしまえば楽なはず。<br>
+探索時にここに入力した装備を利用します。使わなさそうな装備は0でも構いません。<br>
+内部の計算でも適宜間引いているので、たくさん入力しても速度に大きな影響はない……はずですー！
+</p>
+
+<h4>支援タイプ・消費</h4>
+<p>
+編成から<strong>支援タイプ</strong>を自動判別しています。間違えて航空支援にしないように。<br>
+一応、航空支援の燃料弾薬消費を計算する目的でも使えたりはします。
+</p>
+
+<h4>探索</h4>
+<p>
+<strong>高速探索</strong>と<strong>ランダム探索</strong>があります。<br>
+高速探索でも十分良い解が出ますが、ランダム探索のほうが良い解が出てくれます。ランダムなアルゴリズムなので、何度かやると更に良い解が出るかもしれません。<br>
+見つかった解は引き継がれます。そのうち最適解っぽいのが出てくれるっぽい！<br>
+ちなみに、ChromeのほうがFirefoxよりも2.5倍くらい高速です＠2019/10/30
+</p>
+
+<h4>優先度</h4>
+<p>
+1が最も高く、12が最低です。<br>
+優先度が高いグループから順番に、自分より優先度が低い艦のことは何も考えずに装備を決定していきます。
+</p>
+
+<h4>火力目標</h4>
+<p>
+自陣形、交戦形態、キャップ後火力を入力します。支援の火力キャップは<strong>150</strong>です。<br>
+探索では、<strong>火力目標を満たす組み合わせのうち、最も命中の合計が高くなるもの</strong>を目指します。<br>
+どうしても火力目標に届かない場合は、最も火力が高くなるものを探します。<br>
+一括設定では、キャップ後の欄を空にすると、陣形と交戦形態のみ入力されます。<br>
+よくわからないとき：戦艦空母は<strong>反航戦キャップ後火力151</strong>に、駆逐は火力重視なら戦艦空母と同様、命中重視ならキャップ後を0に。
+</p>
+
+<h4>装備</h4>
+<p>
+<strong>固定</strong>にチェックを入れると、その装備は移動させないで探索を行います。<br>
+ドラッグ＆ドロップによる装備の入れ替えは、可能であれば他艦ともできます。<br>
+攻撃力 22+2 などと表示されているのは装備ボーナスです。<br>
+空母系の場合、装備ごとの攻撃力は計算式中の切り捨てをせずに計算した値を表示するので、合計とは一致しない場合があります。
+</p>
+
+<h4>未実装とか、仕様とか、予定とか</h4>
+<p>
+<ul>
+<li>編成の記録 (今あるフォームのぶんは記録できるけど)</li>
+<li>一部の装備が装備できない (多分使わないしで入力をサボっている)</li>
+<li>キャップ後火力と撃沈率の計算 (昔LibreOfficeで作った)</li>
+<li>運やレベルと命中の関係とか (昔LibreOfficeで作った)</li>
+<li>消費一覧表 (昔LibreOfficeで作った)</li>
+<li>検証リンクの充実 (あとでね)</li>
+<li>高速化、解の精度 (もう十分頑張った)</li>
+<li>単艦ならば高速なうえ最適解が保証される (良い出来)</li>
+<li>同じ優先度の艦がいない場合、単艦のアルゴリズムになって高速になる</li>
+<li>合計命中が同じ組み合わせなら、なるべく命中値が偏らないほうを優先する</li>
+</ul>
+</p>
+
+
+<div class="footer">
+<hr>
+<div class="right" title="なかなか大変でござった">作った人: <a href="https://twitter.com/konoha_gold_EX">@konoha_gold_EX</a></div>
+<a href="index.html">トップページへ</a>
+</div>
+
+</body>
+</html>

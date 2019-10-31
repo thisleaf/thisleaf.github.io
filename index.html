@@ -19,6 +19,8 @@
 <link rel="apple-touch-icon" type="image/png" href="./apple-touch-icon-180x180.png">
 <link rel="stylesheet" type="text/css" href="style.css">
 
+<script type="module" src="js/index.mjs" defer></script>
+
 <!-- Global site tag (gtag.js) - Google Analytics -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=UA-46408606-2"></script>
 <script>
@@ -54,6 +56,15 @@ h4.history {
 dl.history {
 	margin-top: 0px;
 }
+#history_list .hide {
+	display: none;
+}
+#history_list .button {
+	font-size: 80%;
+	color: blue;
+	cursor: pointer;
+	vertical-align: text-top;
+}
 </style>
 </head>
 <body>
@@ -67,6 +78,10 @@ dl.history {
 <li>
 	<div><a href="kancolle_los.html">艦これ索敵計算機</a></div>
 	<div>艦これの33式索敵スコア計算機です。</div>
+</li>
+<li>
+	<div><a href="kancolle_support.html">らくらく支援艦隊</a></div>
+	<div>艦これの支援艦隊計算機です。支援艦隊の最適装備を計算します。</div>
 </li>
 <li>
 	<div><a href="kancolle_tp.html">艦これ輸送物資量(TP)計算機</a></div>
@@ -83,11 +98,21 @@ dl.history {
 </ul>
 
 <h4 class="history">更新履歴</h4>
-<dl class="history">
+<dl id="history_list" class="history">
+	<dt>2019/10/30</dt>
+	<dd>
+		らくらく支援艦隊をベータ公開<br>
+		索敵計算機をちょっと更新 <span><br>
+		* Firefox以外でドラッグ＆ドロップできない問題を修正<br>
+		* ロード中表示とかを出したり、ちょっとカラフルになったり<br>
+		* 色々説明書きを書いた<br>
+		</span>
+	</dd>
 	<dt>2019/09/06</dt>
 	<dd>
-		花騎士合成計算機を更新。<br>
-		*「ここから再計算」を追加　など
+		花騎士合成計算機を更新。 <span><br>
+		*「ここから再計算」を追加　など<br>
+		</span>
 	</dd>
 	<dt>2019/08/27</dt>
 	<dd>

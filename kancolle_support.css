@@ -1,0 +1,349 @@
+/* らくらく */
+
+*[title] {
+	cursor: help;
+}
+*[title=""] {
+	cursor: default;
+}
+
+.debug {
+	display: none;
+}
+
+
+/* ヘッダー等 */
+.notice {
+	border-left: 4px gray solid;
+	padding-left: 0.5em;
+	margin-top: 1em;
+	margin-bottom: 1em;
+}
+#header_link {
+	margin: 0.5em;
+}
+#header_link a {
+	font-size: 75%;
+	font-weight: bold;
+	color: blue;
+	margin-right: 0.5em;
+}
+
+
+/* 所有装備 */
+.own_header {
+	padding: 1px 8px;
+	background-color: #bbf;
+}
+.own_header .rightfloat {
+	float: right;
+}
+.own_header .button {
+	color: blue;
+	text-decoration: underline;
+	cursor: pointer;
+}
+.own_header button {
+	background-color: lavender;
+	border: solid 1px lightsteelblue;
+}
+
+#own_equipment {
+	font-size: 75%;
+	line-height: 1.1;
+}
+#own_equipment h3 {
+	margin: 0px;
+	padding: 4px 0px 0px 4px;
+}
+#own_equipment .own_equipment_item {
+	vertical-align: middle;
+	display: inline-block;
+	margin-left: 4px;
+}
+#own_equipment .item_name {
+	width: 170px;
+	vertical-align: middle;
+	display: inline-block;
+	white-space: nowrap;
+	overflow: hidden;
+	margin-left: 2px;
+	cursor: default;
+}
+#own_equipment .item_count {
+	display: inline-block;
+	white-space: nowrap;
+}
+#own_equipment .using, #own_equipment .total {
+	width: 34px;
+	height: 12px;
+	text-align: right;
+}
+#own_equipment .error {
+	color: red;
+	background-color: #fcc;
+}
+
+#own_equipment > div {
+	border-style: solid;
+	border-width: 0px 0px 1px 0px;
+}
+/* > 大型電探 */
+#own_equipment h3.radar_L  { background-color: #ffa; }
+#own_equipment div.radar_L { border-color: #dd0; }
+/* > 小型電探 */
+#own_equipment h3.radar_S  { background-color: #ffa; }
+#own_equipment div.radar_S { border-color: #dd0; }
+/* > 大口径主砲 */
+#own_equipment h3.maingun_L  { background-color: #fbb; }
+#own_equipment div.maingun_L { border-color: #f00; }
+/* > 中口径主砲 */
+#own_equipment h3.maingun_M  { background-color: #fbb; }
+#own_equipment div.maingun_M { border-color: #f00; }
+/* > 小口径主砲 */
+#own_equipment h3.maingun_S  { background-color: #fbb; }
+#own_equipment div.maingun_S { border-color: #f00; }
+/* > 副砲 */
+#own_equipment h3.secgun  { background-color: khaki; }
+#own_equipment div.secgun { border-color: #dd4; }
+/* > 艦上爆撃機 */
+#own_equipment h3.cv_bomber  { background-color: #f99; }
+#own_equipment div.cv_bomber { border-color: #f66; }
+/* > 噴式戦闘爆撃機 */
+#own_equipment h3.cv_jet  { background-color: #ff4; }
+#own_equipment div.cv_jet { border-color: #dd4; }
+/* > 艦上攻撃機 */
+#own_equipment h3.cv_attacker  { background-color: #8cf; }
+#own_equipment div.cv_attacker { border-color: #59f; }
+/* > 対空機銃 */
+#own_equipment h3.antiair  { background-color: #afa; }
+#own_equipment div.antiair { border-color: #8f8; }
+
+
+/* ツールバー */
+#optimize_tool {
+	margin: 0.5em;
+}
+
+
+/* 支援艦隊table */
+.support_table {
+	font-size: 80%;
+	line-height: 1.3;
+	white-space: nowrap;
+}
+.support_table tbody th, .support_table tbody td {
+	padding: 0px;
+}
+/* > ヘッダー */
+.support_table thead .support_type {
+	font-weight: bold;
+	padding-left: 6px;
+}
+.support_table thead .support_type.unabled    { color: red; }
+.support_table thead .support_type.shelling   { color: blue; }
+.support_table thead .support_type.aerial     { color: red; }
+.support_table thead .support_type.aerial_asw { color: red; }
+.support_table thead .support_type.torpedo    { color: red; }
+
+.support_table thead th.fixed_header {
+	text-align: right;
+	padding-right: 4px;
+}
+.support_table thead .target > * {
+	vertical-align: middle;
+}
+.support_table thead .target > span.postcap {
+	vertical-align: text-bottom;
+}
+.support_table thead .batchset {
+	font-size: 90%;
+	margin-left: 6px;
+}
+.support_table thead .total_accuracy {
+	font-weight: bold;
+	text-align: center;
+}
+.support_table thead .total_accuracy.good {
+	color: blue;
+}
+
+/* > 各艦 */
+.support_table .number {
+	width: 20px;
+	text-align: center;
+	cursor: default;
+}
+.support_table .character
+, .support_table .shipclass
+, .support_table .shipselect
+{
+	margin: 1px;
+	width: 180px;
+}
+.support_table th.priority {
+	width: 80px;
+}
+.support_table select.priority {
+	margin: 1px;
+}
+.support_table .targetcell {
+	padding: 1px;
+}
+.support_table .targetpower {
+	width: 42px;
+	text-align: right;
+}
+.support_table .displaypower {
+	margin-left: 5px;
+}
+.support_table .power {
+	color: red;
+}
+.support_table .power.basic {
+	font-weight: bold;
+}
+.support_table .cost {
+	padding-left: 6px;
+}
+.support_table .cost .fuel { color: green; font-weight: bold; }
+.support_table .cost .ammo { color: sienna; font-weight: bold; }
+.support_table .cost .fuelammo { color: indigo; font-weight: bold; }
+
+.support_table .eq_dragdrop_cell {
+	width: 25px;
+}
+.support_table .eq_dragdrop {
+	text-align: center;
+	cursor: default;
+}
+.support_table .eq_fix {
+	text-align: center;
+}
+.support_table .eq_fix > input {
+	margin: 3px;
+}
+.support_table .equipmentcell.raw {
+	padding-left: 4px;
+}
+.support_table select.equipment {
+	width: 300px;
+	min-height: 18px;
+	border-width: 0px;
+}
+.support_table .eq_firepower {
+	height: 20px;
+	width: 75px;
+	text-align: center;
+}
+.support_table .eq_accuracy {
+	width: 40px;
+	text-align: center;
+}
+.support_table .eq_firepower.total {
+	font-weight: bold;
+}
+.support_table .eq_accuracy.total {
+	font-weight: bold;
+}
+.support_table .total.good {
+	color: blue;
+}
+.support_table .total.bad {
+	color: red;
+}
+
+.support_table .equipmentcell.total {
+	font-weight: bold;
+	padding-right: 5px;
+	text-align: right;
+}
+
+.support_table .hidden {
+	visibility: hidden;
+}
+
+.support_table .hidden_row {
+	display: none;
+}
+
+.support_table tr {
+	border: dotted 1px gray;
+}
+.support_table col {
+	border: dotted 1px gray;
+}
+
+
+#support_A {
+	float: left;
+	margin-right: 0.5em;
+	margin-bottom: 0.5em;
+}
+#support_A th.caption {
+	background-color: #fce;
+}
+#support_A thead th {
+	background-color: #dfc;
+}
+#support_A tbody .number {
+	background-color: #eff;
+}
+#support_A tbody th {
+	background-color: #bef;
+}
+#support_A tbody .eq_dragdrop {
+	background-color: lavender;
+}
+
+#support_B {
+	float: left;
+	margin-bottom: 0.5em;
+}
+#support_B th.caption {
+	background-color: #ff8;
+}
+#support_B thead th {
+	background-color: #beb;
+}
+#support_B tbody .number {
+	background-color: #dea;
+}
+#support_B tbody th {
+	background-color: #bde;
+}
+#support_B tbody .eq_dragdrop {
+	background-color: lavender;
+}
+
+
+/* 使い方 */
+p {
+	margin: 2px 0px;
+	padding-left: 1em;
+}
+h3 {
+	margin-bottom: 0.5em;
+	padding-left: 0.4em;
+	background-color: #64a4ff;
+}
+h4 {
+	margin: 0.5em 0em 0em 0em;
+	padding-left: 0.5em;
+	background-color: #cfe3ff;
+}
+h5 {
+	margin: 0.5em 0em 0em 0em;
+	padding-left: 0.5em;
+	background-color: #cfe3ff;
+}
+div.formula {
+	margin: 0.5em 2em;
+}
+div.verification_data {
+	font-size: 75%;
+	margin: 0.5em 1em;
+}
+
+
+
