@@ -1,5 +1,5 @@
-// いろいろなページで使える関数のまとめ
-// 新しいバージョンはmjs版、js版は互換性のために残しておく
+// いろいろなページで使える関数群
+
 
 // このファイルで使われるクラス --------------------------------------------------------------------
 // フォームの文字列などの変換結果
@@ -18,7 +18,7 @@ Object.assign(ConvResult.prototype, {
 ConvResult.good = ConvResult_static_good;
 
 
-function ConvResult(){
+export function ConvResult(){
 	switch (arguments.length) {
 	default:
 	case 4: this.message = arguments[3];
@@ -53,20 +53,20 @@ function ConvResult_static_good(x){
 
 // 汎用関数 ----------------------------------------------------------------------------------------
 // 2小数について、近くにあるか
-function is_near(x, y, d){
+export function is_near(x, y, d){
 	return Math.abs(x - y) <= d;
 }
 
 // xor (boolean)
 // まあ != なんでちけど
-function xor(a, b){
+export function xor(a, b){
 	return (a ? 1 : 0) != (b ? 1 : 0);
 }
 
 
 // てきーとな変換関数
 // xとかflenが大きくなるとうまく変換できないかも
-function float_to_string(x, flen, dir){
+export function float_to_string(x, flen, dir){
 	if (!(flen >= 0)) flen = 0;
 	
 	var scaler = Math.pow(10, flen);
@@ -93,7 +93,7 @@ function float_to_string(x, flen, dir){
 // n: 変換する整数
 // len: 数値の(最低)文字数。不足している場合は0を補完する
 // plus: 0以上の場合に+を補完する
-function int_to_string(n, len, plus){
+export function int_to_string(n, len, plus){
 	let str = String(n < 0 ? -n : n);
 	if (/^\d+$/.test(str)) {
 		while (str.length < len) str = "0" + str;
@@ -109,7 +109,7 @@ function int_to_string(n, len, plus){
 
 // 自動idの追加
 // 要素を追加したときにidが変わってしまうかもしれないのは微妙かも
-function add_autoid(json, begin){
+export function add_autoid(json, begin){
 	for (var i=0; i<json.length; i++) {
 		if (json[i] && !json[i].hasOwnProperty("id")) {
 			json[i].id = begin++;
@@ -120,7 +120,7 @@ function add_autoid(json, begin){
 
 // id -> データ のマップを作成
 // json: idをプロパティに持つオブジェクト(データ)の配列
-function makemap_by_id(json){
+export function makemap_by_id(json){
 	var map = new Object;
 	for (var i=0; i<json.length; i++) {
 		if (json[i] && json[i].hasOwnProperty("id")) {
@@ -135,7 +135,7 @@ function makemap_by_id(json){
 }
 
 // name版
-function makemap_by_name(json){
+export function makemap_by_name(json){
 	var map = new Object;
 	for (var i=0; i<json.length; i++) {
 		if (json[i] && json[i].hasOwnProperty("name")) {
@@ -151,7 +151,7 @@ function makemap_by_name(json){
 
 // idから参照
 // 先頭から順に見ていくため、たくさんのデータを参照する場合は上の関数でオブジェクトを作ったほうが早い
-function get_param_by_id(json, id){
+export function get_param_by_id(json, id){
 	for (var i=0; i<json.length; i++) {
 		if (json[i] && json[i].hasOwnProperty("id") && json[i].id == id) {
 			return json[i];
@@ -161,7 +161,7 @@ function get_param_by_id(json, id){
 }
 
 // name版
-function get_param_by_name(json, name){
+export function get_param_by_name(json, name){
 	for (var i=0; i<json.length; i++) {
 		if (json[i] && json[i].hasOwnProperty("name") && json[i].name == name) {
 			return json[i];
@@ -171,7 +171,7 @@ function get_param_by_name(json, name){
 }
 
 // xが偽だった場合に例外を投げる
-function assert(x, message){
+export function assert(x, message){
 	if (!x) {
 		if (!message) message = "assertion failed!";
 		throw new Error(message);
@@ -180,7 +180,7 @@ function assert(x, message){
 }
 
 // 1度だけconsole.log
-function trace_once(message, id){
+export function trace_once(message, id){
 	if (!trace_once.traced) trace_once.traced = new Object;
 	let prop = id || "*DEFAULT*";
 	if (trace_once.traced[prop]) return;
@@ -189,11 +189,11 @@ function trace_once(message, id){
 }
 
 // 日付を文字列に
-function strYMD(d){
+export function strYMD(d){
 	return d.getFullYear() + "/" + int_to_string(d.getMonth() + 1, 2) + "/" + int_to_string(d.getDate(), 2);
 }
 
-function strYMDHM(d){
+export function strYMDHM(d){
 	return strYMD(d) + " " + int_to_string(d.getHours(), 2) + ":" + int_to_string(d.getMinutes(), 2);
 }
 
@@ -204,7 +204,7 @@ function strYMDHM(d){
 // use_header: 1行目をヘッダーとみなす。各行はヘッダー行をキーとする連想配列になる (false の場合は通常の配列)
 // func(obj) : 読み込み完了時に呼ばれる関数。obj には行データの配列。ただしエラーの場合は null
 // 戻り値: XMLHttpRequest, GCに回収されないようにロード中は保持しておく
-function httpload_csv_async(url, use_header, func){
+export function httpload_csv_async(url, use_header, func){
 	let data = null;
 	let xml = new XMLHttpRequest;
 	
@@ -226,7 +226,7 @@ function httpload_csv_async(url, use_header, func){
 // csvのパース
 // src: csvデータ
 // use_header: 1行目をヘッダーとみなす
-function parse_csv_text(src, use_header){
+export function parse_csv_text(src, use_header){
 	let text = src.replace(/\r\n|\r/g, "\n");
 	
 	let separated = new Array;
@@ -290,7 +290,7 @@ function parse_csv_text(src, use_header){
 
 // csv データの lastModified 列をチェック
 // 一番新しい日付を返す
-function get_csv_last_modified(csv){
+export function get_csv_last_modified(csv){
 	let lastmod = null;
 	if (csv) {
 		for (let x of csv) {
@@ -310,7 +310,7 @@ function get_csv_last_modified(csv){
 
 // DOM関係 -----------------------------------------------------------------------------------------
 // jQuery には $ ってやつがあるらしいね？
-function DOM(id){
+export function DOM(id){
 	return document.getElementById(id);
 }
 
@@ -318,7 +318,7 @@ function DOM(id){
 // parent の子要素として children (array of element) を配置する
 // children の要素には null を許容 (無視)
 // これで html 文章のように構造順に書けるはず
-function NODE(parent, children){
+export function NODE(parent, children){
 	for (let child of children) {
 		if (child) parent.appendChild(child);
 	}
@@ -329,7 +329,7 @@ function NODE(parent, children){
 // ELEMENT(tag, id, className)
 // ELEMENT(tag, {id: id, className: className})
 // など　後者は他のプロパティーへの代入も可能
-function ELEMENT(tag, id_or_props, className){
+export function ELEMENT(tag, id_or_props, className){
 	let e = document.createElement(tag);
 	
 	if (id_or_props && typeof id_or_props == "object") {
@@ -345,40 +345,13 @@ function ELEMENT(tag, id_or_props, className){
 }
 
 // text-node の生成
-function TEXT(text){
+export function TEXT(text){
 	return document.createTextNode(text);
 }
 
 
 // old version
-function create_input(type, id, name, className, value){
-	var e = document.createElement("input");
-	switch (arguments.length) {
-	default:
-	case 5: e.value = value;
-	case 4: e.className = className;
-	case 3: e.name = name;
-	case 2: e.id = id;
-	case 1: e.type = type;
-	case 0: break;
-	}
-	return e;
-}
-
-
-function create_select(id, className){
-	var e = document.createElement("select");
-	switch (arguments.length) {
-	default:
-	case 2: e.className = className;
-	case 1: e.id = id;
-	case 0: break;
-	}
-	return e;
-}
-
-
-function create_cell(tag, text, colspan, rowspan, className){
+export function create_cell(tag, text, colspan, rowspan, className){
 	var e = document.createElement(tag);
 	switch (arguments.length) {
 	default:
@@ -392,7 +365,7 @@ function create_cell(tag, text, colspan, rowspan, className){
 	return e;
 }
 
-function create_html_cell(tag, html, colspan, rowspan, className){
+export function create_html_cell(tag, html, colspan, rowspan, className){
 	var e = document.createElement(tag);
 	switch (arguments.length) {
 	default:
@@ -407,7 +380,7 @@ function create_html_cell(tag, html, colspan, rowspan, className){
 }
 
 
-function create_row(cells, className){
+export function create_row(cells, className){
 	var tr = document.createElement("tr");
 	if (cells) {
 		for (var i=0; i<cells.length; i++) {
@@ -421,24 +394,10 @@ function create_row(cells, className){
 }
 
 
-function create_br(){
-	return document.createElement("br");
-}
-
-
 // 子ノードをすべて削除
-function remove_children(elem){
+export function remove_children(elem){
 	while (elem.firstChild) {
 		elem.removeChild(elem.firstChild);
-	}
-}
-
-
-// selectのクラスを選択中のoptionのクラスにする
-function option_class_inheritancer(ev){
-	var e = ev.currentTarget;
-	if (e.selectedIndex >= 0) {
-		e.className = e.options[e.selectedIndex].className;
 	}
 }
 
@@ -446,10 +405,7 @@ function option_class_inheritancer(ev){
 // スタイルの動的変更
 // id=style_changer のstyle要素が必要
 // 古いスタイルは上書きされる
-function change_style(selector, text){
-	var style = document.getElementById("style_changer");
-	if (!style) return;
-	
+export function change_style(style, selector, text){
 	var sheet = style.sheet;
 	var css = selector + "{" + text + "}";
 	
@@ -465,7 +421,7 @@ function change_style(selector, text){
 // 文字列から数値への変換
 // 戻り値は ConvResult
 // フォームの読み取りなどに
-function formstr_to_int(value, empty_value, error_value){
+export function formstr_to_int(value, empty_value, error_value){
 	var res = new ConvResult;
 	
 	if (/^[\+\-]?\d+$/.test(value)) {
@@ -482,7 +438,7 @@ function formstr_to_int(value, empty_value, error_value){
 	return res;
 }
 
-function formstr_to_float(value, empty_value, error_value){
+export function formstr_to_float(value, empty_value, error_value){
 	var res = new ConvResult;
 	
 	if (/^[\+\-]?\d+(?:\.\d+)?$/.test(value)) {
@@ -502,7 +458,7 @@ function formstr_to_float(value, empty_value, error_value){
 
 // 文字実体参照を展開
 // str: 展開する文字列
-function unescape_charref(str){
+export function unescape_charref(str){
 	if (!unescape_charref.element) {
 		unescape_charref.element = document.createElement("pre");
 	}
@@ -514,7 +470,7 @@ function unescape_charref(str){
 
 
 // checkbox, radioのみ
-function get_form_checks(obj, ids){
+export function get_form_checks(obj, ids){
 	for (var i=0; i<ids.length; i++) {
 		var e = document.getElementById(ids[i]);
 		if (e) {
@@ -524,11 +480,11 @@ function get_form_checks(obj, ids){
 	return obj;
 }
 
-function get_form_check(id){
+export function get_form_check(id){
 	return DOM(id).checked;
 }
 
-function get_form_ints(obj, empty_value, error_value, ids){
+export function get_form_ints(obj, empty_value, error_value, ids){
 	for (var i=0; i<ids.length; i++) {
 		var e = document.getElementById(ids[i]);
 		if (e) {
@@ -538,11 +494,11 @@ function get_form_ints(obj, empty_value, error_value, ids){
 	return obj;
 }
 
-function get_form_int(id){
+export function get_form_int(id){
 	return formstr_to_int(DOM(id).value);
 }
 
-function get_form_floats(obj, empty_value, error_value, ids){
+export function get_form_floats(obj, empty_value, error_value, ids){
 	for (var i=0; i<ids.length; i++) {
 		var e = document.getElementById(ids[i]);
 		if (e) {
@@ -552,11 +508,11 @@ function get_form_floats(obj, empty_value, error_value, ids){
 	return obj;
 }
 
-function get_form_float(id){
+export function get_form_float(id){
 	return formstr_to_float(DOM(id).value);
 }
 
-function get_form_strings(obj, ids){
+export function get_form_strings(obj, ids){
 	for (var i=0; i<ids.length; i++) {
 		var e = document.getElementById(ids[i]);
 		if (e) {
@@ -566,7 +522,7 @@ function get_form_strings(obj, ids){
 	return obj;
 }
 
-function set_form_values(obj, ids){
+export function set_form_values(obj, ids){
 	for (var i=0; i<ids.length; i++) {
 		var e = document.getElementById(ids[i]);
 		if (e) {
@@ -580,12 +536,12 @@ function set_form_values(obj, ids){
 }
 
 
-function add_error_class(id){
+export function add_error_class(id){
 	var e = DOM(id);
 	e.classList.add(FORM_ERROR_CLASSNAME);
 }
 
-function clear_error_class(id){
+export function clear_error_class(id){
 	var e = DOM(id);
 	e.classList.remove(FORM_ERROR_CLASSNAME);
 }
@@ -593,7 +549,7 @@ function clear_error_class(id){
 
 // title属性の"\n"を改行に置き換える
 // document中の全ての要素が対象
-function expand_title_newline(){
+export function expand_title_newline(){
 	let elems = document.querySelectorAll("*[title]");
 	
 	for (let i=0; i<elems.length; i++) {
@@ -608,12 +564,44 @@ function expand_title_newline(){
 }
 
 
+// DragdataProvider --------------------------------------------------------------------------------
+// dragdropのデータを仲介
+// dragstart でセットして、dragend でクリアする
+Object.assign(DragdataProvider.prototype, {
+	data: null,
+	
+	clear   : DragdataProvider_clear,
+	set_data: DragdataProvider_set_data,
+	get_data: DragdataProvider_get_data,
+});
+
+
+export function DragdataProvider(){
+}
+
+function DragdataProvider_clear(){
+	this.data = null;
+}
+
+function DragdataProvider_set_data(data){
+	if (this.data) {
+		console.log("warning: 前回のドラッグドロップデータが破棄されていない");
+	}
+	this.data = data;
+}
+
+function DragdataProvider_get_data(){
+	return this.data;
+}
+
+
 // MessageBar --------------------------------------------------------------------------------------
 // メッセージを表示する
 Object.assign(MessageBar.prototype, {
 	element : null,
 	timer_id: null,
 	
+	set_element : MessageBar_set_element,
 	show        : MessageBar_show,
 	show_html   : MessageBar_show_html,
 	clear_timer : MessageBar_clear_timer,
@@ -621,7 +609,18 @@ Object.assign(MessageBar.prototype, {
 	hide        : MessageBar_hide,
 });
 
-function MessageBar(element){
+// グローバル変数
+// 先にこのファイルを読み込んで表示する場合などに
+export let message_bar = new MessageBar;
+
+
+export function MessageBar(element){
+	if (element) {
+		this.set_element(element);
+	}
+}
+
+function MessageBar_set_element(element){
 	this.element = element;
 	this.element.classList.add("message_bar");
 	this.hide();

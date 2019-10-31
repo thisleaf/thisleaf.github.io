@@ -1,86 +1,56 @@
 // 索敵計算機
 
+// 雑にmodule化した
+import {
+	IGNORE_CATEGORIES,
+	HINT_TABLE_CATEGORY_DEF,
+	LOS_FACTOR_DEF,
+	LOS_FACTOR_OTHER,
+	LOS_CATEGORY_OTHER_ID,
+	LOS_CATEGORIES_DEF,
+	SHIP_COUNT_MAX,
+	EQUIPMENT_ROW_DEFAULT,
+	EQUIPMENT_ROW_MIN,
+	EQUIPMENT_ROW_MAX,
+	EQUIPMENT_ROW_EACH,
+	NULL_ID,
+	DIRECT_INPUT_ID,
+	LOS_EQUIPBONUS,
+} from "./kc_los_global.mjs";
+import * as Util from "./utility.mjs";
+import {
+	DOM,
+	ELEMENT,
+	formstr_to_int,
+	formstr_to_float,
+	float_to_string,
+	message_bar,
+} from "./utility.mjs";
+import {
+	init_assist,
+} from "./kc_los_assist.mjs";
+import {
+	init_los_record,
+	refresh_savebutton_state,
+	save_losdata,
+	load_losdata,
+} from "./kc_los_io.mjs";
+
+// 循環参照になるが気にしないことにする
+export {
+	change_equiprow_count,
+	equipment_rows,
+	equipment_rows_show_count,
+	refresh_score,
+	message_bar,
+};
+
+
 // 艦情報 (kancolle_shiplist.csv)
 let KANCOLLE_SHIPLIST = null;
 
 // 装備情報 (kancolle_equipment.csv)
 let KANCOLLE_EQUIPLIST = null;
-
-// 除外リスト
-// 基地関係
-const IGNORE_CATEGORIES = [
-	"陸上攻撃機",
-	"陸軍戦闘機",
-	"局地戦闘機",
-	"陸上偵察機"
-];
-
-// 装備リストの割り振り
-// 要素が列になる
-const HINT_TABLE_CATEGORY_DEF = [
-	[
-		{category: "水上偵察機", header_bgcolor: "#cfc"},
-		{category: "多用途水上機/水上爆撃機", viewname: "水上爆撃機", header_bgcolor: "#cfc"},
-		{category: "水上戦闘機", header_bgcolor: "#9f9"},
-		{category: "対潜哨戒機", header_bgcolor: "#eff"},
-		{category: "回転翼機"  , header_bgcolor: "#eff"},
-	], [
-		{category: "小型電探"  , header_bgcolor: "#ffc"},
-		{category: "大型電探"  , header_bgcolor: "#ffc"},
-		{category: "艦上偵察機", header_bgcolor: "#ff8"},
-		{category: "噴式戦闘爆撃機", header_bgcolor: "#ff8"},
-		{viewname: "その他", other: true, header_bgcolor: "#ddd"},
-	], [
-		{category: "艦上攻撃機", header_bgcolor: "#59f"},
-		{category: "艦上爆撃機", header_bgcolor: "#f66"},
-		{category: "艦上戦闘機", header_bgcolor: "#7f7"},
-	]
-];
-
-// 索敵の係数定義
-// (装備索敵値 + sqrt(装備改修値) * impr_factor) * factor
-const LOS_FACTOR_DEF = [
-	{category: "水上偵察機", factor: 1.2, impr_factor: 1.2},
-	{category: "多用途水上機/水上爆撃機", factor: 1.1, impr_factor: 1.15},
-	{category: "艦上偵察機", factor: 1.0, impr_factor: 1.2},
-	{category: "艦上攻撃機", factor: 0.8, impr_factor: 0},
-	{category: "小型電探", factor: 0.6, impr_factor: 1.25},
-	{category: "大型電探", factor: 0.6, impr_factor: 1.4},
-];
-
-const LOS_FACTOR_OTHER = {factor: 0.6, impr_factor: 0};
-
-// その他の種別ID
-const LOS_CATEGORY_OTHER_ID = 10000;
-
-// 種別
-const LOS_CATEGORIES_DEF = [
-	{id: 1, category: "水上偵察機"},
-	{id: 2, category: "多用途水上機/水上爆撃機", viewname: "水上爆撃機"},
-	{id: 3, category: "水上戦闘機"},
-	{id: 4, category: "対潜哨戒機"},
-	{id: 5, category: "回転翼機"},
-	{id: 6, category: "小型電探"},
-	{id: 7, category: "大型電探"},
-	{id: 8, category: "艦上偵察機"},
-	{id: 9, category: "噴式戦闘爆撃機"},
-	{id: 10, category: "艦上攻撃機"},
-	{id: 11, category: "艦上爆撃機"},
-	{id: 12, category: "艦上戦闘機"},
-	{id: LOS_CATEGORY_OTHER_ID, viewname: "その他", other: true},
-];
-
-
-// デフォルトの数
-const SHIP_COUNT_MAX = 12;
-const EQUIPMENT_ROW_DEFAULT = 12;
-const EQUIPMENT_ROW_MIN = 4;
-const EQUIPMENT_ROW_MAX = 48;
-const EQUIPMENT_ROW_EACH = 4;
-
-const NULL_ID = 0;
-const DIRECT_INPUT_ID = -1;
-
 
 // 除外後装備リスト
 // 索敵値も1以上のもののみとする
@@ -90,17 +60,20 @@ let kancolle_equiplist_los = new Array;
 let equipment_rows = new Array;
 let equipment_rows_show_count = 0;
 
+// dragdrop
+let dragdata_provider = null;
+
 // 初期化完了フラグ
 let page_domloaded = false;
 let page_initialized = false;
 
 // 他のファイルのロードや初期化関数の呼び出し
-let kancolle_shiplist_loader = httpload_csv_async("data/kancolle_shiplist.csv", true, function (obj){
+let kancolle_shiplist_loader = Util.httpload_csv_async("data/kancolle_shiplist.csv", true, function (obj){
 	KANCOLLE_SHIPLIST = obj;
 	kancolle_los_init();
 });
 
-let kancolle_equipment_loader = httpload_csv_async("data/kancolle_equipment.csv", true, function (obj){
+let kancolle_equipment_loader = Util.httpload_csv_async("data/kancolle_equipment.csv", true, function (obj){
 	KANCOLLE_EQUIPLIST = obj;
 	kancolle_los_init();
 });
@@ -158,6 +131,7 @@ Object.assign(EquipmentRow.prototype, {
 	ev_dragstart: EquipmentRow_ev_dragstart,
 	ev_dragover : EquipmentRow_ev_dragover,
 	ev_drop     : EquipmentRow_ev_drop,
+	ev_dragend  : EquipmentRow_ev_dragend,
 });
 
 
@@ -166,19 +140,19 @@ function EquipmentRow(){
 
 function EquipmentRow_create_row(number, create_equiplist){
 	// DOMオブジェクトの作成
-	this.e_number_cell = create_cell("td", "", 1, 1, "number");
-	this.e_equiplist   = create_select("", "equiplist");
-	this.e_category    = create_select("", "category");
-	this.e_improvement = create_select("", "improvement");
-	this.e_los         = create_input("number", "", "", "los");
-	this.e_score_cell  = create_cell("td", "", 1, 1, "score1");
+	this.e_number_cell = Util.create_cell("td", "", 1, 1, "number");
+	this.e_equiplist   = ELEMENT("select", "", "equiplist");
+	this.e_category    = ELEMENT("select", "", "category");
+	this.e_improvement = ELEMENT("select", "", "improvement");
+	this.e_los         = ELEMENT("input", {type: "number", className: "los"});
+	this.e_score_cell  = Util.create_cell("td", "", 1, 1, "score1");
 	
 	let cells = [
 		this.e_number_cell,
-		create_cell("td"),
-		create_cell("td"),
-		create_cell("td"),
-		create_cell("td"),
+		Util.create_cell("td"),
+		Util.create_cell("td"),
+		Util.create_cell("td"),
+		Util.create_cell("td"),
 		this.e_score_cell
 	];
 	
@@ -187,7 +161,7 @@ function EquipmentRow_create_row(number, create_equiplist){
 	cells[3].appendChild(this.e_improvement);
 	cells[4].appendChild(this.e_los);
 	
-	this.e_tr = create_row(cells);
+	this.e_tr = Util.create_row(cells);
 	
 	// フォームを初期化
 	
@@ -227,6 +201,7 @@ function EquipmentRow_create_row(number, create_equiplist){
 	this.e_number_cell.addEventListener("dragstart", e => this.ev_dragstart(e));
 	this.e_number_cell.addEventListener("dragover" , e => this.ev_dragover(e));
 	this.e_number_cell.addEventListener("drop"     , e => this.ev_drop(e));
+	this.e_number_cell.addEventListener("dragend"  , e => this.ev_dragend(e));
 }
 
 
@@ -337,7 +312,7 @@ function EquipmentRow_set_impr_class(){
 // 選択できる装備を制限
 function EquipmentRow_restrict_category(restrict_ids, grouping, new_value){
 	let old_value = this.e_equiplist.value;
-	remove_children(this.e_equiplist);
+	Util.remove_children(this.e_equiplist);
 	
 	this.e_equiplist.appendChild(new Option("-", NULL_ID));
 	this.e_equiplist.appendChild(new Option("[直接入力]", DIRECT_INPUT_ID));
@@ -572,28 +547,29 @@ function EquipmentRow_ev_change_los(){
 }
 
 function EquipmentRow_ev_dragstart(e){
-	e.dataTransfer.setData("drag_data", "equipment:" + this.number);
+	e.dataTransfer.setData("drag_data", "equipment");
+	dragdata_provider.set_data({
+		type: "equipment",
+		number: this.number,
+	});
 }
 
 function EquipmentRow_ev_dragover(e){
-	let text = e.dataTransfer.getData("drag_data");
+	let drag = dragdata_provider.get_data();
 	
-	if (/^equipment:(.+)$/.test(text)) {
-		let number = RegExp.$1;
-		if (this.number != number) {
-			e.preventDefault();
-		}
+	if (drag && drag.type == "equipment" && drag.number != this.number) {
+		e.dropEffect = (e.ctrlKey && !e.shiftKey && !e.altKey) ? "copy" : "move";
+		e.preventDefault();
 	}
 }
 
 function EquipmentRow_ev_drop(e){
-	let text = e.dataTransfer.getData("drag_data");
+	let drag = dragdata_provider.get_data();
 	
-	if (/^equipment:(.+)$/.test(text)) {
-		let number = RegExp.$1;
-		let eq = equipment_rows.find(x => x.number == number);
+	if (drag && drag.type == "equipment" && drag.number != this.number) {
+		let eq = equipment_rows.find(x => x.number == drag.number);
 		
-		if (this.number != number && eq) {
+		if (this.number != drag.number && eq) {
 			if (e.ctrlKey && !e.shiftKey && !e.altKey) {
 				this.copy_from(eq);
 			} else {
@@ -609,6 +585,10 @@ function EquipmentRow_ev_drop(e){
 			e.preventDefault();
 		}
 	}
+}
+
+function EquipmentRow_ev_dragend(e){
+	dragdata_provider.clear();
 }
 
 
@@ -632,6 +612,7 @@ function kancolle_los_init(){
 		
 		kancolle_equiplist_los.push(eq);
 	}
+	dragdata_provider = new Util.DragdataProvider;
 	
 	// 計算結果欄
 	DOM("HQ_level").addEventListener("change", ev_change_HQ_level);
@@ -648,18 +629,21 @@ function kancolle_los_init(){
 		numcell.id = "shipnum_" + (i + 1);
 		numcell.draggable = true;
 		numcell.addEventListener("dragstart", ev_ship_dragstart);
+		numcell.addEventListener("dragend", ev_ship_dragend);
 		numcell.addEventListener("dragover", ev_ship_dragover);
 		numcell.addEventListener("drop", ev_ship_drop);
 	}
 	DOM("clear_ship_los").addEventListener("click", ev_click_clear_ship_los);
 	
-	init_assist();
+	init_assist(KANCOLLE_SHIPLIST, KANCOLLE_EQUIPLIST);
 	init_equip_table();
 	init_hint_table();
-	expand_title_newline();
+	Util.expand_title_newline();
 	init_los_record();
 	
 	refresh_score();
+	message_bar.start_hiding();
+	console.log("が");
 }
 
 
@@ -667,7 +651,7 @@ function kancolle_los_init(){
 function init_equip_table(){
 	let table = DOM("equip_table");
 	
-	remove_children(table.tBodies[0]);
+	Util.remove_children(table.tBodies[0]);
 	
 	for (let i=0; i<EQUIPMENT_ROW_MAX; i++) {
 		let row = new EquipmentRow;
@@ -679,10 +663,10 @@ function init_equip_table(){
 	change_equiprow_count(EQUIPMENT_ROW_DEFAULT);
 	
 	// 最終更新日
-	let last_modified = get_csv_last_modified(KANCOLLE_EQUIPLIST);
+	let last_modified = Util.get_csv_last_modified(KANCOLLE_EQUIPLIST);
 	let th = DOM("hint_table_header");
 	if (last_modified && th) {
-		th.title += "\nデータの最終更新日: " + strYMD(last_modified);
+		th.title += "\nデータの最終更新日: " + Util.strYMD(last_modified);
 	}
 	
 	// 増やす・減らす・クリア
@@ -728,7 +712,7 @@ function init_hint_table(){
 			index += row[i].colSpan;
 		}
 		for (; index<col_end_index; index+=2) {
-			row.push(create_cell("td", "", 2, 1, "empty"));
+			row.push(Util.create_cell("td", "", 2, 1, "empty"));
 		}
 	}
 	
@@ -741,9 +725,9 @@ function init_hint_table(){
 			
 			// ヘッダー
 			if (!def[d].noheader) {
-				let th = create_cell("th", "", 2, 1, "header");
+				let th = Util.create_cell("th", "", 2, 1, "header");
 				let div = document.createElement("div");
-				div.textContent = unescape_charref(def[d].viewname || def[d].category);
+				div.textContent = Util.unescape_charref(def[d].viewname || def[d].category);
 				th.appendChild(div);
 				
 				if (def[d].header_bgcolor) {
@@ -775,9 +759,9 @@ function init_hint_table(){
 				for (let i=0; i<list.length; i++) {
 					// 索敵値があるもののみ
 					if (+list[i].LoS > 0) {
-						let namecell = create_cell("td", "", 1, 1, "name");
+						let namecell = Util.create_cell("td", "", 1, 1, "name");
 						let div = document.createElement("div");
-						div.textContent = unescape_charref(list[i].name);
+						div.textContent = Util.unescape_charref(list[i].name);
 						namecell.appendChild(div);
 						
 						// 装備ID
@@ -786,7 +770,7 @@ function init_hint_table(){
 						namecell.addEventListener("dblclick", ev_dblclick_hint);
 						
 						_append_cell(next_row_index, c * 2, namecell);
-						_append_cell(next_row_index, c * 2, create_cell("td", list[i].LoS, 1, 1, "los"));
+						_append_cell(next_row_index, c * 2, Util.create_cell("td", list[i].LoS, 1, 1, "los"));
 						next_row_index++;
 					}
 				}
@@ -802,7 +786,7 @@ function init_hint_table(){
 	// tableへ
 	let tbody = table.tBodies[0];
 	for (let i=0; i<rows.length; i++) {
-		tbody.appendChild(create_row(rows[i]))
+		tbody.appendChild(Util.create_row(rows[i]))
 	}
 }
 
@@ -838,6 +822,8 @@ function ev_click_clear_ship_los(){
 	refresh_score();
 	refresh_savebutton_state();
 	save_losdata();
+	
+	message_bar.show("艦娘索敵値欄をクリアしました", 3000);
 }
 
 // 装備が変更された
@@ -872,43 +858,49 @@ function ev_change_memo(){
 // dragdrop(艦娘索敵値)
 function ev_ship_dragstart(e){
 	// id: shipnum_[number]
-	e.dataTransfer.setData("drag_data", "ship:" + e.target.id);
+	e.dataTransfer.setData("drag_data", "ship");
+	
+	dragdata_provider.set_data({
+		type: "ship",
+		id: e.currentTarget.id,
+	});
 }
 
 function ev_ship_dragover(e){
 	// dragoverイベントが有効になっている場所のうち、デフォルトをキャンセルした要素がドロップ可能な場所
-	let text = e.dataTransfer.getData("drag_data");
-	if (/^ship:/.test(text)) {
-		let drag_id = RegExp.rightContext;
-		if (/^shipnum_\d+$/.test(e.target.id) && drag_id != e.target.id) {
-			e.preventDefault();
-		}
+	let drag = dragdata_provider.get_data();
+	
+	if (drag && drag.type == "ship" && drag.id != e.currentTarget.id) {
+		e.preventDefault();
 	}
 }
 
 function ev_ship_drop(e){
 	// ドロップ
-	let text = e.dataTransfer.getData("drag_data");
+	let drag = dragdata_provider.get_data();
 	
-	if (/^ship:/.test(text)) {
-		let drag_id = RegExp.rightContext;
-		
+	if (drag && drag.type == "ship" && drag.id != e.currentTarget.id) {
 		// Ctrlのみを押している場合はコピー
 		if (e.ctrlKey && !e.shiftKey && !e.altKey) {
-			copy_ship(_id_to_num(drag_id), _id_to_num(e.target.id));
+			copy_ship(_id_to_num(drag.id), _id_to_num(e.currentTarget.id));
 		} else {
-			swap_ship(_id_to_num(drag_id), _id_to_num(e.target.id));
+			swap_ship(_id_to_num(drag.id), _id_to_num(e.currentTarget.id));
 		}
 		
 		e.preventDefault();
 		refresh_score();
 		refresh_savebutton_state();
 		save_losdata();
+		e.preventDefault();
 	}
 	
 	function _id_to_num(id){
 		return /shipnum_(\d+)/.test(id) ? RegExp.$1 : "";
 	}
+}
+
+function ev_ship_dragend(e){
+	dragdata_provider.clear();
 }
 
 
@@ -933,6 +925,8 @@ function ev_click_clear_equiplist(e){
 	refresh_score();
 	refresh_savebutton_state();
 	save_losdata();
+	
+	message_bar.show("索敵装備欄をクリアしました", 3000);
 }
 
 
@@ -948,7 +942,10 @@ function ev_dblclick_hint(e){
 				insert_pos = i + 1;
 			}
 		}
-		if (insert_pos >= equipment_rows_show_count) return;
+		if (insert_pos >= equipment_rows_show_count) {
+			message_bar.show("索敵装備欄がいっぱいです", 3000);
+			return;
+		}
 		
 		let row = equipment_rows[insert_pos];
 		row.set_equipment_number(eq_number);
@@ -957,6 +954,10 @@ function ev_dblclick_hint(e){
 		refresh_score();
 		refresh_savebutton_state();
 		save_losdata();
+		
+		// message
+		let eq = KANCOLLE_EQUIPLIST.find(x => x.number == eq_number);
+		message_bar.show(eq.name + " を索敵装備" + (insert_pos + 1) + "に追加しました", 3000);
 		
 		e.preventDefault();
 	}
@@ -1042,9 +1043,12 @@ function refresh_score(){
 		
 		if (x.value > 0) {
 			ship_count++;
-			fleet_score += Math.sqrt(x.value);
+			let sq = Math.sqrt(x.value);
+			fleet_score += sq;
+			e.title = `${sq}\n= sqrt(${x.value})`;
 		} else if (x.value < 0) {
 			ship_error++;
+			e.title = "";
 		}
 	}
 	
@@ -1118,7 +1122,7 @@ function swap_ship(a, b){
 
 
 function equip_to_option(eq){
-	let option = new Option(unescape_charref(eq.name), eq.number);
+	let option = new Option(Util.unescape_charref(eq.name), eq.number);
 	option.title = "索敵+" + eq.LoS;
 	return option;
 }

@@ -1,5 +1,52 @@
 // 入力補助β
 
+import {
+	IGNORE_CATEGORIES,
+	HINT_TABLE_CATEGORY_DEF,
+	LOS_FACTOR_DEF,
+	LOS_FACTOR_OTHER,
+	LOS_CATEGORY_OTHER_ID,
+	LOS_CATEGORIES_DEF,
+	SHIP_COUNT_MAX,
+	EQUIPMENT_ROW_DEFAULT,
+	EQUIPMENT_ROW_MIN,
+	EQUIPMENT_ROW_MAX,
+	EQUIPMENT_ROW_EACH,
+	NULL_ID,
+	DIRECT_INPUT_ID,
+	LOS_EQUIPBONUS,
+} from "./kc_los_global.mjs";
+import {
+	DOM,
+	ELEMENT,
+	remove_children,
+	get_csv_last_modified,
+	strYMD,
+	formstr_to_int,
+	formstr_to_float,
+	unescape_charref,
+	DragdataProvider,
+} from "./utility.mjs";
+import {
+	refresh_score,
+} from "./kc_los.mjs";
+import {
+	save_losdata,
+} from "./kc_los_io.mjs";
+
+
+export {
+	init_assist,
+	recreate_chara_name,
+	recreate_chara_name_by_form,
+	recreate_ship_select,
+	recreate_ship_select_by_form,
+	get_assist_los,
+	get_assist_los_bonus,
+	refresh_assist_los,
+	refresh_bonus_info,
+};
+
 
 // 艦種リスト
 // この表示順になる、ここにないものは最後尾
@@ -56,86 +103,9 @@ const DEFAULT_SELECT_SHIPS = [
 ];
 
 
-
-// 装備ボーナス
-// 条件に当てはまるものはすべて合算
-const LOS_EQUIPBONUS = [
-	{
-		// Late 298B
-		equipment_id: 194,
-		ship_names: [
-			"Richelieu改",
-			"Commandant Teste", "Commandant Teste改",
-			"瑞穂", "瑞穂改",
-			"神威", "神威改", "神威改母",
-		],
-		LoS: 2,
-		accumulation: "可",
-		effect: "艦娘索敵値に加算",
-	}, {
-		// 彩雲
-		equipment_id: 54,
-		ship_types: ["正規空母", "装甲空母", "軽空母"],
-		ignore_ship_names: ["春日丸", "大鷹", "大鷹改", "神鷹", "神鷹改"],
-		LoS: i => (i == 0 ? 0 : i == 2 ? 1 : null),
-		accumulation: "不明",
-		effect: "索敵スコアへの影響は不明",
-	}, {
-		// 試製景雲
-		equipment_id: 151,
-		ship_types: ["装甲空母"],
-		LoS: i => Math.floor((i + 2) / 4),
-		accumulation: "不明",
-		effect: "索敵スコアへの影響は不明",
-		text: "数値は暫定",
-	}, {
-		// 二式艦偵1
-		equipment_id: 61,
-		ship_types: ["正規空母", "装甲空母", "軽空母"],
-		ship_names: ["伊勢改二", "日向改二"],
-		LoS: i => Math.floor((i + 2) / 4),
-		accumulation: "不可",
-		effect: "艦娘索敵値に加算",
-	}, {
-		// 二式艦偵2
-		equipment_id: 61,
-		ship_names: ["瑞鳳改二乙", "鈴谷航改二", "熊野航改二"],
-		LoS: i => (i >= 1 ? 1 : 0),
-		accumulation: "不可",
-		effect: "艦娘索敵値に加算",
-	}, {
-		// 二式艦偵3
-		equipment_id: 61,
-		ship_names: ["飛龍", "飛龍改", "飛龍改二"],
-		LoS: i => (i >= 1 ? 2 : 0),
-		accumulation: "不可",
-		effect: "艦娘索敵値に加算",
-	}, {
-		// 二式艦偵4
-		equipment_id: 61,
-		ship_names: ["蒼龍", "蒼龍改", "蒼龍改二"],
-		LoS: i => (i >= 8 ? 4 : i >= 1 ? 3 : 0),
-		accumulation: "不可",
-		effect: "艦娘索敵値に加算",
-	}, {
-		// SG レーダー(初期型)
-		equipment_id: 315,
-		ship_names: [
-			"Fletcher", "Fletcher改", 
-			"Johnston", "Johnston改",
-			"Samuel B.Roberts", "Samuel B.Roberts改",
-			"Colorado", "Colorado改",
-			"Iowa", "Iowa改",
-			"Saratoga", "Saratoga改", "Saratoga Mk.II", "Saratoga Mk.II Mod.2",
-			"Intrepid", "Intrepid改",
-			"Gambier Bay", "Gambier Bay改",
-		],
-		LoS: 4,
-		accumulation: "可",
-		effect: "索敵スコアには影響しない",
-	}
-];
-
+// csvデータ
+let csv_shiplist = null;
+let csv_equiplist = null;
 
 // ASSIST_GROUPING_DEFから生成
 // keysで指定された置換先
@@ -199,7 +169,10 @@ function Charagroup(name){
 
 
 // 入力補助β初期化 --------------------------------------------------------------------------------
-function init_assist(){
+function init_assist(arg_csv_shiplist, arg_csv_equiplist){
+	csv_shiplist = arg_csv_shiplist;
+	csv_equiplist = arg_csv_equiplist;
+	
 	// grouping_replacer
 	for (let x of ASSIST_GROUPING_DEF) {
 		if (x.keys) {
@@ -209,7 +182,7 @@ function init_assist(){
 		}
 	}
 	
-	for (let ship of KANCOLLE_SHIPLIST) {
+	for (let ship of csv_shiplist) {
 		// 索敵値が入力されていないものは無視
 		if (!shiplos_available(ship)) continue;
 		
@@ -224,7 +197,7 @@ function init_assist(){
 	}
 	
 	
-	for (let ship of KANCOLLE_SHIPLIST) {
+	for (let ship of csv_shiplist) {
 		if (!shiplos_available(ship)) continue;
 		
 		if (!shipbefore_map.hasOwnProperty(ship.name)) {
@@ -368,7 +341,7 @@ function init_assist(){
 	}
 	
 	// 最終更新日
-	let last_modified = get_csv_last_modified(KANCOLLE_SHIPLIST);
+	let last_modified = get_csv_last_modified(csv_shiplist);
 	let th = DOM("assist_header");
 	if (last_modified && th) {
 		th.title = "データの最終更新日: " + strYMD(last_modified);
@@ -674,7 +647,7 @@ function refresh_bonus_info(){
 	if (bonus_list.length >= 1) {
 		for (let b of bonus_list) {
 			// 装備
-			let eq = KANCOLLE_EQUIPLIST.find(x => +x.number == b.info.equipment_id);
+			let eq = csv_equiplist.find(x => +x.number == b.info.equipment_id);
 			if (!eq) {
 				console.log("装備IDが不正", b.info.equipment_id);
 				continue;
@@ -685,7 +658,7 @@ function refresh_bonus_info(){
 			
 			if (b.params.some(x => x !== b.params[0])) {
 				// selectを作って表示する
-				let select = create_select();
+				let select = ELEMENT("select");
 				
 				for (let i=0; i<=10; i++) {
 					// nullが返ってきたものは情報なし

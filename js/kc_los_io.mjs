@@ -1,5 +1,42 @@
 // データの保存関係
 
+import {
+	IGNORE_CATEGORIES,
+	HINT_TABLE_CATEGORY_DEF,
+	LOS_FACTOR_DEF,
+	LOS_FACTOR_OTHER,
+	LOS_CATEGORY_OTHER_ID,
+	LOS_CATEGORIES_DEF,
+	SHIP_COUNT_MAX,
+	EQUIPMENT_ROW_DEFAULT,
+	EQUIPMENT_ROW_MIN,
+	EQUIPMENT_ROW_MAX,
+	EQUIPMENT_ROW_EACH,
+	NULL_ID,
+	DIRECT_INPUT_ID,
+} from "./kc_los_global.mjs";
+import {
+	DOM,
+	ELEMENT,
+	remove_children,
+	set_form_values,
+	get_form_strings,
+} from "./utility.mjs";
+import {
+	change_equiprow_count,
+	equipment_rows,
+	equipment_rows_show_count,
+	refresh_score,
+	message_bar,
+} from "./kc_los.mjs";
+
+export {
+	init_los_record,
+	refresh_savebutton_state,
+	save_losdata,
+	load_losdata,
+};
+
 
 // 文字列をそのまま保存するフォームのID
 const DIRECT_SAVE_FORMIDS = [
@@ -51,6 +88,8 @@ function ev_click_load_button(e){
 		set_losdata_object(data);
 		refresh_savebutton_state();
 		save_losdata();
+		
+		message_bar.show("編成 " + data.fleet_name + " を読み込みました", 3000);
 	}
 }
 
@@ -62,10 +101,14 @@ function ev_click_delete_button(e){
 	let index = +select.value;
 	
 	if (index < losdata_record.length) {
+		let data = losdata_record[index];
+		
 		losdata_record.splice(index, 1);
 		refresh_record_select();
 		refresh_savebutton_state();
 		save_losdata();
+		
+		message_bar.show("編成 " + data.fleet_name + " を削除しました", 3000);
 	}
 }
 
@@ -91,6 +134,8 @@ function ev_click_save_button(e){
 	refresh_record_select(name);
 	refresh_savebutton_state();
 	save_losdata();
+	
+	message_bar.show("編成 " + name + " を保存しました", 3000);
 }
 
 // フォームをクリア
@@ -107,6 +152,8 @@ function ev_click_allclear_button(){
 	refresh_score();
 	refresh_savebutton_state();
 	save_losdata();
+	
+	message_bar.show("入力フォームをクリアしました", 3000);
 }
 
 // 削除・クリアボタンの表示切り替え
@@ -116,13 +163,9 @@ function ev_change_show_button_check(){
 
 function refresh_otherbutton(){
 	let name = "hidden";
-	if (DOM("show_button_check").checked) {
-		DOM("delete_button").classList.remove(name);
-		DOM("allclear_button").classList.remove(name);
-	} else {
-		DOM("delete_button").classList.add(name);
-		DOM("allclear_button").classList.add(name);
-	}
+	let chk = DOM("show_button_check").checked;
+	DOM("delete_button").classList.toggle(name, !chk);
+	DOM("allclear_button").classList.toggle(name, !chk);
 }
 
 

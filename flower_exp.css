@@ -260,4 +260,10 @@ dd, li {
 	cursor: default;
 }
 
+table.exp {
+	margin: 1em;
+}
+table.exp td {
+	padding: 2px 6px;
+}
 

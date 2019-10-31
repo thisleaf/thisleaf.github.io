@@ -9,6 +9,15 @@
 <link rel="stylesheet" type="text/css" href="style.css">
 <link rel="stylesheet" type="text/css" href="kancolle_los.css">
 
+<!-- スクリプトの読み込み -->
+<script type="module" src="./js/utility.mjs" defer></script>
+<script type="module" defer>
+	import {message_bar} from "./js/utility.mjs";
+	message_bar.set_element(document.getElementById("message_bar"));
+	message_bar.show("ロード中！");
+</script>
+<script type="module" src="./js/kc_los.mjs" defer></script>
+
 <!-- Global site tag (gtag.js) - Google Analytics -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=UA-46408606-2"></script>
 <script>
@@ -30,17 +39,18 @@
 </font>
 </noscript>
 
+<!-- おしらせ -->
 <div class="notice">
-作りたてのベータ版です。
 </div>
 
+<div id="message_bar"></div>
 
 <!-- 保存・読み込み -->
 <div id="header_tool">
 	<div>
-		保存された編成: <select id="savelist"></select><button id="load_button">読込</button><button id="delete_button" class="hidden">削除</button>
+		リスト: <select id="savelist"></select><button id="load_button">読込</button><button id="delete_button" class="hidden">削除</button>
 	</div><div>
-		編成名<input id="fleet_name" type="text"><button id="save_button" disabled>保存(新規)</button><button id="allclear_button" class="hidden">クリア</button>
+		編成名<input id="fleet_name" type="text"><button id="save_button" disabled>保存(新規)</button><button id="allclear_button" class="hidden">編成クリア</button>
 	</div><div>
 		<label><input id="show_button_check" type="checkbox">他のボタンを表示</label>
 	</div>
@@ -49,14 +59,14 @@
 <!-- 計算結果 -->
 <table id="score_table" class="black_border center_text">
 <tbody>
-	<tr>
-		<th>司令部レベル</td>
+	<tr class="HQ">
+		<th>司令部レベル</th>
 		<td><input id="HQ_level" type="number" min="1" max="120" value="120"></td>
 		<th>艦数</th>
 		<td id="ship_count"></td>
 		<td></td>
-	</tr><tr>
-		<th title="分岐点によって計算式が違う可能性が示されています。\n司令部レベル120ならば関係ありません。(どちらも同じ値になるように補正)">司令部補正</td>
+	</tr><tr class="HQ">
+		<th title="分岐点によって計算式が違う可能性が示されています。\n司令部レベル120ならば関係ありません。(どちらも同じ値になるように補正)">司令部補正</th>
 		<td colspan="2">
 			<select id="HQ_level_modify">
 				<option value="hqm040">ceil(0.4 * Lv)</option>
@@ -65,21 +75,21 @@
 		</td>
 		<td id="HQ_level_modify_cell"></td>
 		<td></td>
-	</tr><tr>
+	</tr><tr class="h_result">
 		<th colspan="5">計算結果 (33式)</th>
-	</tr><tr class="width_set">
+	</tr><tr class="width_set result">
 		<th width="120" class="green">分岐点係数</th>
 		<th width="80" class="green">1</th>
 		<th width="80" class="green">2</th>
 		<th width="80" class="green">3</th>
 		<th width="80" class="green">4</th>
-	</tr><tr>
+	</tr><tr class="result">
 		<th class="green">索敵スコア</th>
 		<td id="los_score_1"></td>
 		<td id="los_score_2"></td>
 		<td id="los_score_3"></td>
 		<td id="los_score_4"></td>
-	</tr><tr>
+	</tr><tr class="memo">
 		<th colspan="5">メモ</th>
 	</tr><tr>
 		<td id="memo_cell" colspan="5">
@@ -93,7 +103,7 @@
 <table id="fleet_table" class="black_border center_text">
 <thead>
 	<tr>
-		<th colspan="4" title="艦娘の素の索敵値。\nただし装備ボーナスのうち、艦娘索敵値に加算されるものは加算する。">艦娘索敵値</th>
+		<th colspan="4" class="shiplos_color" title="艦娘の素の索敵値。\nただし装備ボーナスのうち、艦娘索敵値に加算されるものは加算する。">艦娘索敵値</th>
 		<td class="n_all"></td>
 		<th id="assist_header" colspan="4">入力補助β</th>
 	</tr>
@@ -137,7 +147,7 @@
 		<td>12</td><td><input id="ship_los_12" type="number" class="ship_los" min="0" tabindex="12"></td>
 		<td class="n_all"></td>
 	</tr><tr>
-		<th colspan="2" title="平方根の和">スコア</th>
+		<th colspan="2" class="shiplos_color" title="平方根の和">スコア</th>
 		<td id="fleet_score" colspan="2"></td>
 		<td class="n_all"></td>
 	</tr><tr>
@@ -153,9 +163,9 @@
 
 <table id="equip_table" class="black_border center_text">
 <thead>
-	<tr>
+	<tr class="header1">
 		<th colspan="6">索敵装備</th>
-	</tr><tr>
+	</tr><tr class="header2">
 		<th width="24"></th>
 		<th style="min-width: 200px;">装備名</th>
 		<th style="min-width: 100px;">種別</th>
@@ -239,13 +249,13 @@
 </tr><tr>
 	<td>2-5 G<br>(下ルート渦潮)</td>
 	<td>1</td><td>0.4</td>
-	<td>41</td><td>35以下</td>
+	<td>41</td><td>(35以下)</td>
 	<td>L<br>(ボス前)</td><td>K<br>(帰投)</td>
 	<td>編成による</td>
 </tr><tr>
 	<td>3-5 H<br>(ほっぽ)</td>
 	<td>4</td><td>0.35</td>
-	<td title="39で逸れ例あり">40以上</td><td title="38で到達例あり">38以下</td>
+	<td title="39で逸れ例あり">(40以上)</td><td title="38で到達例あり">(38以下)</td>
 	<td>K<br>(ボス)</td><td>J<br>(弾薬&amp;帰投)</td>
 	<td>
 		編成による<br>
@@ -263,13 +273,13 @@
 </tr><tr>
 	<td>4-5 K<br>(軽巡棲鬼)</td>
 	<td>2</td><td></td>
-	<td>71</td><td>63以下</td>
+	<td>71</td><td>(63以下)</td>
 	<td>T<br>(ボス)</td><td>L<br>(帰投)</td>
 	<td>編成による</td>
 </tr><tr>
 	<td>4-5 Q<br>(左上)</td>
 	<td>2</td><td></td>
-	<td>59以上</td><td>56以下</td>
+	<td>(59以上)</td><td>(56以下)</td>
 	<td>O or N</td><td>P<br>(帰投)</td>
 	<td>成功時の到達先は編成による？<br>情報不足</td>
 </tr><tr>
@@ -281,7 +291,7 @@
 </tr><tr>
 	<td>5-2 F<br>(ボス前)</td>
 	<td>2</td><td>0.35</td>
-	<td>70</td><td>64以下</td>
+	<td>70</td><td>(64以下)</td>
 	<td>O or I<br>(ボスor航空戦)</td><td>H<br>(帰投)</td>
 	<td>
 		成功時の行き先は編成による<br>
@@ -291,7 +301,7 @@
 </tr><tr>
 	<td>5-2 L<br>(遠回り空襲)</td>
 	<td>2</td><td>0.35</td>
-	<td>62</td><td>60以下</td>
+	<td>62</td><td>(60以下)</td>
 	<td>K<br>(ボス前)</td><td>M<br>(渦潮)</td>
 	<td>
 		編成による<br>
@@ -301,7 +311,7 @@
 </tr><tr>
 	<td>5-4 L<br>(上ルート)</td>
 	<td>2</td><td>0.35</td>
-	<td>59?</td><td></td>
+	<td>(59?)</td><td></td>
 	<td>P<br>(ボス)</td><td>N<br>(帰投)</td>
 	<td>
 		編成による<br>
@@ -312,7 +322,7 @@
 </tr><tr>
 	<td>5-4 M<br>(下ルート)</td>
 	<td>2</td><td>0.35</td>
-	<td>45</td><td>41以下</td>
+	<td>45</td><td>(41以下)</td>
 	<td>P<br>(ボス)</td><td>O<br>(帰投)</td>
 	<td>
 		編成による<br>
@@ -406,7 +416,7 @@
 </tr><tr>
 	<td>6-5 G<br>(上ルート)</td>
 	<td>3</td><td></td>
-	<td>50*</td><td>48以下*</td>
+	<td>50*</td><td>(48以下*)</td>
 	<td>M<br>(ボス)</td><td>K<br>(帰投)</td>
 	<td>
 		<a href="https://docs.google.com/spreadsheets/d/1btSucuHqfWeBB8nDgrfyWRTHVCVUV9PPN_hklV5_UeM/edit#gid=504143548" target="_blank">Gマス*</a>
@@ -451,12 +461,58 @@
 
 <h3>使い方</h3>
 <p>
-あとで書きます。ふぃーりんぐでつかうのだ
+入力欄に装備や艦娘の素索敵値などを入力すれば自動で計算されます。<br>
+12隻分の入力欄がありますが、連合艦隊については通常艦隊用の式をそのまま適用しています。<br>
+<ul>
+<li>メモと書いてある下の欄にはメモを残せます</li>
+<li>艦娘索敵値や索敵装備の左端の数字をドラッグ＆ドロップで入れ替え・コピー(Ctrl押しながら)ができます</li>
+<li>索敵装備欄で先に種別を選ぶと装備のリストが絞り込まれます</li>
+<li>装備リストの装備をダブルクリックすると索敵装備欄に入力されます</li>
+</ul>
+</p>
+
+<h4>索敵スコア(33式)</h4>
+<div class="formula">
+	<strong>索敵スコア</strong> = <strong>艦娘索敵値</strong>によるスコア + <strong>隻数補正</strong> + <strong>装備</strong>によるスコア * <strong>分岐点係数</strong> - <strong>司令部補正</strong>
+</div>
+<p>
+<strong>分岐点係数</strong>は海域によって変わります。この式から、分岐点係数が大きくなるほど装備の比重が大きくなることが分かります。<br>
+当計算機では、小数点以下第4位を切り捨てて表示しています。マウスポインターを合わせると切り捨て前の値が出ます。
+</p>
+
+<h4>艦娘索敵値によるスコア/隻数補正</h4>
+<div class="formula">
+	<strong>艦娘索敵値</strong>によるスコア = 艦娘の<strong>素の索敵値の平方根</strong>の和<br>
+	<strong>隻数補正</strong> = 2 * (6 - <strong>隻数</strong>)<br>
+</div>
+<p>
+<strong>素の索敵値の平方根</strong>が関係します。一部の装備では、<strong>装備ボーナス</strong>によって索敵値が増加しますが、この素索敵値に加算する場合と、加算しない場合の両方があります。<br>
+入力補助βや外部サイトなどを参考にしてください。
+</p>
+
+<h4>装備によるスコア</h4>
+<div class="formula">
+	<strong>装備</strong>によるスコア = <strong>装備係数</strong> * (<strong>装備索敵値</strong> + <strong>改修係数</strong> * <span title="平方根をとる関数">sqrt</span>(<strong>改修値</strong>(★))) の和
+</div>
+<p>
+ここで、<strong>装備係数</strong>と<strong>改修係数</strong>は<strong>装備の分類</strong>による定数。また、この値に<strong>分岐点係数</strong>が乗算されることになります。<br>
+装備の分類により、同じ装備索敵値であってもスコアは大きく異なります。例えば水偵は電探の2倍の装備係数になります。詳しくはwikiなどへ。<br>
+艦載機や偵察機の<strong>搭載数が0</strong>になっていても、装備によるスコアは加算されます。<br>
+上の装備リストのカテゴリーにマウスポインターを合わせるとヒントが出ます。<br>
+なお、当計算機の索敵装備の改修欄に色がついているものは「改修値があればスコアが増加する」ことを表します。改修可能かどうかは考慮していません。
+</p>
+
+<h4>司令部補正</h4>
+<p>
+分岐点によって、司令部レベルによる補正の係数が変わります。<br>
+ceil() を切り上げ関数として <strong>ceil(0.4*Lv)</strong> と <strong>ceil(0.35*Lv)</strong> の式が確認されていますが、Lv=120のとき同じ値になるように、当計算機では後者を <strong>ceil(0.35*Lv) + 6</strong> として計算します。<br>
+様々な索敵検証結果が司令部120/係数0.4の式で報告されているためです。これらの結果を数値そのままに利用することができます。<br>
+司令部レベルが120であれば、この司令部補正の項目は無視してかまいません。
 </p>
 
 
+<h5>その他の検証データリンク</h5>
 <div class="verification_data">
-その他の検証データリンク<br>
 <a href="https://twitter.com/CC_jabberwock/status/1045663438062596097" target="_blank" title="種別係数0.6">
 5inch単装砲 Mk.30改+GFCS Mk.37
 </a>/<a href="https://twitter.com/CC_jabberwock/status/1122065780546265088" target="_blank" title="種別係数0.6, 改修係数0">
@@ -477,14 +533,9 @@ Laté 298Bフィット
 
 <div class="footer">
 <hr>
+<div class="right" title="索敵は大事">作った人: <a href="https://twitter.com/konoha_gold_EX">@konoha_gold_EX</a></div>
 <a href="index.html">トップページへ</a>
 </div>
-
-<!-- スクリプトの読み込み -->
-<script type="text/JavaScript" src="js/utility.js"></script>
-<script type="text/JavaScript" src="js/kancolle_los.js"></script>
-<script type="text/JavaScript" src="js/kancolle_los_assist.js"></script>
-<script type="text/JavaScript" src="js/kancolle_los_io.js"></script>
 
 </body>
 </html>

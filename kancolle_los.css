@@ -26,13 +26,6 @@ table {
 	margin: 0px;
 }
 
-table th {
-	background-color: lavender;
-}
-table *.green {
-	background-color: #c8fac8;
-}
-
 
 /* 選択状態を非表示に */
 #equip_table, #hint_table {
@@ -56,7 +49,8 @@ table *.green {
 }
 
 #header_tool .hidden {
-	display: none;
+	/*display: none;*/
+	visibility: hidden;
 }
 
 #savelist {
@@ -79,22 +73,32 @@ table *.green {
 	margin-right: 8px;
 	margin-bottom: 8px;
 }
-
 #score_table tr.width_set th {
 	min-width: 50px;
 }
-
 #memo_cell {
 	padding: 0px;
 	text-align: left;
 }
-
 #memo {
 	height: 6em;
 	width: calc(100% - 6px);
 	/*width: 446px;*/
 	margin: 2px;
 	border: 0px;
+}
+/* > 色 */
+#score_table tr.HQ th {
+	background-color: #cffdff;
+}
+#score_table tr.h_result th {
+	background-color: lavender;
+}
+#score_table tr.result th {
+	background-color: #cfffcf;
+}
+#score_table tr.memo th {
+	background-color: lavender;
 }
 
 
@@ -104,14 +108,14 @@ table *.green {
 	margin-right: 4px;
 	margin-bottom: 4px;
 }
-
 #fleet_table tbody tr:nth-child(-n+6) td:nth-child(1) {
 	cursor: default;
-	background-color: #def;
 }
 #fleet_table tbody tr:nth-child(-n+6) td:nth-child(3) {
 	cursor: default;
-	background-color: #fed;
+}
+#fleet_table input[type="number"][title] {
+	cursor: unset; /* default */
 }
 
 #chara_name {
@@ -119,24 +123,37 @@ table *.green {
 	margin-right: 2px;
 	width: 180px;
 }
-
 #chara_restriction {
 	margin-left: 2px;
 	margin-right: 2px;
 	width: 180px;
 }
-
 #ship_select {
 	margin-left: 2px;
 	margin-right: 2px;
 	width: 180px;
 }
-
 #bonus_info {
 	text-align: left;
 	vertical-align: top;
 	padding: 4px;
 	font-size: 80%;
+}
+/* > 色 */
+#fleet_table th.shiplos_color {
+	background-color: lavender;
+}
+#fleet_table tbody tr:nth-child(-n+6) td:nth-child(1) {
+	background-color: #def;
+}
+#fleet_table tbody tr:nth-child(-n+6) td:nth-child(3) {
+	background-color: #fed;
+}
+#assist_header {
+	background-color: lavender;
+}
+#fleet_table tbody th {
+	background-color: #e6f1fa;
 }
 
 
@@ -152,9 +169,19 @@ table *.green {
 	width: 300px;
 }
 
+#equip_table tr.header1 th {
+	background-color: #ff8;
+}
+#equip_table tr.header2 th {
+	background-color: #ffb;
+}
+#equip_table tfoot tr th {
+	background-color: #ffb;
+}
+
 #equip_table .number {
 	cursor: default;
-	background-color: white;
+	background-color: #ffffe2;
 }
 
 #equip_table .category {
@@ -172,8 +199,6 @@ table *.green {
 }
 
 
-
-
 /* 装備リスト */
 #hint_table {
 	float: left;
@@ -185,6 +210,9 @@ table *.green {
 	font-size: 80%;
 }
 
+#hint_table #hint_table_header {
+	background-color: lavender;
+}
 #hint_table th.header {
 	padding: 0px;
 }
@@ -227,6 +255,10 @@ table *.green {
 
 #score_hint_table th {
 	padding: 1px 4px;
+	background-color: #aef;
+}
+#score_hint_table tr:nth-child(2) th {
+	background-color: #ccf8ff;
 }
 
 #score_hint_table td {
@@ -235,8 +267,33 @@ table *.green {
 	padding: 4px;
 }
 
-.verification_data {
+
+/* 使い方 */
+p {
+	margin: 2px 0px;
+	padding-left: 1em;
+}
+h3 {
+	margin-bottom: 0.5em;
+	padding-left: 0.4em;
+	background-color: #64a4ff;
+}
+h4 {
+	margin: 0.5em 0em 0em 0em;
+	padding-left: 0.5em;
+	background-color: #cfe3ff;
+}
+h5 {
+	margin: 0.5em 0em 0em 0em;
+	padding-left: 0.5em;
+	background-color: #cfe3ff;
+}
+div.formula {
+	margin: 0.5em 2em;
+}
+div.verification_data {
 	font-size: 75%;
+	margin: 0.5em 1em;
 }
 
 

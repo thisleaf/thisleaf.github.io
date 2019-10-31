@@ -23,6 +23,12 @@ a.refer {
 	float: right;
 }
 
+/* 選択不可 */
+.noselect {
+	user-select: none;
+	-moz-user-select: none;
+	-webkit-user-select: none;
+}
 
 /* テーブル汎用 */
 /* th, td に black の線 */
@@ -115,5 +121,60 @@ th.right, td.right {
 }
 th.center, td.center {
 	text-align: center;
+}
+
+
+/* メッセージバー (MessageBar) */
+.message_bar {
+	position: fixed;
+	left: 0px;
+	bottom: 0px;
+	width: 100%;
+	user-select: none;
+	-moz-user-select: none;
+	-webkit-user-select: none;
+	background-color: white;
+	
+	padding: 0px 0.5em;
+	border-style: solid;
+	border-width: 1px 0px 0px 10px;
+	border-color: gold;
+}
+.message_bar.hide_animation {
+	/* これをセットするまでの時間はスクリプトで指定する */
+	transition: transform 1000ms 0ms ease;
+	transform: translateY(100%);
+}
+.message_bar.hide {
+	display: none;
+}
+
+
+/* 読込・保存ツールバー */
+.toolbar {
+	margin: 0.5em 0em;
+}
+.toolbar > div {
+	display: inline-block;
+	margin-right: 1em;
+}
+.toolbar select, .toolbar button {
+	margin: 0px 1px;
+}
+.toolbar .hidden {
+	/*display: none;*/ /* ボタンの位置が変わってしまうのはいまいち… */
+	visibility: hidden;
+}
+
+.toolbar .record_list {
+	width: 200px;
+}
+
+.toolbar .record_name {
+	width: 200px;
+	margin: 1px 3px;
+}
+.toolbar .save_button {
+	min-width: 100px;
 }
 

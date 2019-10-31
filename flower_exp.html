@@ -352,6 +352,26 @@
 </li>
 </ul>
 
+<h4>獲得経験値量(推定)</h4>
+<p>
+獲得経験値 = ceil(Σ(基本経験値 * 属性一致) * キャンペーン倍率 * 大成功)<br>
+属性一致 1.5 倍、大成功 1.5 倍<br>
+基本経験値に各種ボーナスが乗算されるが、整数化せずに加算して最後に切り上げる。基本経験値は以下の通り。<br>
+</p>
+
+<table class="black_border center_text exp">
+<tbody>
+<tr><td>★2</td><td>60+12*(Lv-1)</td><td>マニュ5才</td><td>720</td></tr>
+<tr><td>★3</td><td>180+36*(Lv-1)</td><td>マニュ20才</td><td>1800</td></tr>
+<tr><td>★4</td><td>240+30*(Lv-1)</td><td>マニュ100才</td><td>4800</td></tr>
+<tr><td>★5</td><td>ceil(300+37.5*(Lv-1))</td><td>アンプルゥ</td><td>1080</td></tr>
+<tr><td>★6</td><td>360+45*(Lv-1)</td><td>キャラ技花</td><td>720</td></tr>
+<tr><td></td><td></td><td>キャラ装花</td><td>1800</td></tr>
+<tr><td></td><td></td><td>庭園技花</td><td>180</td></tr>
+<tr><td></td><td></td><td>庭園装花</td><td>450</td></tr>
+</tbody>
+</table>
+
 
 <div class="footer">
 	<hr>
