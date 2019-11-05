@@ -66,7 +66,7 @@ export function xor(a, b){
 
 // てきーとな変換関数
 // xとかflenが大きくなるとうまく変換できないかも
-export function float_to_string(x, flen, dir){
+export function float_to_string(x, flen, dir = 0, remove_zero = false){
 	if (!(flen >= 0)) flen = 0;
 	
 	var scaler = Math.pow(10, flen);
@@ -75,7 +75,7 @@ export function float_to_string(x, flen, dir){
 	x /= scaler;
 	var str = String(x);
 	
-	if (flen > 0) {
+	if (flen > 0 && !remove_zero) {
 		var fill = 0;
 		if (/^\-?\d+\.(\d+)$/.test(str)) {
 			fill = flen - RegExp.$1.length;

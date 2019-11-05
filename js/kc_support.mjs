@@ -15,6 +15,7 @@ import {
 import {OwnEquipmentForms, SupportFleet} from "./kc_support_fleet.mjs";
 import {SupportFleetData} from "./kc_support_fleet_data.mjs";
 import {SupportFleetScore, SupportShipScore} from "./kc_support_score.mjs";
+import {DamageTable} from "./kc_damage_table.mjs";
 
 
 // 動的に読み込まれるデータ
@@ -32,6 +33,8 @@ let own_equipment_forms = null;
 // 支援艦隊フォーム
 let support_fleet_A = null;
 let support_fleet_B = null;
+// 損傷率
+let damage_table = null;
 // データの保存
 let userdata_object = null;
 // ドラッグドロップ情報の仲介
@@ -94,6 +97,7 @@ function kancolle_support_init(result){
 	own_equipment_forms = new OwnEquipmentForms;
 	support_fleet_A = new SupportFleet(DOM("support_A"), "A");
 	support_fleet_B = new SupportFleet(DOM("support_B"), "B");
+	damage_table = new DamageTable(DOM("damage"));
 	userdata_object = new LSUserData("kancolle_support_data", Global.SUPPORT_SAVEDATA_VERSION, null);
 	dragdata_provider = new DragdataProvider;
 	
@@ -108,6 +112,9 @@ function kancolle_support_init(result){
 	support_fleet_B.create("支援艦隊B", 9);
 	support_fleet_B.onchange = e => save_userdata();
 	support_fleet_B.set_draggable(dragdata_provider);
+	
+	// 損傷率
+	damage_table.create_contents();
 	
 	// 探索ボタン
 	function _click(id, func){
@@ -142,6 +149,9 @@ function kancolle_support_init(result){
 	
 	message_bar.start_hiding();
 	console.log("み");
+	
+	// debug用
+	//for (let e of document.querySelectorAll(".debug")) e.style.display = "unset";
 }
 
 

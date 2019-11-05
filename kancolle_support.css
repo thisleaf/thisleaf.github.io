@@ -28,6 +28,12 @@
 	color: blue;
 	margin-right: 0.5em;
 }
+.to_top {
+	float: right;
+	color: #40f;
+	margin-right: 0.5em;
+	text-decoration: none;
+}
 
 
 /* 所有装備 */
@@ -314,6 +320,102 @@
 }
 #support_B tbody .eq_dragdrop {
 	background-color: lavender;
+}
+
+
+/* 損害表 */
+#damage {
+	margin: 1em;
+	font-size: 80%;
+	line-height: 1.2;
+}
+#damage th.caption {
+	font-size: 120%;
+	line-height: 1.5;
+	padding-left: 6px;
+}
+#damage th.option {
+	padding-right: 4px;
+}
+#damage th.option label {
+	margin-right: 4px;
+}
+
+#damage td.power { width: 80px; }
+#damage td.cur_hp, #damage td.max_hp { width: 65px; }
+#damage td.armor { width: 70px; }
+#damage td.damage_lv4
+, #damage td.damage_lv3
+, #damage td.damage_lv2
+, #damage td.damage_lv1
+, #damage td.damage_lv0
+{
+	width: 70px;
+	font-weight: bold;
+	padding-top: 2px;
+	padding-bottom: 0px;
+}
+
+#damage th { background-color: #d2d2d2; }
+#damage tr.colhead th { background-color: #f0f0f0; }
+#damage .damage_lv4 { color: darkblue; }
+#damage .damage_lv3 { color: red; }
+#damage .damage_lv2 { color: #e8860a; }
+#damage .damage_lv1 { color: #808000; }
+#damage .damage_lv0 { color: green; }
+
+#damage td.percent {
+	border-bottom-width: 0px;
+}
+#damage td.damage_bar {
+	padding: 0;
+	height: 5px;
+	line-height: 0;
+	border-top-width: 0px;
+	white-space: nowrap;
+}
+#damage td.damage_bar > div {
+	height: 5px;
+	display: inline-block;
+}
+#damage td.damage_bar > div.damage_lv4 { background-color: darkblue; }
+#damage td.damage_bar > div.damage_lv3 { background-color: red; }
+#damage td.damage_bar > div.damage_lv2 { background-color: orange; }
+#damage td.damage_bar > div.damage_lv1 { background-color: #ffec3c; }
+#damage td.damage_bar > div.damage_lv0 { background-color: #8f8; }
+
+/* > 三角形 */
+#damage tr.triangle .tri_up
+, #damage tr.triangle .tri_down
+{
+	cursor: pointer;
+}
+#damage tr.triangle .tri_up > div
+, #damage tr.triangle .tri_down > div
+{
+	width: 0;
+	height: 0;
+	margin: auto;
+	border-style: solid;
+}
+#damage tr.triangle .tri_up > div {
+	border-width: 0px 8px 5px 8px;
+	border-color: transparent transparent #08f transparent;
+}
+#damage tr.triangle .tri_up.select > div {
+	border-color: transparent transparent #f80 transparent;
+}
+#damage tr.triangle .tri_down > div {
+	border-width: 5px 8px 0px 8px;
+	border-color: #08f transparent transparent transparent;
+}
+#damage tr.triangle .tri_down.select > div {
+	border-color: #f80 transparent transparent transparent;
+}
+
+#damage input[type="number"] {
+	width: 45px;
+	text-align: right;
 }
 
 

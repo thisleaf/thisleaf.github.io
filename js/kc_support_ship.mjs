@@ -118,6 +118,8 @@ Object.assign(SupportShip, {
 	cv_shelling_types: [
 		"軽空母", "正規空母", "装甲空母"
 	],
+	
+	get_border_power: SupportShip_static_get_border_power,
 });
 
 
@@ -490,6 +492,7 @@ function SupportShip_get_slot_info(index){
 	return data;
 }
 
+
 // 艦情報を更新 (フォームから)
 function SupportShip_refresh_shipinfo(suppress_refresh = false){
 	let name = this.ship_selector.get_shipname();
@@ -519,11 +522,8 @@ function SupportShip_refresh_displaypower(){
 	let fm = Util.formstr_to_float(this.e_formation.value, 1, 1);
 	let tp = Util.formstr_to_float(this.e_targetpower.value, 0, 0);
 	
-	// sqrtcap((dp + 5 + Global.SUPPORT_MODIFY) * en * fm) >= tp なる最小の dp
-	let dpmin = (Damage.inv_sqrtcap(tp, Global.SUPPORT_POWER_CAP) / fm) / en - (5 + Global.SUPPORT_MODIFY);
-	let dp = Math.ceil(dpmin);
-	let bpmin = (Damage.inv_sqrtcap(tp, Global.SUPPORT_POWER_CAP) / fm) / en;
-	let bp = Math.ceil(bpmin);
+	let bp = SupportShip.get_border_power(en.value, fm.value, tp.value);
+	let dp = bp - (5 + Global.SUPPORT_MODIFY);
 	
 	Util.remove_children(this.e_displaypower);
 	
@@ -670,8 +670,7 @@ function SupportShip_get_data(data){
 	let fm = Util.formstr_to_float(this.e_formation.value, 1, 1);
 	let tp = Util.formstr_to_float(this.e_targetpower.value, 0, 0);
 	
-	let bpmin = (Damage.inv_sqrtcap(tp, Global.SUPPORT_POWER_CAP) / fm) / en;
-	let bp = Math.ceil(bpmin);
+	let bp = SupportShip.get_border_power(en.value, fm.value, tp.value);
 	
 	data.priority = pr.value;
 	//data.power_modifier = en * fm;
@@ -822,6 +821,23 @@ function SupportShip_ev_change_target(){
 function SupportShip_ev_change_equipment(){
 	this.refresh_equipstatus();
 	this.call_onchange();
+}
+
+
+// sqrtcap(bp * en * fm) >= tp なる最小の整数 bp を返す
+// dp = bp - (5 + Global.SUPPORT_MODIFY) が表示火力になる
+function SupportShip_static_get_border_power(engagement_form, formation, target_power){
+	// 最初の bp はだいたいあっているが、計算誤差の都合で確定ではない
+	// とはいえ、修正しても実際の艦これと合っているかは微妙ではあるが
+	let bpmin = Damage.inv_sqrtcap(target_power, Global.SUPPORT_POWER_CAP) / formation / engagement_form;
+	let bp = Math.ceil(bpmin);
+	
+	let f = bp => Damage.sqrtcap(bp * engagement_form * formation, Global.SUPPORT_POWER_CAP);
+	
+	if (f(bp) < target_power) bp++;
+	else if (f(bp - 1) >= target_power) bp--;
+	
+	return bp;
 }
 
 
