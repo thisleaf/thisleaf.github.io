@@ -552,6 +552,14 @@ function EquipmentRow_ev_dragstart(e){
 		type: "equipment",
 		number: this.number,
 	});
+	
+	let td = e.currentTarget;
+	let tr = td.parentElement;
+	let rect = td.getBoundingClientRect();
+	let x = e.pageX - rect.left - window.scrollX;
+	let y = e.pageY - rect.top - window.scrollY;
+	
+	e.dataTransfer.setDragImage(tr, x, y);
 }
 
 function EquipmentRow_ev_dragover(e){
@@ -1039,7 +1047,8 @@ function refresh_score(){
 	
 	for (let i=0; i<SHIP_COUNT_MAX; i++) {
 		let e = DOM("ship_los_" + (i + 1));
-		let x = formstr_to_int(e.value, 0, -1);
+		//let x = formstr_to_int(e.value, 0, -1);
+		let x = formstr_to_float(e.value, 0, -1);
 		
 		if (x.value > 0) {
 			ship_count++;
