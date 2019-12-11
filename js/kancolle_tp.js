@@ -35,6 +35,8 @@ const EQUIPMENT_TP_DEFINITION = [
 const SHIP_MAX_COUNT = 12;
 const KANCOLLE_TP_STORAGEKEY = "kancolle_tp_formdata";
 
+let current_drag_id = null;
+
 
 document.addEventListener("DOMContentLoaded", kancolle_tp_init);
 
@@ -124,11 +126,12 @@ function init_dragdrop(){
 	let table = DOM("input_table");
 	let tbody = table.tBodies[0];
 	
-	for (let i=0; i<tbody.rows.length; i++) {
+	for (let i=0; i<SHIP_MAX_COUNT; i++) {
 		let td = tbody.rows[i].cells[0];
 		td.draggable = true;
 		
 		td.addEventListener("dragstart", ev_dragstart);
+		td.addEventListener("dragend", ev_dragend);
 		td.addEventListener("dragover", ev_dragover);
 		td.addEventListener("drop", ev_drop);
 	}
@@ -247,13 +250,14 @@ function ev_click_clear_button(){
 // dragdrop
 function ev_dragstart(e){
 	// dataTransferの利用によってドラッグ可能になる
+	// しかしdrag中にはデータを取得できない
+	current_drag_id = e.target.id;
 	e.dataTransfer.setData("drag_id", e.target.id);
 }
 
 function ev_dragover(e){
 	// デフォルトをキャンセルした要素がドロップ可能な場所
-	let drag_id = e.dataTransfer.getData("drag_id");
-	if (drag_id != e.target.id) {
+	if (current_drag_id != e.target.id) {
 		e.preventDefault();
 	}
 }
@@ -261,13 +265,12 @@ function ev_dragover(e){
 function ev_drop(e){
 	// ドロップ
 	e.preventDefault();
-	let drag_id = e.dataTransfer.getData("drag_id");
 	
 	// Ctrlのみを押している場合はコピー
 	if (e.ctrlKey && !e.shiftKey && !e.altKey) {
-		copy_ship(_id_to_num(drag_id), _id_to_num(e.target.id));
+		copy_ship(_id_to_num(current_drag_id), _id_to_num(e.target.id));
 	} else {
-		swap_ship(_id_to_num(drag_id), _id_to_num(e.target.id));
+		swap_ship(_id_to_num(current_drag_id), _id_to_num(e.target.id));
 	}
 	
 	calc_tp();
@@ -276,6 +279,10 @@ function ev_drop(e){
 	function _id_to_num(id){
 		return /td_(\d+)/.test(id) ? RegExp.$1 : "";
 	}
+}
+
+function ev_dragend(e){
+	current_drag_id = null;
 }
 
 

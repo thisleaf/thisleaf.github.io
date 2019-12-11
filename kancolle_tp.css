@@ -5,10 +5,15 @@ table#input_table {
 	margin-right: auto;
 }
 
-table#input_table th
-, table#input_table td
-{
+table#input_table th {
 	padding: 2px;
+	white-space: nowrap;
+}
+table#input_table td {
+	padding: 2px;
+}
+table#input_table button {
+	white-space: nowrap;
 }
 
 table#input_table td.equipment {
@@ -40,7 +45,7 @@ table#input_table tbody.input_area tr:nth-child(-n+6) td:first-child {
 	cursor: default;
 	background-color: #def;
 }
-table#input_table tbody.input_area tr:nth-child(n+7) td:first-child {
+table#input_table tbody.input_area tr:nth-child(n+7):nth-child(-n+12) td:first-child {
 	cursor: default;
 	background-color: #fed;
 }
