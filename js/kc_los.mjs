@@ -647,6 +647,7 @@ function kancolle_los_init(){
 	init_equip_table();
 	init_hint_table();
 	Util.expand_title_newline();
+	Util.show_limited_notice();
 	init_los_record();
 	
 	refresh_score();
@@ -1057,6 +1058,8 @@ function refresh_score(){
 			e.title = `${sq}\n= sqrt(${x.value})`;
 		} else if (x.value < 0) {
 			ship_error++;
+			e.title = "";
+		} else {
 			e.title = "";
 		}
 	}

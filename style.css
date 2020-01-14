@@ -123,6 +123,16 @@ th.center, td.center {
 	text-align: center;
 }
 
+/* お知らせと期間限定で表示する要素 */
+.notice {
+	border-left: 4px gray solid;
+	padding-left: 0.5em;
+	margin-top: 1em;
+	margin-bottom: 1em;
+}
+.limited_notice {
+	display: none;
+}
 
 /* メッセージバー (MessageBar) */
 .message_bar {

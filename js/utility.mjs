@@ -563,6 +563,29 @@ export function expand_title_newline(){
 	}
 }
 
+// 期間限定の要素を表示する
+// これを呼ばない場合は常に非表示となる
+// data-begin-date から data-end-date で指定された日付まで表示(begin <= d < end)、片方は省略可能
+export function show_limited_notice(){
+	let elems = document.querySelectorAll(".limited_notice");
+	let now_time = (new Date).getTime();
+	
+	for (let i=0; i<elems.length; i++) {
+		let e = elems[i];
+		let begin = e.dataset.beginDate ? new Date(e.dataset.beginDate) : null;
+		let end = e.dataset.endDate ? new Date(e.dataset.endDate) : null;
+		
+		if (begin && now_time < begin.getTime()) continue;
+		if (end && end.getTime() <= now_time) continue;
+		if (!begin && !end) {
+			console.log("warning: 期限の指定のない期間限定要素", e);
+			continue;
+		}
+		
+		e.classList.remove("limited_notice");
+	}
+}
+
 
 // DragdataProvider --------------------------------------------------------------------------------
 // dragdropのデータを仲介

@@ -98,7 +98,7 @@ export const LOS_EQUIPBONUS = [
 		ignore_ship_names: ["春日丸", "大鷹", "大鷹改", "神鷹", "神鷹改"],
 		LoS: i => (i == 0 ? 0 : i == 2 ? 1 : null),
 		accumulation: "不明",
-		effect: "索敵スコアへの影響は不明",
+		effect: "艦娘索敵値に加算",
 	}, {
 		// 試製景雲
 		equipment_id: 151,

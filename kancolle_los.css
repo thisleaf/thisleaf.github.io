@@ -15,13 +15,6 @@ input[type="number"] {
 	cursor: default;
 }
 
-.notice {
-	border-left: 4px gray solid;
-	padding-left: 0.5em;
-	margin-top: 1em;
-	margin-bottom: 1em;
-}
-
 table {
 	margin: 0px;
 }
