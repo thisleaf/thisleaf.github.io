@@ -59,7 +59,7 @@ const ASSIST_GROUPING_DEF = [
 	
 	{viewname: "重巡洋艦"},
 	{viewname: "航空巡洋艦"},
-	{viewname: "軽巡洋艦", keys: ["軽巡洋艦", "軽(航空)巡洋艦"]},
+	{viewname: "軽巡洋艦", keys: ["軽巡洋艦", "軽(航空)巡洋艦", "防空巡洋艦", "兵装実験軽巡"]},
 	{viewname: "重雷装巡洋艦"},
 	{viewname: "練習巡洋艦"},
 
@@ -100,6 +100,7 @@ const ASSIST_GROUPING_FOREIGN_DD = [
 
 // これに追加しておくとデフォルトの改造度選択が変わる
 const DEFAULT_SELECT_SHIPS = [
+	"夕張改二特"
 ];
 
 

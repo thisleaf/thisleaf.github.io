@@ -26,7 +26,7 @@ const SHIP_GROUPING_DEF = [
 	
 	{viewname: "重巡洋艦"},
 	{viewname: "航空巡洋艦"},
-	{viewname: "軽巡洋艦", keys: ["軽巡洋艦", "軽(航空)巡洋艦"]},
+	{viewname: "軽巡洋艦", keys: ["軽巡洋艦", "軽(航空)巡洋艦", "防空巡洋艦", "兵装実験軽巡"]},
 	{viewname: "重雷装巡洋艦"},
 	{viewname: "練習巡洋艦"},
 
