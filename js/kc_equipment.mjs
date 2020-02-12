@@ -36,6 +36,7 @@ export {
 Object.assign(EquipmentDatabase, {
 	// 無変換のデータ
 	csv_equiplist_raw: null,
+	csv_equipable_raw: null,
 	// csvのデータ
 	// 基本的には無変換と同じだが、文字列が数値に変換されていたりする
 	csv_shiplist  : null,
@@ -51,13 +52,26 @@ Object.assign(EquipmentDatabase, {
 	initialize : EquipmentDatabase_initialize,
 });
 
+Object.assign(EquipmentDatabase, {
+	eqab_special_def: {
+		// key を value の配列の要素に置き換える
+		// 系で統一
+		"軽巡系": ["軽巡洋艦", "軽(航空)巡洋艦", "防空巡洋艦", "兵装実験軽巡", "重雷装巡洋艦", "練習巡洋艦"],
+		"重巡系": ["重巡洋艦", "航空巡洋艦"],
+		"空母系": ["軽空母", "正規空母", "装甲空母"],
+		"潜水系": ["潜水艦", "潜水空母"],
+		"航空戦艦系": ["航空戦艦", "改装航空戦艦"],
+	},
+});
+
+
 function EquipmentDatabase(){
 }
 
-function EquipmentDatabase_initialize(csv_shiplist, csv_equiplist_raw, csv_equipable, csv_equipbonus){
+function EquipmentDatabase_initialize(csv_shiplist, csv_equiplist_raw, csv_equipable_raw, csv_equipbonus){
 	EquipmentDatabase.csv_shiplist      = csv_shiplist;
 	EquipmentDatabase.csv_equiplist_raw = csv_equiplist_raw;
-	EquipmentDatabase.csv_equipable     = csv_equipable;
+	EquipmentDatabase.csv_equipable_raw = csv_equipable_raw;
 	EquipmentDatabase.csv_equipbonus    = csv_equipbonus;
 	
 	// 数値に変換する
@@ -78,6 +92,38 @@ function EquipmentDatabase_initialize(csv_shiplist, csv_equiplist_raw, csv_equip
 		csv_equiplist.push(eq);
 	}
 	EquipmentDatabase.csv_equiplist = csv_equiplist;
+	
+	// csv_equipable
+	// 色々文字列で保有しているが、ひとまず次のものだけ配列変換
+	// shipTypes -> shipTypesArray    "高速戦艦"はそのまま
+	// forSupport がないものは無視とする
+	
+	let sp_def = EquipmentDatabase.eqab_special_def;
+	let csv_equipable = new Array;
+	
+	for (let d of csv_equipable_raw) {
+		if (!+d.forSupport) continue;
+		
+		let eqab = Object.assign(new Object, d);
+		let types = new Array;
+		
+		if (eqab.shipTypes) {
+			eqab.shipTypes.split("|").forEach(x => {
+				if (x) {
+					if (sp_def.hasOwnProperty(x)) {
+						types = types.concat(sp_def[x]);
+					} else {
+						types.push(x);
+					}
+				}
+			});
+		}
+		
+		eqab.shipTypesArray = types;
+		csv_equipable.push(eqab);
+	}
+	EquipmentDatabase.csv_equipable = csv_equipable;
+	
 	
 	let bonusdata_array = new Array;
 	for (let d of csv_equipbonus) {
@@ -146,11 +192,13 @@ function EquipableInfo_generate_equipables(){
 				matched = d.shipNames == "*" || d.shipNames.split("|").indexOf(this.name) >= 0;
 			}
 			if (d.classNames && !matched) {
-				matched = d.classNames.split("|").indexOf(this.ship.className) >= 0;
+				let cls = d.classNames.split("|");
+				matched = cls.indexOf(this.ship.className) >= 0;
 			}
 			if (d.shipTypes && !matched) {
-				let types = d.shipTypes.split("|");
+				let types = d.shipTypesArray;
 				matched = types.indexOf(this.ship.shipType) >= 0;
+				
 				if (!matched && this.ship.shipType == "戦艦" && this.ship.speed == "高速" && types.indexOf("高速戦艦") >= 0) {
 					matched = true;
 				}
@@ -174,8 +222,15 @@ function EquipableInfo_generate_equipables(){
 			let value = +d.equipable;
 			
 			if (d.equipIds) {
-				for (let id of d.equipIds.split("|")) {
-					equipable[id] = value;
+				if (d.equipIds == "*") {
+					// "全て装備できない"のみ有効とする
+					if (!value) {
+						equipable = new Object;
+					}
+				} else {
+					for (let id of d.equipIds.split("|")) {
+						equipable[id] = value;
+					}
 				}
 			}
 			
@@ -433,7 +488,9 @@ function EquipmentSlot_get_power_max(cv_shelling){
 // EquipmentBonusData ------------------------------------------------------------------------------
 Object.assign(EquipmentBonusData.prototype, {
 	// 適用する装備ID
+	// 複数の場合は equipment_id=0, equipment_id_array がIDの配列になる(一つの場合後者はnull)
 	equipment_id: 0,
+	equipment_id_array: null,
 	// 何本目に適用するか
 	count_map: null, // map: count -> bool
 	// これまでのボーナスを無効にするか
@@ -476,7 +533,13 @@ function EquipmentBonusData(line){
 }
 
 function EquipmentBonusData_set_csv_line(line){
-	this.equipment_id = +line.equipId;
+	if (line.equipId.indexOf("|") >= 0) {
+		this.equipment_id = 0;
+		this.equipment_id_array = line.equipId.split("|").map(x => +x);
+	} else {
+		this.equipment_id = +line.equipId;
+		this.equipment_id_array = null;
+	}
 	
 	this.count_map = new Object;
 	let arr = line.countAt.split("|");
@@ -636,17 +699,25 @@ function EquipmentBonus_set_name(name){
 			}
 		}
 	};
+	let _simple = (data, id) => {
+		if (id > 0) {
+			let arr = this.bonus_data_map[id];
+			if (!arr) {
+				arr = new Array;
+				this.bonus_data_map[id] = arr;
+			}
+			arr.push(data);
+		}
+	};
 	
 	for (let data of EquipmentDatabase.bonusdata_array) {
 		if (data.shipname_map[this.ship.name]) {
 			this.bonus_data_array.push(data);
 			
-			let arr = this.bonus_data_map[data.equipment_id];
-			if (!arr) {
-				arr = new Array;
-				this.bonus_data_map[data.equipment_id] = arr;
+			_simple(data, data.equipment_id);
+			if (data.equipment_id_array) {
+				data.equipment_id_array.forEach(id => _simple(data, id));
 			}
-			arr.push(data);
 			
 			_assist(data, data.subequip_map1);
 			_assist(data, data.subequip_map2);
