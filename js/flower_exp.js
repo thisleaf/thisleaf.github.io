@@ -5,8 +5,8 @@ const SHOW_DEBUG_BUTTON = false;
 // 経験値アップ期間は自動で経験値倍率をセット
 // 更新がめんどうなやつ
 const special_exp_factor_begin = new Date("2019/08/26");
-const special_exp_factor_end = new Date("2020/02/03 15:00");
-const special_exp_factor = 1.15;
+const special_exp_factor_end = new Date("2020/03/23 15:00");
+const special_exp_factor = 1.1;
 
 
 // 現在表示中の計算結果
