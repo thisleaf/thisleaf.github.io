@@ -966,7 +966,7 @@ function ev_dblclick_hint(e){
 		
 		// message
 		let eq = KANCOLLE_EQUIPLIST.find(x => x.number == eq_number);
-		message_bar.show(eq.name + " を索敵装備" + (insert_pos + 1) + "に追加しました", 3000);
+		message_bar.show(Util.unescape_charref(eq.name) + " を索敵装備" + (insert_pos + 1) + "に追加しました", 3000);
 		
 		e.preventDefault();
 	}
