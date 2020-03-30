@@ -118,6 +118,9 @@
 /* > 対空機銃 */
 #own_equipment h3.antiair  { background-color: #afa; }
 #own_equipment div.antiair { border-color: #8f8; }
+/* > 水上艦要員 */
+#own_equipment h3.personnel  { background-color: #dfb; }
+#own_equipment div.personnel { border-color: #af8; }
 
 
 /* ツールバー */

@@ -33,7 +33,7 @@ import {
 import {
 	save_losdata,
 } from "./kc_los_io.mjs";
-
+import {EquipmentDatabase} from "./kc_equipment.mjs";
 
 export {
 	init_assist,
@@ -588,6 +588,8 @@ function refresh_bonus_info(){
 	let select_ship = shipname_map[select_name];
 	if (select_name == refresh_bonus_info.showing_name || !select_ship) return;
 	
+	let jp_def = EquipmentDatabase.init_jp_def();
+	
 	// shipType
 	
 	let bonus_list = new Array;
@@ -602,6 +604,9 @@ function refresh_bonus_info(){
 			effect = true;
 		}
 		if (info.ship_types && info.ship_types.indexOf(select_ship.shipType) >= 0) {
+			effect = true;
+		}
+		if (info.jp_ship_types && jp_def[select_ship.className] && info.jp_ship_types.indexOf(select_ship.shipType) >= 0) {
 			effect = true;
 		}
 		if (!effect) continue;

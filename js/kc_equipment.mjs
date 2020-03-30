@@ -49,6 +49,7 @@ Object.assign(EquipmentDatabase, {
 	equipment_data_map: null,
 	
 	initialized: false,
+	init_jp_def: EquipmentDatabase_init_jp_def,
 	initialize : EquipmentDatabase_initialize,
 });
 
@@ -62,10 +63,57 @@ Object.assign(EquipmentDatabase, {
 		"潜水系": ["潜水艦", "潜水空母"],
 		"航空戦艦系": ["航空戦艦", "改装航空戦艦"],
 	},
+	
+	// 日本艦
+	// 該当する型名を指定
+	jp_classes_def: [
+		// 駆逐
+		"初春型", "吹雪型", "夕雲型", "島風型", "改白露型",
+		"暁型", "朝潮型", "白露型", "睦月型", "神風型",
+		"秋月型", "綾波型", "陽炎型",
+		// 軽巡級
+		"夕張型", "大淀型", "天龍型", "川内型", "球磨型",
+		"長良型", "阿賀野型", "香取型",
+		// 重巡・航巡
+		"利根型", "古鷹型", "妙高型", "最上型", "青葉型",
+		"高雄型",
+		// 潜水艦
+		"三式潜航輸送艇", "巡潜3型", "巡潜乙型", "巡潜乙型改二", "巡潜甲型改二",
+		"海大VI型", "潜特型(伊400型潜水艦)",
+		// 戦艦・航空戦艦
+		"伊勢型", "大和型", "扶桑型", "改金剛型", "改伊勢型",
+		"金剛型", "長門型",
+		// 空母
+		"加賀型", "大鳳型", "大鷹型", "春日丸級", "祥鳳型",
+		"翔鶴型", "蒼龍型", "赤城型", "雲龍型", "飛鷹型",
+		"飛龍型", "鳳翔型", "龍驤型", "龍鳳型",
+		// 水母
+		"千歳型", "日進型", "瑞穂型", "秋津洲型",
+		// 海防艦
+		"占守型", "御蔵型", "択捉型", "日振型",
+		// ほか
+		"大鯨型", "改風早型", "明石型", "特種船丙型", "神威型",
+		"陸軍特種船(R1)",
+	],
+	
+	// 上の日本艦を表すmap: class->boolean
+	jp_classes_map: null,
 });
 
 
 function EquipmentDatabase(){
+}
+
+function EquipmentDatabase_init_jp_def(){
+	// jp_classes_map の生成
+	if (!EquipmentDatabase.jp_classes_map) {
+		let jp = new Object;
+		for (let name of EquipmentDatabase.jp_classes_def) {
+			jp[name] = true;
+		}
+		EquipmentDatabase.jp_classes_map = jp;
+	}
+	return EquipmentDatabase.jp_classes_map;
 }
 
 function EquipmentDatabase_initialize(csv_shiplist, csv_equiplist_raw, csv_equipable_raw, csv_equipbonus){
@@ -73,6 +121,8 @@ function EquipmentDatabase_initialize(csv_shiplist, csv_equiplist_raw, csv_equip
 	EquipmentDatabase.csv_equiplist_raw = csv_equiplist_raw;
 	EquipmentDatabase.csv_equipable_raw = csv_equipable_raw;
 	EquipmentDatabase.csv_equipbonus    = csv_equipbonus;
+	
+	EquipmentDatabase.init_jp_def();
 	
 	// 数値に変換する
 	// ひとまず装備リストのみ
@@ -551,6 +601,8 @@ function EquipmentBonusData_set_csv_line(line){
 	
 	let names  = line.shipNames && line.shipNames.split("|");
 	let types  = line.shipTypes && line.shipTypes.split("|");
+	let jp_types = types && types.filter(x => /^日本/.test(x)).map(x => x.substr(2));
+	let jp_def = EquipmentDatabase.jp_classes_map;
 	
 	let cnames_raw   = line.classNames && line.classNames.split("|");
 	let cnames       = cnames_raw && cnames_raw.filter(x => !/改二$/.test(x));
@@ -562,6 +614,7 @@ function EquipmentBonusData_set_csv_line(line){
 		this.shipname_map[ship.name] = (
 			(names && names.indexOf(ship.name) >= 0) ||
 			(cnames && cnames.indexOf(ship.className) >= 0) ||
+			(jp_types && jp_def[ship.className] && jp_types.indexOf(ship.shipType) >= 0) ||
 			(kaini_cnames && /改二$/.test(ship.name) && kaini_cnames.indexOf(ship.className) >= 0) ||
 			(types && types.indexOf(ship.shipType) >= 0)
 		);

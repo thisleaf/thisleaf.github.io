@@ -39,6 +39,7 @@ export const SUPPORT_EQUIPLIST_DEF = [
 	{category: "噴式戦闘爆撃機", className: "cv_jet", airplane: true},
 	{category: "艦上攻撃機", className: "cv_attacker", airplane: true},
 	{category: "対空機銃", className: "antiair", ignore_zero_param: true},
+	{category: "水上艦要員", className: "personnel", ignore_zero_param: true},
 //	{category: "航空要員", className: "antiair"},
 ];
 

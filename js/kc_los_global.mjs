@@ -148,10 +148,41 @@ export const LOS_EQUIPBONUS = [
 			"Saratoga", "Saratoga改", "Saratoga Mk.II", "Saratoga Mk.II Mod.2",
 			"Intrepid", "Intrepid改",
 			"Gambier Bay", "Gambier Bay改",
+			"Houston", "Houston改",
+			"Atlanta", "Atlanta改",
 		],
 		LoS: 4,
 		accumulation: "可",
 		effect: "索敵スコアには影響しない",
+	}, {
+		// Swordfish(水上機型)
+		equipment_id: 367,
+		ship_names: [
+			"Gotland", "Gotland改",
+			"Commandant Teste", "Commandant Teste改",
+			"瑞穂", "瑞穂改",
+			"神威", "神威改", "神威改母",
+		],
+		LoS: 1,
+		accumulation: "可",
+		effect: "影響不明",
+	}, {
+		// 熟練搭乗員1
+		equipment_id: 129,
+		jp_ship_types: ["駆逐艦"],
+		LoS: 1,
+		accumulation: "可",
+		effect: "影響不明",
+	}, {
+		// 熟練搭乗員2
+		equipment_id: 129,
+		jp_ship_types: [
+			"軽巡洋艦", "実験軽巡洋艦", "練習巡洋艦", "重雷装巡洋艦",
+			"重巡洋艦", "航空巡洋艦",
+		],
+		LoS: 3,
+		accumulation: "可",
+		effect: "影響不明",
 	}
 ];
 

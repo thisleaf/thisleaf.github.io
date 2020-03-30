@@ -12,23 +12,28 @@ export const DAMAGE_KEYS = [
 
 // IntegerDistribution -----------------------------------------------------------------------------
 // begin <= x <= last の整数範囲の分布
-// this[x] で値を扱う　undefinedは0
+// this[x] で値を扱う　undefinedは0とみなす
 Object.assign(IntegerDistribution.prototype, {
 	begin: 0,
-	last: -1,
+	last : -1,
 	
-	set_range: IntegerDistribution_set_range,
-	clear    : IntegerDistribution_clear,
-	size     : IntegerDistribution_size,
-	clone    : IntegerDistribution_clone,
+	set_range      : IntegerDistribution_set_range,
+	adjust_range   : IntegerDistribution_adjust_range,
+	clear          : IntegerDistribution_clear,
+	size           : IntegerDistribution_size,
+	clone          : IntegerDistribution_clone,
+	clone_range    : IntegerDistribution_clone_range,
 	// 自身を変更
-	fill     : IntegerDistribution_fill,
-	sum      : IntegerDistribution_sum,
-	scale    : IntegerDistribution_scale,
-	normalize: IntegerDistribution_normalize,
-	add      : IntegerDistribution_add,
+	fill           : IntegerDistribution_fill,
+	fill_range     : IntegerDistribution_fill_range,
+	emptyfill_range: IntegerDistribution_emptyfill_range,
+	scale          : IntegerDistribution_scale,
+	normalize      : IntegerDistribution_normalize,
+	add            : IntegerDistribution_add,
 	// 計算したものを返す
-	cumlate  : IntegerDistribution_cumlate,
+	sum            : IntegerDistribution_sum,
+	cumulate       : IntegerDistribution_cumulate,
+	convolve       : IntegerDistribution_convolve,
 });
 
 
@@ -41,6 +46,13 @@ export function IntegerDistribution(begin, last){
 function IntegerDistribution_set_range(begin, last){
 	this.begin = begin;
 	this.last = last;
+	return this;
+}
+
+// 0でない値がある部分のみの範囲に合わせる
+function IntegerDistribution_adjust_range(){
+	while (!(this[this.begin] > 0) && this.begin <= this.last) this.begin++;
+	while (!(this[this.last] > 0) && this.begin <= this.last) this.last--;
 	return this;
 }
 
@@ -66,17 +78,34 @@ function IntegerDistribution_clone(){
 	return dist;
 }
 
+// 範囲を指定してclone()
+function IntegerDistribution_clone_range(begin, last){
+	let dist = new this.constructor();
+	dist.set_range(begin, last);
+	for (let i=begin; i<=last; i++) {
+		if (this[i]) dist[i] = this[i];
+	}
+	return dist;
+}
+
 function IntegerDistribution_fill(v){
 	for (let i=this.begin; i<=this.last; i++) this[i] = v;
 	return this;
 }
 
-function IntegerDistribution_sum(){
-	let sum = 0;
-	for (let i=this.begin; i<=this.last; i++) {
-		if (this[i]) sum += this[i];
+// 範囲を埋める
+// this.begin, this.last には干渉しない
+function IntegerDistribution_fill_range(begin, last, v){
+	for (let i=begin; i<=last; i++) this[i] = v;
+	return this;
+}
+
+// undefinedの部分を0で埋める
+function IntegerDistribution_emptyfill_range(begin, last){
+	for (let i=begin; i<=last; i++) {
+		if (this[i] === undefined) this[i] = 0;
 	}
-	return sum;
+	return this;
 }
 
 // 全ての値を a 倍する
@@ -107,8 +136,17 @@ function IntegerDistribution_add(dist){
 	return this;
 }
 
+// 全確率を再計算して返す
+function IntegerDistribution_sum(){
+	let sum = 0;
+	for (let i=this.begin; i<=this.last; i++) {
+		if (this[i]) sum += this[i];
+	}
+	return sum;
+}
+
 // 累積分布を返す
-function IntegerDistribution_cumlate(){
+function IntegerDistribution_cumulate(){
 	let dist = new this.constructor();
 	dist.set_range(this.begin, this.last);
 	
@@ -116,6 +154,21 @@ function IntegerDistribution_cumlate(){
 	for (let i=this.begin; i<=this.last; i++) {
 		sum += this[i] || 0;
 		dist[i] = sum;
+	}
+	return dist;
+}
+
+// 畳み込み演算
+function IntegerDistribution_convolve(b){
+	let dist = new this.constructor();
+	dist.set_range(this.begin + b.begin, this.last + b.last);
+	
+	for (let i=this.begin; i<=this.last; i++) {
+		if (!this[i]) continue;
+		for (let j=b.begin; j<=b.last; j++) {
+			if (!b[j]) continue;
+			dist[i + j] = (dist[i + j] || 0) + this[i] * b[j];
+		}
 	}
 	return dist;
 }
