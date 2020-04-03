@@ -155,18 +155,6 @@ export const LOS_EQUIPBONUS = [
 		accumulation: "可",
 		effect: "索敵スコアには影響しない",
 	}, {
-		// Swordfish(水上機型)
-		equipment_id: 367,
-		ship_names: [
-			"Gotland", "Gotland改",
-			"Commandant Teste", "Commandant Teste改",
-			"瑞穂", "瑞穂改",
-			"神威", "神威改", "神威改母",
-		],
-		LoS: 1,
-		accumulation: "可",
-		effect: "影響不明",
-	}, {
 		// 熟練搭乗員1
 		equipment_id: 129,
 		jp_ship_types: ["駆逐艦"],
@@ -182,6 +170,99 @@ export const LOS_EQUIPBONUS = [
 		],
 		LoS: 3,
 		accumulation: "可",
+		effect: "影響不明",
+	}, {
+		// Swordfish(水上機型)
+		equipment_id: 367,
+		ship_names: [
+			"Gotland", "Gotland改",
+			"Commandant Teste", "Commandant Teste改",
+			"瑞穂", "瑞穂改",
+			"神威", "神威改", "神威改母",
+		],
+		LoS: 1,
+		accumulation: "不明",
+		effect: "影響不明",
+		
+	}, { // Swordfish Mk.III改(水上機型/熟練)
+		equipment_id: 369,
+		ship_names: [
+			"Gotland", "Gotland改",
+			"Commandant Teste", "Commandant Teste改",
+		],
+		LoS: 3,
+		accumulation: "不明",
+		effect: "影響不明",
+	}, {
+		equipment_id: 369,
+		ship_names: [
+			"瑞穂", "瑞穂改",
+			"神威", "神威改", "神威改母",
+		],
+		LoS: 2,
+		accumulation: "不明",
+		effect: "影響不明",
+		
+	}, { // Swordfish Mk.II改(水偵型)
+		equipment_id: 370,
+		ship_names: [
+			"Gotland", "Gotland改",
+			"Nelson", "Nelson改",
+		],
+		LoS: 2,
+		accumulation: "不明",
+		effect: "影響不明",
+	}, {
+		equipment_id: 370,
+		ship_names: [
+			"Commandant Teste", "Commandant Teste改",
+			"瑞穂", "瑞穂改",
+			"神威", "神威改", "神威改母",
+		],
+		LoS: 1,
+		accumulation: "不明",
+		effect: "影響不明",
+	}, {
+		equipment_id: 370,
+		ship_names: [
+			"Warspite", "Warspite改",
+		],
+		LoS: 3,
+		accumulation: "不明",
+		effect: "影響不明",
+		
+	}, { // Fairey Seafox改
+		equipment_id: 371,
+		ship_names: [
+			"Gotland", "Gotland改",
+		],
+		LoS: 6,
+		accumulation: "不明",
+		effect: "影響不明",
+	}, {
+		equipment_id: 371,
+		ship_names: [
+			"Nelson", "Nelson改",
+		],
+		LoS: 5,
+		accumulation: "不明",
+		effect: "影響不明",
+	}, {
+		equipment_id: 371,
+		ship_names: [
+			"Commandant Teste", "Commandant Teste改",
+		],
+		LoS: 4,
+		accumulation: "不明",
+		effect: "影響不明",
+	}, {
+		equipment_id: 371,
+		ship_names: [
+			"Warspite", "Warspite改",
+			"Richelieu", "Richelieu改",
+		],
+		LoS: 3,
+		accumulation: "不明",
 		effect: "影響不明",
 	}
 ];
