@@ -79,8 +79,7 @@ export const DIRECT_INPUT_ID = -1;
 // 装備ボーナス
 // 条件に当てはまるものはすべて合算
 export const LOS_EQUIPBONUS = [
-	{
-		// Late 298B
+	{	// Late 298B
 		equipment_id: 194,
 		ship_names: [
 			"Richelieu改",
@@ -88,54 +87,38 @@ export const LOS_EQUIPBONUS = [
 			"瑞穂", "瑞穂改",
 			"神威", "神威改", "神威改母",
 		],
-		LoS: 2,
-		accumulation: "可",
-		effect: "艦娘索敵値に加算",
-	}, {
-		// 彩雲
+		LoS: 2, accumulation: "可", effect: "艦娘索敵値に加算",
+		
+	}, { // 彩雲
 		equipment_id: 54,
 		ship_types: ["正規空母", "装甲空母", "軽空母"],
 		ignore_ship_names: ["春日丸", "大鷹", "大鷹改", "神鷹", "神鷹改"],
-		LoS: i => (i == 0 ? 0 : i == 2 ? 1 : null),
-		accumulation: "不明",
-		effect: "艦娘索敵値に加算",
-	}, {
-		// 試製景雲
+		LoS: i => (i == 0 ? 0 : i == 2 ? 1 : null), accumulation: "不明", effect: "艦娘索敵値に加算",
+		
+	}, { // 試製景雲
 		equipment_id: 151,
 		ship_types: ["装甲空母"],
-		LoS: i => Math.floor((i + 2) / 4),
-		accumulation: "不明",
-		effect: "索敵スコアへの影響は不明",
+		LoS: i => Math.floor((i + 2) / 4), accumulation: "不明", effect: "艦娘索敵値に加算",
 		text: "数値は暫定",
-	}, {
-		// 二式艦偵1
+		
+	}, { // 二式艦偵
 		equipment_id: 61,
 		ship_types: ["正規空母", "装甲空母", "軽空母"],
 		ship_names: ["伊勢改二", "日向改二"],
-		LoS: i => Math.floor((i + 2) / 4),
-		accumulation: "不可",
-		effect: "艦娘索敵値に加算",
+		LoS: i => Math.floor((i + 2) / 4), accumulation: "不可", effect: "艦娘索敵値に加算",
 	}, {
-		// 二式艦偵2
 		equipment_id: 61,
 		ship_names: ["瑞鳳改二乙", "鈴谷航改二", "熊野航改二"],
-		LoS: i => (i >= 1 ? 1 : 0),
-		accumulation: "不可",
-		effect: "艦娘索敵値に加算",
+		LoS: i => (i >= 1 ? 1 : 0), accumulation: "不可", effect: "艦娘索敵値に加算",
 	}, {
-		// 二式艦偵3
 		equipment_id: 61,
 		ship_names: ["飛龍", "飛龍改", "飛龍改二"],
-		LoS: i => (i >= 1 ? 2 : 0),
-		accumulation: "不可",
-		effect: "艦娘索敵値に加算",
+		LoS: i => (i >= 1 ? 2 : 0), accumulation: "不可", effect: "艦娘索敵値に加算",
 	}, {
-		// 二式艦偵4
 		equipment_id: 61,
 		ship_names: ["蒼龍", "蒼龍改", "蒼龍改二"],
-		LoS: i => (i >= 8 ? 4 : i >= 1 ? 3 : 0),
-		accumulation: "不可",
-		effect: "艦娘索敵値に加算",
+		LoS: i => (i >= 8 ? 4 : i >= 1 ? 3 : 0), accumulation: "不可", effect: "艦娘索敵値に加算",
+		
 	}, {
 		// SG レーダー(初期型)
 		equipment_id: 315,
@@ -151,28 +134,21 @@ export const LOS_EQUIPBONUS = [
 			"Houston", "Houston改",
 			"Atlanta", "Atlanta改",
 		],
-		LoS: 4,
-		accumulation: "可",
-		effect: "索敵スコアには影響しない",
-	}, {
-		// 熟練搭乗員1
+		LoS: 4, accumulation: "可", effect: "索敵スコアには影響しない",
+		
+	}, { // 熟練見張員
 		equipment_id: 129,
 		jp_ship_types: ["駆逐艦"],
-		LoS: 1,
-		accumulation: "可",
-		effect: "影響不明",
+		LoS: 1, accumulation: "可", effect: "影響不明",
 	}, {
-		// 熟練搭乗員2
 		equipment_id: 129,
 		jp_ship_types: [
 			"軽巡洋艦", "実験軽巡洋艦", "練習巡洋艦", "重雷装巡洋艦",
 			"重巡洋艦", "航空巡洋艦",
 		],
-		LoS: 3,
-		accumulation: "可",
-		effect: "影響不明",
-	}, {
-		// Swordfish(水上機型)
+		LoS: 3, accumulation: "可", effect: "影響不明",
+		
+	}, { // Swordfish(水上機型)
 		equipment_id: 367,
 		ship_names: [
 			"Gotland", "Gotland改",
@@ -180,9 +156,22 @@ export const LOS_EQUIPBONUS = [
 			"瑞穂", "瑞穂改",
 			"神威", "神威改", "神威改母",
 		],
-		LoS: 1,
-		accumulation: "不明",
-		effect: "影響不明",
+		LoS: 1, accumulation: "不明", effect: "艦娘索敵値に加算",
+		
+	}, { // Swordfish Mk.III改(水上機型)
+		equipment_id: 368,
+		ship_names: [
+			"Gotland", "Gotland改",
+		],
+		LoS: 3, accumulation: "可", effect: "影響不明",
+	}, {
+		equipment_id: 368,
+		ship_names: [
+			"Commandant Teste", "Commandant Teste改",
+			"瑞穂", "瑞穂改",
+			"神威", "神威改", "神威改母",
+		],
+		LoS: 2, accumulation: "可", effect: "影響不明",
 		
 	}, { // Swordfish Mk.III改(水上機型/熟練)
 		equipment_id: 369,
@@ -190,18 +179,14 @@ export const LOS_EQUIPBONUS = [
 			"Gotland", "Gotland改",
 			"Commandant Teste", "Commandant Teste改",
 		],
-		LoS: 3,
-		accumulation: "不明",
-		effect: "影響不明",
+		LoS: 3, accumulation: "不明", effect: "影響不明",
 	}, {
 		equipment_id: 369,
 		ship_names: [
 			"瑞穂", "瑞穂改",
 			"神威", "神威改", "神威改母",
 		],
-		LoS: 2,
-		accumulation: "不明",
-		effect: "影響不明",
+		LoS: 2, accumulation: "不明", effect: "影響不明",
 		
 	}, { // Swordfish Mk.II改(水偵型)
 		equipment_id: 370,
@@ -209,9 +194,7 @@ export const LOS_EQUIPBONUS = [
 			"Gotland", "Gotland改",
 			"Nelson", "Nelson改",
 		],
-		LoS: 2,
-		accumulation: "不明",
-		effect: "影響不明",
+		LoS: 2, accumulation: "不明", effect: "艦娘索敵値に加算",
 	}, {
 		equipment_id: 370,
 		ship_names: [
@@ -219,51 +202,39 @@ export const LOS_EQUIPBONUS = [
 			"瑞穂", "瑞穂改",
 			"神威", "神威改", "神威改母",
 		],
-		LoS: 1,
-		accumulation: "不明",
-		effect: "影響不明",
+		LoS: 1, accumulation: "不明", effect: "艦娘索敵値に加算",
 	}, {
 		equipment_id: 370,
 		ship_names: [
 			"Warspite", "Warspite改",
 		],
-		LoS: 3,
-		accumulation: "不明",
-		effect: "影響不明",
+		LoS: 3, accumulation: "不明", effect: "艦娘索敵値に加算",
 		
 	}, { // Fairey Seafox改
 		equipment_id: 371,
 		ship_names: [
 			"Gotland", "Gotland改",
 		],
-		LoS: 6,
-		accumulation: "不明",
-		effect: "影響不明",
+		LoS: 6, accumulation: "不明", effect: "影響不明",
 	}, {
 		equipment_id: 371,
 		ship_names: [
 			"Nelson", "Nelson改",
 		],
-		LoS: 5,
-		accumulation: "不明",
-		effect: "影響不明",
+		LoS: 5, accumulation: "不明", effect: "影響不明",
 	}, {
 		equipment_id: 371,
 		ship_names: [
 			"Commandant Teste", "Commandant Teste改",
 		],
-		LoS: 4,
-		accumulation: "不明",
-		effect: "影響不明",
+		LoS: 4, accumulation: "不明", effect: "影響不明",
 	}, {
 		equipment_id: 371,
 		ship_names: [
 			"Warspite", "Warspite改",
 			"Richelieu", "Richelieu改",
 		],
-		LoS: 3,
-		accumulation: "不明",
-		effect: "影響不明",
+		LoS: 3, accumulation: "不明", effect: "影響不明",
 	}
 ];
 
