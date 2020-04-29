@@ -14,11 +14,14 @@ import {
 	EQUIPMENT_ROW_EACH,
 	NULL_ID,
 	DIRECT_INPUT_ID,
+	LOS_EQUIPBONUS_LASTMOD,
 	LOS_EQUIPBONUS,
 } from "./kc_los_global.mjs";
 import {
 	DOM,
 	ELEMENT,
+	NODE,
+	TEXT,
 	remove_children,
 	get_csv_last_modified,
 	strYMD,
@@ -342,10 +345,18 @@ function init_assist(arg_csv_shiplist, arg_csv_equiplist){
 	}
 	
 	// 最終更新日
+	let lastmod_text = "";
 	let last_modified = get_csv_last_modified(csv_shiplist);
+	if (last_modified) {
+		lastmod_text += "艦娘データ: " + strYMD(last_modified) + "\n";
+	}
+	if (LOS_EQUIPBONUS_LASTMOD) {
+		lastmod_text += "装備ボーナス: " + LOS_EQUIPBONUS_LASTMOD + "\n";
+	}
+	
 	let th = DOM("assist_header");
-	if (last_modified && th) {
-		th.title = "データの最終更新日: " + strYMD(last_modified);
+	if (th && lastmod_text) {
+		th.title = "最終更新日\n" + lastmod_text;
 	}
 	
 	// イベントの設定
@@ -612,24 +623,36 @@ function refresh_bonus_info(){
 		if (!effect) continue;
 		
 		// infoのボーナスが有効
-		let params = new Array(11);
-		if (typeof info.LoS == "number") {
-			params.fill(info.LoS);
-		} else {
-			for (let i=0; i<=10; i++) {
-				params[i] = info.LoS(i);
-			}
-		}
+		let obj = {info: info};
 		
-		let obj = {info: info, params: params};
-		// 合算可能なら合算する
-		for (let b of bonus_list) {
-			if (_show_total(b, obj)) {
+		if (info.LoS) {
+			let params = new Array(11);
+			if (typeof info.LoS == "number") {
+				params.fill(info.LoS);
+			} else {
 				for (let i=0; i<=10; i++) {
-					b.params[i] += params[i];
+					params[i] = info.LoS(i);
 				}
-				continue INFO;
 			}
+			
+			obj.params = params;
+			
+			// 合算可能なら合算する
+			for (let b of bonus_list) {
+				if (_show_total(b, obj)) {
+					for (let i=0; i<=10; i++) {
+						b.params[i] += params[i];
+					}
+					continue INFO;
+				}
+			}
+			
+		} else if (info.LoS_mul) {
+			// 積んだ数によって異なる
+			obj.multiple = info.LoS_mul;
+			
+		} else {
+			continue INFO;
 		}
 		
 		bonus_list.push(obj);
@@ -641,6 +664,8 @@ function refresh_bonus_info(){
 			   a.info.equipment_id == b.info.equipment_id
 			&& a.info.accumulation == b.info.accumulation
 			&& a.info.effect == b.info.effect
+			&& a.params
+			&& b.params
 			&& a.params.indexOf(null) < 0
 			&& b.params.indexOf(null) < 0
 		);
@@ -659,10 +684,12 @@ function refresh_bonus_info(){
 				continue;
 			}
 			
-			let div = document.createElement("div");
-			div.textContent = unescape_charref(eq.name) + ": ";
+			let div = NODE(document.createElement("div"), [
+				NODE(ELEMENT("span", "", "assist_weapon"), [TEXT(unescape_charref(eq.name))]),
+				TEXT(": "),
+			]);
 			
-			if (b.params.some(x => x !== b.params[0])) {
+			if (b.params && b.params.some(x => x !== b.params[0])) {
 				// selectを作って表示する
 				let select = ELEMENT("select");
 				
@@ -673,7 +700,16 @@ function refresh_bonus_info(){
 						select.appendChild(new Option(text, b.params[i]));
 					}
 				}
+				div.appendChild(select);
 				
+			} else if (b.multiple) {
+				// これもselect
+				let select = ELEMENT("select");
+				
+				for (let i=0; i<b.multiple.length; i++) {
+					let text = (i + 1) + "個: 索敵+" + b.multiple[i];
+					select.appendChild(new Option(text, b.multiple[i]));
+				}
 				div.appendChild(select);
 				
 			} else {
@@ -683,7 +719,8 @@ function refresh_bonus_info(){
 				div.appendChild(span);
 			}
 			
-			let text = " / 累積" + b.info.accumulation;
+			let text = "";
+			if (!b.multiple) text += " / 累積" + b.info.accumulation;
 			text += " / " + b.info.effect;
 			if (b.info.text) text += " / " + b.info.text;
 			

@@ -132,6 +132,9 @@ table {
 	padding: 4px;
 	font-size: 80%;
 }
+#bonus_info .assist_weapon {
+	color: blue;
+}
 /* > 色 */
 #fleet_table th.shiplos_color {
 	background-color: lavender;

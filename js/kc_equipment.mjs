@@ -666,7 +666,8 @@ function EquipmentBonusData_set_csv_line(line){
 			ret = new Array;
 			let sp = str.split("|");
 			for (let i=0; i<=10; i++) {
-				ret[i] = sp.length == 1 ? +sp[0] : sp[i] ? +sp[i] : 0;
+				// 空の場合一つ下の改修値のものを引き継ぐ
+				ret[i] = sp.length == 1 ? +sp[0] : sp[i] ? +sp[i] : i > 0 ? ret[i-1] : 0;
 			}
 			if (constant) {
 				EquipmentBonusData.constant_bonus[str] = ret;

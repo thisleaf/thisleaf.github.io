@@ -78,6 +78,8 @@ export const DIRECT_INPUT_ID = -1;
 
 // 装備ボーナス
 // 条件に当てはまるものはすべて合算
+export const LOS_EQUIPBONUS_LASTMOD = "2020/04/28";
+
 export const LOS_EQUIPBONUS = [
 	{	// Late 298B
 		equipment_id: 194,
@@ -93,12 +95,12 @@ export const LOS_EQUIPBONUS = [
 		equipment_id: 54,
 		ship_types: ["正規空母", "装甲空母", "軽空母"],
 		ignore_ship_names: ["春日丸", "大鷹", "大鷹改", "神鷹", "神鷹改"],
-		LoS: i => (i == 0 ? 0 : i == 2 ? 1 : null), accumulation: "不明", effect: "艦娘索敵値に加算",
+		LoS: i => (i == 0 ? 0 : i == 2 ? 1 : null), accumulation: "不可", effect: "艦娘索敵値に加算",
 		
 	}, { // 試製景雲
 		equipment_id: 151,
 		ship_types: ["装甲空母"],
-		LoS: i => Math.floor((i + 2) / 4), accumulation: "不明", effect: "艦娘索敵値に加算",
+		LoS: i => Math.floor((i + 2) / 4), accumulation: "不可", effect: "艦娘索敵値に加算",
 		text: "数値は暫定",
 		
 	}, { // 二式艦偵
@@ -139,19 +141,19 @@ export const LOS_EQUIPBONUS = [
 	}, { // 熟練見張員
 		equipment_id: 129,
 		jp_ship_types: ["駆逐艦"],
-		LoS: 1, accumulation: "可", effect: "影響不明",
+		LoS: 1, accumulation: "可", effect: "艦娘索敵値に加算",
 	}, {
 		equipment_id: 129,
 		jp_ship_types: [
 			"軽巡洋艦", "実験軽巡洋艦", "練習巡洋艦", "重雷装巡洋艦",
 			"重巡洋艦", "航空巡洋艦",
 		],
-		LoS: 3, accumulation: "可", effect: "影響不明",
+		LoS: 3, accumulation: "可", effect: "艦娘索敵値に加算",
 		
 	}, { // Swordfish(水上機型)
 		equipment_id: 367,
 		ship_names: [
-			"Gotland", "Gotland改",
+			"Gotland", "Gotland改", "Gotland andra",
 			"Commandant Teste", "Commandant Teste改",
 			"瑞穂", "瑞穂改",
 			"神威", "神威改", "神威改母",
@@ -164,6 +166,12 @@ export const LOS_EQUIPBONUS = [
 			"Gotland", "Gotland改",
 		],
 		LoS: 3, accumulation: "可", effect: "影響不明",
+	}, {
+		equipment_id: 368,
+		ship_names: [
+			"Gotland andra",
+		],
+		LoS_mul: [4, 7], effect: "影響不明",
 	}, {
 		equipment_id: 368,
 		ship_names: [
@@ -183,6 +191,12 @@ export const LOS_EQUIPBONUS = [
 	}, {
 		equipment_id: 369,
 		ship_names: [
+			"Gotland andra",
+		],
+		LoS: 5, accumulation: "不明", effect: "影響不明",
+	}, {
+		equipment_id: 369,
+		ship_names: [
 			"瑞穂", "瑞穂改",
 			"神威", "神威改", "神威改母",
 		],
@@ -191,7 +205,7 @@ export const LOS_EQUIPBONUS = [
 	}, { // Swordfish Mk.II改(水偵型)
 		equipment_id: 370,
 		ship_names: [
-			"Gotland", "Gotland改",
+			"Gotland", "Gotland改", "Gotland andra",
 			"Nelson", "Nelson改",
 		],
 		LoS: 2, accumulation: "不明", effect: "艦娘索敵値に加算",
@@ -216,6 +230,12 @@ export const LOS_EQUIPBONUS = [
 			"Gotland", "Gotland改",
 		],
 		LoS: 6, accumulation: "不明", effect: "影響不明",
+	}, {
+		equipment_id: 371,
+		ship_names: [
+			"Gotland andra",
+		],
+		LoS: 9, accumulation: "不明", effect: "影響不明",
 	}, {
 		equipment_id: 371,
 		ship_names: [
