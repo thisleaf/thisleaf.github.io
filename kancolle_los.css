@@ -224,6 +224,9 @@ table {
 #hint_table td.name div {
 	width: 200px;
 }
+#hint_table td.name div[title] {
+	cursor: pointer;
+}
 
 #hint_table td.name div, #hint_table th.header div {
 	padding: 2px 4px;

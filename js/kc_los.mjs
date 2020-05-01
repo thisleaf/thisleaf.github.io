@@ -708,6 +708,7 @@ function init_hint_table(){
 	
 	// セルリストの生成
 	let rows = new Array;
+	let divs = new Array;
 	
 	function _append_cell(row_index, col_index, cell){
 		if (!rows[row_index]) rows[row_index] = new Array;
@@ -772,6 +773,7 @@ function init_hint_table(){
 						let div = document.createElement("div");
 						div.textContent = Util.unescape_charref(list[i].name);
 						namecell.appendChild(div);
+						divs.push(div);
 						
 						// 装備ID
 						namecell.dataset.equipmentNumber = list[i].number;
@@ -796,6 +798,14 @@ function init_hint_table(){
 	let tbody = table.tBodies[0];
 	for (let i=0; i<rows.length; i++) {
 		tbody.appendChild(Util.create_row(rows[i]))
+	}
+	
+	// DOMに追加されたので、要素のサイズが計算された
+	// オーバーフローしている要素はヒントを出す
+	for (let div of divs) {
+		if (div.clientWidth != div.scrollWidth) {
+			div.title = div.textContent;
+		}
 	}
 }
 
