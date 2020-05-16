@@ -78,7 +78,7 @@ export const DIRECT_INPUT_ID = -1;
 
 // 装備ボーナス
 // 条件に当てはまるものはすべて合算
-export const LOS_EQUIPBONUS_LASTMOD = "2020/04/28";
+export const LOS_EQUIPBONUS_LASTMOD = "2020/05/16";
 
 export const LOS_EQUIPBONUS = [
 	{	// Late 298B
@@ -165,13 +165,13 @@ export const LOS_EQUIPBONUS = [
 		ship_names: [
 			"Gotland", "Gotland改",
 		],
-		LoS: 3, accumulation: "可", effect: "影響不明",
+		LoS: 3, accumulation: "可", effect: "艦娘索敵値に加算",
 	}, {
 		equipment_id: 368,
 		ship_names: [
 			"Gotland andra",
 		],
-		LoS_mul: [4, 7], effect: "影響不明",
+		LoS_mul: [4, 7], effect: "艦娘索敵値に加算",
 	}, {
 		equipment_id: 368,
 		ship_names: [
@@ -179,7 +179,7 @@ export const LOS_EQUIPBONUS = [
 			"瑞穂", "瑞穂改",
 			"神威", "神威改", "神威改母",
 		],
-		LoS: 2, accumulation: "可", effect: "影響不明",
+		LoS: 2, accumulation: "可", effect: "艦娘索敵値に加算",
 		
 	}, { // Swordfish Mk.III改(水上機型/熟練)
 		equipment_id: 369,
@@ -229,32 +229,32 @@ export const LOS_EQUIPBONUS = [
 		ship_names: [
 			"Gotland", "Gotland改",
 		],
-		LoS: 6, accumulation: "不明", effect: "影響不明",
+		LoS: 6, accumulation: "不明", effect: "艦娘索敵値に加算",
 	}, {
 		equipment_id: 371,
 		ship_names: [
 			"Gotland andra",
 		],
-		LoS: 9, accumulation: "不明", effect: "影響不明",
+		LoS: 9, accumulation: "不明", effect: "艦娘索敵値に加算",
 	}, {
 		equipment_id: 371,
 		ship_names: [
 			"Nelson", "Nelson改",
 		],
-		LoS: 5, accumulation: "不明", effect: "影響不明",
+		LoS: 5, accumulation: "不明", effect: "艦娘索敵値に加算",
 	}, {
 		equipment_id: 371,
 		ship_names: [
 			"Commandant Teste", "Commandant Teste改",
 		],
-		LoS: 4, accumulation: "不明", effect: "影響不明",
+		LoS: 4, accumulation: "不明", effect: "艦娘索敵値に加算",
 	}, {
 		equipment_id: 371,
 		ship_names: [
 			"Warspite", "Warspite改",
 			"Richelieu", "Richelieu改",
 		],
-		LoS: 3, accumulation: "不明", effect: "影響不明",
+		LoS: 3, accumulation: "不明", effect: "艦娘索敵値に加算",
 	}
 ];
 
