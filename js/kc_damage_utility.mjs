@@ -30,6 +30,9 @@ Object.assign(IntegerDistribution.prototype, {
 	scale          : IntegerDistribution_scale,
 	normalize      : IntegerDistribution_normalize,
 	add            : IntegerDistribution_add,
+	sub            : IntegerDistribution_sub,
+	add_scaling_of : IntegerDistribution_add_scaling_of,
+	cum_extend     : IntegerDistribution_cum_extend,
 	// 計算したものを返す
 	sum            : IntegerDistribution_sum,
 	cumulate       : IntegerDistribution_cumulate,
@@ -51,8 +54,8 @@ function IntegerDistribution_set_range(begin, last){
 
 // 0でない値がある部分のみの範囲に合わせる
 function IntegerDistribution_adjust_range(){
-	while (!(this[this.begin] > 0) && this.begin <= this.last) this.begin++;
-	while (!(this[this.last] > 0) && this.begin <= this.last) this.last--;
+	while (!this[this.begin] && this.begin <= this.last) this.begin++;
+	while (!this[this.last] && this.begin <= this.last) this.last--;
 	return this;
 }
 
@@ -131,8 +134,66 @@ function IntegerDistribution_add(dist){
 			this[i] = (this[i] || 0) + dist[i];
 		}
 	}
-	if (this.begin > dist.begin) this.begin = dist.begin;
-	if (this.last < dist.last) this.last = dist.last;
+	if (this.begin > this.last) {
+		this.begin = dist.begin;
+		this.last = dist.last;
+	} else {
+		if (this.begin > dist.begin) this.begin = dist.begin;
+		if (this.last < dist.last) this.last = dist.last;
+	}
+	return this;
+}
+
+// 減算
+function IntegerDistribution_sub(dist){
+	for (let i=dist.begin; i<=dist.last; i++) {
+		if (dist[i]) {
+			this[i] = (this[i] || 0) - dist[i];
+		}
+	}
+	if (this.begin > this.last) {
+		this.begin = dist.begin;
+		this.last = dist.last;
+	} else {
+		if (this.begin > dist.begin) this.begin = dist.begin;
+		if (this.last < dist.last) this.last = dist.last;
+	}
+	return this;
+}
+
+// distの定数倍をposの位置に加算
+function IntegerDistribution_add_scaling_of(dist, scaling, pos){
+	for (let i=dist.begin; i<=dist.last; i++) {
+		if (dist[i]) {
+			this[i + pos] = (this[i + pos] || 0) + dist[i] * scaling;
+		}
+	}
+	let begin = dist.begin + pos;
+	let last = dist.last + pos;
+	if (this.begin > this.last) {
+		this.begin = begin;
+		this.last = last;
+	} else {
+		if (this.begin > begin) this.begin = begin;
+		if (this.last < last) this.last = last;
+	}
+	return this;
+}
+
+// rangeの変更(累積分布用)
+function IntegerDistribution_cum_extend(new_begin, new_last){
+	if (new_begin < this.begin) {
+		for (let i=new_begin-1; i<this.begin; i++) {
+			this[i] = 0;
+		}
+		this.begin = new_begin;
+	}
+	if (new_last > this.last) {
+		for (let i=this.last+1; i<=new_last; i++) {
+			this[i] = this[this.last];
+		}
+		this.last = new_last;
+	}
 	return this;
 }
 
@@ -149,6 +210,7 @@ function IntegerDistribution_sum(){
 function IntegerDistribution_cumulate(){
 	let dist = new this.constructor();
 	dist.set_range(this.begin, this.last);
+	dist[this.begin - 1] = 0;
 	
 	let sum = 0;
 	for (let i=this.begin; i<=this.last; i++) {

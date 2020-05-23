@@ -78,7 +78,7 @@ export const DIRECT_INPUT_ID = -1;
 
 // 装備ボーナス
 // 条件に当てはまるものはすべて合算
-export const LOS_EQUIPBONUS_LASTMOD = "2020/05/16";
+export const LOS_EQUIPBONUS_LASTMOD = "2020/05/23";
 
 export const LOS_EQUIPBONUS = [
 	{	// Late 298B
@@ -125,7 +125,7 @@ export const LOS_EQUIPBONUS = [
 		// SG レーダー(初期型)
 		equipment_id: 315,
 		ship_names: [
-			"Fletcher", "Fletcher改", 
+			"Fletcher", "Fletcher改", "Fletcher改 Mod.2", "Fletcher Mk.II",
 			"Johnston", "Johnston改",
 			"Samuel B.Roberts", "Samuel B.Roberts改",
 			"Colorado", "Colorado改",
@@ -137,6 +137,34 @@ export const LOS_EQUIPBONUS = [
 			"Atlanta", "Atlanta改",
 		],
 		LoS: 4, accumulation: "可", effect: "索敵スコアには影響しない",
+		
+	}, {
+		// SKレーダー
+		equipment_id: 278,
+		ship_names: [
+			"Colorado", "Colorado改",
+			"Iowa", "Iowa改",
+			"Saratoga", "Saratoga改", "Saratoga Mk.II", "Saratoga Mk.II Mod.2",
+			"Intrepid", "Intrepid改",
+			"Gambier Bay", "Gambier Bay改",
+			"Houston", "Houston改",
+			"Atlanta", "Atlanta改",
+		],
+		LoS: 1, accumulation: "不明", effect: "影響不明",
+		
+	}, {
+		// SK+SGレーダー
+		equipment_id: 279,
+		ship_names: [
+			"Colorado", "Colorado改",
+			"Iowa", "Iowa改",
+			"Saratoga", "Saratoga改", "Saratoga Mk.II", "Saratoga Mk.II Mod.2",
+			"Intrepid", "Intrepid改",
+			"Gambier Bay", "Gambier Bay改",
+			"Houston", "Houston改",
+			"Atlanta", "Atlanta改",
+		],
+		LoS: 2, accumulation: "不明", effect: "影響不明",
 		
 	}, { // 熟練見張員
 		equipment_id: 129,
