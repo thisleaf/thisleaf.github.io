@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<meta name="description" content="艦これの遠征ステータス計算機です。マウスで操作。">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>艦これ 遠征ステータス簡易計算機</title>
+<link rel="icon" type="image/png" href="./icon-192x192.png">
+<link rel="apple-touch-icon" type="image/png" href="./apple-touch-icon-180x180.png">
+<link rel="stylesheet" type="text/css" href="style.css">
+<link rel="stylesheet" type="text/css" href="kc_expd_st.css">
+
+<!-- スクリプトの読み込み -->
+<script type="module" src="./js/utility.mjs" defer></script>
+<script type="module" defer>
+	import {message_bar} from "./js/utility.mjs";
+	message_bar.set_element(document.getElementById("message_bar"));
+	message_bar.show("ロード中！");
+</script>
+<script type="module" src="./js/kc_expd_st.mjs" defer></script>
+
+<!-- Global site tag (gtag.js) - Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-46408606-2"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-46408606-2');
+</script>
+</head>
+<body>
+
+
+<h2>遠征ステータス簡易計算機</h2>
+
+<noscript>
+<font color="red">
+！JavaScriptが無効になっています。有効にしないと動きません！
+</font>
+</noscript>
+
+<!-- おしらせ -->
+<div class="notice limited_notice" data-end-date="2020/04/13">
+</div>
+
+<div id="message_bar"></div>
+
+
+<table id="ship_status" class="black_border">
+<thead>
+<tr>
+<th></th>
+<th>1番艦</th>
+<th>2番艦</th>
+<th>3番艦</th>
+<th>4番艦</th>
+<th>5番艦</th>
+<th>6番艦</th>
+<th>合計</th>
+</tr>
+</thead>
+<tbody>
+<tr><th>火力</th><td></td><td></td><td></td><td></td><td></td><td></td><td class="total"></td></tr>
+<tr><th>対空</th><td></td><td></td><td></td><td></td><td></td><td></td><td class="total"></td></tr>
+<tr><th>対潜</th><td></td><td></td><td></td><td></td><td></td><td></td><td class="total"></td></tr>
+<tr><th>索敵</th><td></td><td></td><td></td><td></td><td></td><td></td><td class="total"></td></tr>
+<tr><th>Lv</th><td></td><td></td><td></td><td></td><td></td><td></td><td class="total"></td></tr>
+</tbody>
+</table>
+
+<div id="buttons"></div>
+
+<h3>せつめい</h3>
+<p>
+セルをクリックで選択。<br>
+たくさんあるボタンをクリックすると、選択中のセルにその数値が加算されます。<br>
+合計は切り捨てで表示。選択セルは矢印キーでも動きます。<br>
+「入力後移動」にチェックを入れると、ステータス入力後に右に移動します。でもShift押していると無効。<br>
+データ保存はないです。
+</p>
+<p>
+改修効果は装備の種類、どのステータスか、などで効果が異なります。砲撃戦の補正とも別のようです。<br>
+また、艦載機については熟練度や搭載数でもステータスへの補正が違ってくるようです。(改修効果以外でも)<br>
+<a href="https://wikiwiki.jp/kancolle/%E9%81%A0%E5%BE%81#enseikaishu" target="_blank">wikiのこのあたり</a>を参考にしてください。
+</p>
+
+<div class="footer">
+<hr>
+<div class="right" title="毎回計算めんどいんじゃい！">作った人: <a href="https://twitter.com/konoha_gold_EX">@konoha_gold_EX</a></div>
+<a href="index.html">トップページへ</a>
+</div>
+
+</body>
+</html>

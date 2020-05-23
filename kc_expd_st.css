@@ -1,0 +1,69 @@
+
+/* ポップアップでヒントが出る */
+*[title] {
+	cursor: help;
+}
+*[title=""] {
+	cursor: default;
+}
+
+
+#ship_status {
+	display: inline-block;
+}
+
+#ship_status tbody th {
+	min-width: 40px;
+}
+#ship_status tbody td {
+	min-width: 60px;
+	text-align: center;
+	cursor: pointer;
+}
+#ship_status tbody td.total {
+	cursor: help;
+}
+#ship_status tbody td .impr_value {
+	font-size: 80%;
+}
+
+
+#hint {
+	display: inline-block;
+	vertical-align: top;
+	font-size: 80%;
+}
+#hint td.prev_input, #hint td.next_input {
+	min-width: 60px;
+	text-align: center;
+}
+
+table td.next_input {
+	background-color: #ddf;
+	border: 1px double blue;
+	color: blue;
+}
+
+
+div#buttons {
+	line-height: 1.4;
+}
+div#int_buttons {
+	/* default */
+	max-width: 405px;
+}
+div#int_buttons div.bar {
+	display: inline-block;
+	text-indent: 0px;
+	padding-left: 0px;
+	margin-right: 2px;
+}
+div#int_buttons button.int {
+	min-width: 40px;
+}
+
+div#sqrt_buttons button.sqrt {
+	min-width: 70px;
+}
+
+
