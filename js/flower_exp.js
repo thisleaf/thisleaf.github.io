@@ -5,7 +5,7 @@ const SHOW_DEBUG_BUTTON = false;
 // 経験値アップ期間は自動で経験値倍率をセット
 // 更新がめんどうなやつ
 const special_exp_factor_begin = new Date("2019/08/26");
-const special_exp_factor_end = new Date("2020/06/01 15:00");
+const special_exp_factor_end = new Date("2020/06/22 15:00");
 const special_exp_factor = 1.1;
 
 
@@ -313,9 +313,9 @@ function get_max_level(rarity, growth){
 	
 	if (rarity == 6 && growth == 2) {
 		// 上限突破
-		// 5刻みだが、ひとまずフォームのレベルを使用する(80-100)
+		// 5刻みだが、ひとまずフォームのレベルを使用する(80-110)
 		max_level = formstr_to_int(DOM("limit_level").value).value;
-		max_level = Math.min(Math.max(max_level, 80), 100);
+		max_level = Math.min(Math.max(max_level, 80), 110);
 		
 	} else {
 		max_level = MAX_LEVELS[rarity - 2][growth];
@@ -340,7 +340,7 @@ function modify_growth(){
 		_state(florescence, false, false);
 		_state(limit, false, false);
 		limit.min = 80;
-		limit.max = 100;
+		limit.max = 110;
 		
 	} else if (rarity == 5) {
 		// 上限突破なし(readonly)
