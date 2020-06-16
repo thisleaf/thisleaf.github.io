@@ -600,19 +600,22 @@ function EquipmentBonusData_set_csv_line(line){
 	this.reset = +line.reset;
 	
 	let names  = line.shipNames && line.shipNames.split("|");
+	let substr_names = names && names.filter(x => /^\[.+\]$/.test(x)).map(x => x.substr(1, x.length - 2));
+	
 	let types  = line.shipTypes && line.shipTypes.split("|");
 	let jp_types = types && types.filter(x => /^日本/.test(x)).map(x => x.substr(2));
 	let jp_def = EquipmentDatabase.jp_classes_map;
 	
 	let cnames_raw   = line.classNames && line.classNames.split("|");
-	let cnames       = cnames_raw && cnames_raw.filter(x => !/改二$/.test(x));
 	let kaini_cnames = cnames_raw && cnames_raw.filter(x => /改二$/.test(x)).map(x => x.substr(0, x.length - 2));
+	let cnames       = cnames_raw && cnames_raw.filter(x => !/改二$/.test(x));
 	
 	this.shipname_map = new Object;
 	
 	for (let ship of EquipmentDatabase.csv_shiplist) {
 		this.shipname_map[ship.name] = (
 			(names && names.indexOf(ship.name) >= 0) ||
+			(substr_names && substr_names.findIndex(ss => ship.name.indexOf(ss) >= 0) >= 0) ||
 			(cnames && cnames.indexOf(ship.className) >= 0) ||
 			(jp_types && jp_def[ship.className] && jp_types.indexOf(ship.shipType) >= 0) ||
 			(kaini_cnames && /改二$/.test(ship.name) && kaini_cnames.indexOf(ship.className) >= 0) ||

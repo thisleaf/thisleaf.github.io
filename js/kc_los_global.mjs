@@ -78,7 +78,7 @@ export const DIRECT_INPUT_ID = -1;
 
 // 装備ボーナス
 // 条件に当てはまるものはすべて合算
-export const LOS_EQUIPBONUS_LASTMOD = "2020/05/23";
+export const LOS_EQUIPBONUS_LASTMOD = "2020/06/15";
 
 export const LOS_EQUIPBONUS = [
 	{	// Late 298B
@@ -150,7 +150,7 @@ export const LOS_EQUIPBONUS = [
 			"Houston", "Houston改",
 			"Atlanta", "Atlanta改",
 		],
-		LoS: 1, accumulation: "不明", effect: "影響不明",
+		LoS: 1, accumulation: "不可", effect: "艦娘索敵値に加算",
 		
 	}, {
 		// SK+SGレーダー
@@ -164,7 +164,7 @@ export const LOS_EQUIPBONUS = [
 			"Houston", "Houston改",
 			"Atlanta", "Atlanta改",
 		],
-		LoS: 2, accumulation: "不明", effect: "影響不明",
+		LoS: 2, accumulation: "不可", effect: "艦娘索敵値に加算",
 		
 	}, { // 熟練見張員
 		equipment_id: 129,
@@ -199,7 +199,7 @@ export const LOS_EQUIPBONUS = [
 		ship_names: [
 			"Gotland andra",
 		],
-		LoS_mul: [4, 7], effect: "艦娘索敵値に加算",
+		LoS_mul: [4, 7, 10], effect: "艦娘索敵値に加算",
 	}, {
 		equipment_id: 368,
 		ship_names: [
