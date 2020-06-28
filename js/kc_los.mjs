@@ -302,10 +302,22 @@ function EquipmentRow_set_impr_class(){
 		className = obj.impr_factor > 0 ? "effective" : "nothing";
 	}
 	
+	let no_change = this.e_improvement.classList.contains(className);
+	
+	// 一応再セットする
 	this.e_improvement.classList.remove("unknown");
 	this.e_improvement.classList.remove("effective");
 	this.e_improvement.classList.remove("nothing");
 	this.e_improvement.classList.add(className);
+	
+	// 再描画 (Chrome)
+	let ua = window.navigator && window.navigator.userAgent;
+	if (!no_change && ua && /chrome/i.test(ua)) {
+		// offsetHeight へのアクセスを挟むと再描画になるらしい
+		this.e_improvement.style.display = "none";
+		this.e_improvement.offsetHeight;
+		this.e_improvement.style.display = "";
+	}
 }
 
 
@@ -560,13 +572,18 @@ function EquipmentRow_ev_dragstart(e){
 	let y = e.pageY - rect.top - window.scrollY;
 	
 	e.dataTransfer.setDragImage(tr, x, y);
+	e.dataTransfer.effectAllowed = "copyMove";
+	
+	let wbox = DOM("equip_drag_remove");
+	wbox.textContent = "×";
+	wbox.classList.toggle("waste_box", true);
 }
 
 function EquipmentRow_ev_dragover(e){
 	let drag = dragdata_provider.get_data();
 	
 	if (drag && drag.type == "equipment" && drag.number != this.number) {
-		e.dropEffect = (e.ctrlKey && !e.shiftKey && !e.altKey) ? "copy" : "move";
+		e.dataTransfer.dropEffect = (e.ctrlKey && !e.shiftKey && !e.altKey) ? "copy" : "move";
 		e.preventDefault();
 	}
 }
@@ -597,6 +614,37 @@ function EquipmentRow_ev_drop(e){
 
 function EquipmentRow_ev_dragend(e){
 	dragdata_provider.clear();
+	
+	let wbox = DOM("equip_drag_remove");
+	wbox.textContent = "";
+	wbox.classList.toggle("waste_box", false);
+}
+
+// 装備用ゴミ箱の実装
+function ev_equip_remove_dragover(e){
+	let drag = dragdata_provider.get_data();
+	
+	if (drag && drag.type == "equipment") {
+		e.dataTransfer.dropEffect = "move";
+		e.preventDefault();
+	}
+}
+
+function ev_equip_remove_drop(e){
+	let drag = dragdata_provider.get_data();
+	
+	if (drag && drag.type == "equipment") {
+		// remove
+		let eq = equipment_rows.find(x => x.number == drag.number);
+		
+		if (eq) {
+			eq.clear_form(true);
+			eq.refresh_score1();
+			eq.set_impr_class();
+			eq.call_onchange();
+			e.preventDefault();
+		}
+	}
 }
 
 
@@ -625,6 +673,7 @@ function kancolle_los_init(){
 	// 計算結果欄
 	DOM("HQ_level").addEventListener("change", ev_change_HQ_level);
 	DOM("HQ_level_modify").addEventListener("change", ev_change_HQ_level_modify);
+	DOM("combined_mode").addEventListener("change", ev_change_combined_mode);
 	DOM("memo").addEventListener("change", ev_change_memo);
 	
 	// 艦娘索敵値欄の初期化
@@ -641,6 +690,9 @@ function kancolle_los_init(){
 		numcell.addEventListener("dragover", ev_ship_dragover);
 		numcell.addEventListener("drop", ev_ship_drop);
 	}
+	
+	DOM("ship_drag_remove").addEventListener("dragover", ev_ship_dragover);
+	DOM("ship_drag_remove").addEventListener("drop", ev_ship_drop);
 	DOM("clear_ship_los").addEventListener("click", ev_click_clear_ship_los);
 	
 	init_assist(KANCOLLE_SHIPLIST, KANCOLLE_EQUIPLIST);
@@ -682,6 +734,9 @@ function init_equip_table(){
 	DOM("increase_rows").addEventListener("click", ev_click_increase_rows);
 	DOM("decrease_rows").addEventListener("click", ev_click_decrease_rows);
 	DOM("clear_equiplist").addEventListener("click", ev_click_clear_equiplist);
+	// ゴミ箱
+	DOM("equip_drag_remove").addEventListener("dragover", ev_equip_remove_dragover);
+	DOM("equip_drag_remove").addEventListener("drop", ev_equip_remove_drop);
 }
 
 
@@ -867,6 +922,13 @@ function ev_change_HQ_level_modify(){
 	save_losdata();
 }
 
+// オプション：第1艦隊と第2艦隊を別々に計算して合算
+function ev_change_combined_mode(){
+	refresh_score();
+	refresh_savebutton_state();
+	save_losdata();
+}
+
 // メモの変更
 function ev_change_memo(){
 	refresh_savebutton_state();
@@ -878,11 +940,16 @@ function ev_change_memo(){
 function ev_ship_dragstart(e){
 	// id: shipnum_[number]
 	e.dataTransfer.setData("drag_data", "ship");
+	e.dataTransfer.effectAllowed = "copyMove";
 	
 	dragdata_provider.set_data({
 		type: "ship",
 		id: e.currentTarget.id,
 	});
+	
+	let wbox = DOM("ship_drag_remove");
+	wbox.textContent = "×";
+	wbox.classList.toggle("waste_box", true);
 }
 
 function ev_ship_dragover(e){
@@ -890,6 +957,8 @@ function ev_ship_dragover(e){
 	let drag = dragdata_provider.get_data();
 	
 	if (drag && drag.type == "ship" && drag.id != e.currentTarget.id) {
+		let copy = e.ctrlKey && !e.shiftKey && !e.altKey && e.currentTarget.id != "ship_drag_remove";
+		e.dataTransfer.dropEffect = copy ? "copy" : "move";
 		e.preventDefault();
 	}
 }
@@ -899,14 +968,19 @@ function ev_ship_drop(e){
 	let drag = dragdata_provider.get_data();
 	
 	if (drag && drag.type == "ship" && drag.id != e.currentTarget.id) {
-		// Ctrlのみを押している場合はコピー
-		if (e.ctrlKey && !e.shiftKey && !e.altKey) {
-			copy_ship(_id_to_num(drag.id), _id_to_num(e.currentTarget.id));
+		if (e.currentTarget.id == "ship_drag_remove") {
+			// 削除
+			remove_ship(_id_to_num(drag.id));
+			
 		} else {
-			swap_ship(_id_to_num(drag.id), _id_to_num(e.currentTarget.id));
+			// Ctrlのみを押している場合はコピー
+			if (e.ctrlKey && !e.shiftKey && !e.altKey) {
+				copy_ship(_id_to_num(drag.id), _id_to_num(e.currentTarget.id));
+			} else {
+				swap_ship(_id_to_num(drag.id), _id_to_num(e.currentTarget.id));
+			}
 		}
 		
-		e.preventDefault();
 		refresh_score();
 		refresh_savebutton_state();
 		save_losdata();
@@ -920,6 +994,10 @@ function ev_ship_drop(e){
 
 function ev_ship_dragend(e){
 	dragdata_provider.clear();
+	
+	let wbox = DOM("ship_drag_remove");
+	wbox.textContent = "";
+	wbox.classList.toggle("waste_box", false);
 }
 
 
@@ -1086,6 +1164,10 @@ function refresh_score(){
 		}
 	}
 	
+	// 連合艦隊用
+	// 第1と第2をそれぞれ計算して合算
+	let combined = DOM("combined_mode").checked;
+	
 	// 索敵スコア＝分岐点係数×(装備倍率×装備索敵値)の和＋√(各艦娘の素索敵)の和－司令部補正＋2×(6－艦数)
 	// 司令部補正の部分は2パターン存在する？
 	//let HQ_modify = Math.ceil(0.4 * HQ_level.value);
@@ -1097,19 +1179,35 @@ function refresh_score(){
 	DOM("fleet_score").title       = ship_error  == 0 ? fleet_score : "";
 	DOM("equip_score").textContent = equip_error == 0 ? float_to_string(equip_score, 3, -1) : "";
 	DOM("equip_score").title       = equip_error == 0 ? equip_score : "";
-	DOM("ship_count" ).textContent = ship_count;
-	DOM("ship_count" ).title       = ship_count >= 1 ? "艦数補正:\n索敵スコア" + (ship_count_score >= 0 ? "+" :"") + ship_count_score : "";
+	
+	let mod_scs = ship_count_score;
+	if (combined) mod_scs += 12;
+	DOM("ship_count").textContent = ship_count;
+	DOM("ship_count").title = ship_count >= 1 ? "艦数補正:\n索敵スコア " + (mod_scs >= 0 ? "+" : "") + mod_scs : "";
 	
 	let noerror = ship_error == 0 && equip_error == 0 && HQ_modify > 0;
 	noerror = noerror && ship_count >= 1;
 	
 	for (let c=1; c<=4; c++) {
 		let score = equip_score * c + fleet_score - HQ_modify + ship_count_score;
+		if (combined) {
+			// 12 - 司令部補正 だけ変わる
+			score += 12 - HQ_modify;
+		}
 		DOM("los_score_" + c).textContent = noerror ? float_to_string(score, 3, -1) : "";
 		DOM("los_score_" + c).title       = noerror ? score : "";
 	}
 	
 	DOM("HQ_level_modify_cell").textContent = HQ_modify > 0 ? HQ_modify : "";
+	
+	// 計算結果の追加情報
+	// 係数0.4の式以外を33式とするのは混乱のもとかもしれない
+	let info_text = "";
+	info_text += DOM("HQ_level_modify").value == "hqm040" ? "33式" : "33式互換式";
+	if (combined) info_text += "/第1+第2";
+	info_text = "(" + info_text + ")";
+	
+	DOM("formula_info").textContent = info_text;
 }
 
 
@@ -1142,6 +1240,14 @@ function swap_ship(a, b){
 	ship_b.value = val;
 }
 
+function remove_ship(a){
+	let ship_a = DOM("ship_los_" + a);
+	if (!ship_a) {
+		console.log("removeできません:", a);
+		return;
+	}
+	ship_a.value = "";
+}
 
 function equip_to_option(eq){
 	let option = new Option(Util.unescape_charref(eq.name), eq.number);

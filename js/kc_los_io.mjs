@@ -56,7 +56,7 @@ const LOSDATA_FORM_DEFAULT = {
 const LOSDATA_STORAGE_KEY = "losdata_record";
 
 // データのバージョン
-const LOSDATA_VERSION = 1;
+const LOSDATA_VERSION = 2;
 
 // 現在保存されている編成
 let losdata_record = new Array;
@@ -177,6 +177,7 @@ function get_losdata_object(){
 	// フォームの内容をそのまま取ってくる
 	get_form_strings(obj, DIRECT_SAVE_FORMIDS);
 	obj.fleet_name = trim_fleet_name(obj.fleet_name);
+	obj.combined_mode = DOM("combined_mode").checked;
 	
 	// 艦娘
 	obj.ship_los_strings = new Array;
@@ -202,6 +203,7 @@ function set_losdata_object(obj){
 	set_form_values(obj, DIRECT_SAVE_FORMIDS);
 	let e_modify = DOM("HQ_level_modify");
 	if (e_modify.selectedIndex < 0) e_modify.selectedIndex = 0;
+	DOM("combined_mode").checked = Boolean(obj.combined_mode);
 	
 	// 艦娘
 	for (let i=1; i<=SHIP_COUNT_MAX; i++) {
@@ -212,12 +214,19 @@ function set_losdata_object(obj){
 	// 装備
 	let count = +obj.equiprow_count || EQUIPMENT_ROW_DEFAULT;
 	count = Math.min(Math.max(obj.equiprow_count, EQUIPMENT_ROW_MIN), EQUIPMENT_ROW_MAX);
+	
+	for (let i=count; i<equipment_rows_show_count; i++) {
+		if (!equipment_rows[i].empty()) {
+			equipment_rows[i].clear_form(true);
+		}
+	}
+	
 	change_equiprow_count(count);
 	
 	for (let i=0; i<equipment_rows_show_count; i++) {
 		if (obj.equiprow_data && obj.equiprow_data[i]) {
 			equipment_rows[i].set_json_object(obj.equiprow_data[i]);
-		} else {
+		} else if (!equipment_rows[i].empty()) {
 			equipment_rows[i].clear_form(true);
 		}
 	}
@@ -270,7 +279,9 @@ function load_losdata(){
 
 // データオブジェクトのバージョンアップがあれば
 function update_losdata_object(obj, version){
-	// とくにないです
+	if (version == 1) {
+		obj.combined_mode = false;
+	}
 	return obj;
 }
 
@@ -321,8 +332,32 @@ function refresh_savebutton_state(){
 
 // 同値なデータオブジェクトを表しているか
 function losdata_equals(a, b){
-	// 横着
-	return JSON.stringify(a) == JSON.stringify(b);
+	return recursive_equal_object(a, b);
+}
+
+// 再帰的に比較を行う
+// 循環参照には注意
+function recursive_equal_object(a, b, arg_keys = null){
+	let keys = arg_keys;
+	
+	if (!keys) {
+		let a_keys = Object.keys(a);
+		let b_keys = Object.keys(b);
+		if (a_keys.length != b_keys.length) return false;
+		
+		keys = a_keys;
+	}
+	
+	for (let i=0; i<keys.length; i++) {
+		let a_val = a[keys[i]];
+		let b_val = b[keys[i]];
+		if (typeof a_val == "object" && typeof b_val == "object") {
+			if (!recursive_equal_object(a_val, b_val)) return false;
+		} else if (a_val !== b_val) {
+			return false;
+		}
+	}
+	return true;
 }
 
 

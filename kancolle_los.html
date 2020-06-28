@@ -41,7 +41,8 @@
 </noscript>
 
 <!-- おしらせ -->
-<div class="notice limited_notice" data-end-date="2020/04/13">
+<div class="notice limited_notice" data-end-date="2020/07/05">
+連合艦隊用のオプションを追加しました
 </div>
 
 <div id="message_bar"></div>
@@ -76,8 +77,15 @@
 		</td>
 		<td id="HQ_level_modify_cell"></td>
 		<td></td>
+	</tr><tr class="HQ">
+		<th>オプション</th>
+		<td class="small left" colspan="4">
+			<label title="連合艦隊用です。\nチェックしない場合、通常艦隊用の式をそのまま適用します。\nチェックありとなしでスコアは &quot;12 - 司令部補正&quot; だけ変わります。">
+				<input id="combined_mode" type="checkbox">第1艦隊と第2艦隊を別々に計算して合算
+			</label>
+		</td>
 	</tr><tr class="h_result">
-		<th colspan="5">計算結果 (33式)</th>
+		<th colspan="5">計算結果 <span id="formula_info"></span></th>
 	</tr><tr class="width_set result">
 		<th width="120" class="green">分岐点係数</th>
 		<th width="80" class="green">1</th>
@@ -138,11 +146,14 @@
 		<td>4</td><td><input id="ship_los_4" type="number" class="ship_los" min="0" tabindex="4"></td>
 		<td>10</td><td><input id="ship_los_10" type="number" class="ship_los" min="0" tabindex="10"></td>
 		<td class="n_all"></td>
-		<td id="bonus_info" colspan="3" rowspan="4"></td>
+		<th>艦娘索敵値</th>
+		<td id="assist_los"></td>
+		<td><button id="append_assist_los" title="空いている枠に追加します">追加</button></td>
 	</tr><tr>
 		<td>5</td><td><input id="ship_los_5" type="number" class="ship_los" min="0" tabindex="5"></td>
 		<td>11</td><td><input id="ship_los_11" type="number" class="ship_los" min="0" tabindex="11"></td>
 		<td class="n_all"></td>
+		<td id="bonus_info" colspan="3" rowspan="5"></td>
 	</tr><tr>
 		<td>6</td><td><input id="ship_los_6" type="number" class="ship_los" min="0" tabindex="6"></td>
 		<td>12</td><td><input id="ship_los_12" type="number" class="ship_los" min="0" tabindex="12"></td>
@@ -152,11 +163,12 @@
 		<td id="fleet_score" colspan="2"></td>
 		<td class="n_all"></td>
 	</tr><tr>
-		<td colspan="4" class="right"><button id="clear_ship_los">クリア</button></td>
+		<td id="ship_drag_remove" class="n_r"></td>
+		<td colspan="3" class="n_l right"><button id="clear_ship_los">クリア</button></td>
 		<td class="n_all"></td>
-		<th>艦娘索敵値</th>
-		<td id="assist_los"></td>
-		<td><button id="append_assist_los" title="空いている枠に追加します">追加</button></td>
+	</tr><tr>
+		<td class="n_all space_line" colspan="4"></td>
+		<td class="n_all space_line"></td>
 	</tr>
 </tbody>
 </table>
@@ -177,11 +189,12 @@
 </thead>
 <tfoot>
 	<tr>
-		<td rowspan="2"></td>
+		<td></td>
 		<td colspan="3" class="left"><button id="increase_rows">ふやす</button> <button id="decrease_rows">へらす</button></td>
 		<th>合計</th>
 		<td id="equip_score"></td>
 	</tr><tr>
+		<td id="equip_drag_remove"></td>
 		<td colspan="5" class="right"><button id="clear_equiplist">クリア</button></td>
 	</tr>
 </tfoot>
@@ -463,22 +476,24 @@
 <h3>使い方</h3>
 <p>
 入力欄に装備や艦娘の素索敵値などを入力すれば自動で計算されます。<br>
-12隻分の入力欄がありますが、連合艦隊については通常艦隊用の式をそのまま適用しています。<br>
 <ul>
 <li>メモと書いてある下の欄にはメモを残せます</li>
 <li>艦娘索敵値や索敵装備の左端の数字をドラッグ＆ドロップで入れ替え・コピー(Ctrl押しながら)ができます</li>
 <li>索敵装備欄で先に種別を選ぶと装備のリストが絞り込まれます</li>
 <li>装備リストの装備をダブルクリックすると索敵装備欄に入力されます</li>
+<li>オプション「第1艦隊と第2艦隊を別々に計算して合算」をONにすると、第1艦隊と第2艦隊をそれぞれ通常艦隊とみなして計算した場合の索敵スコアの合計を表示します。<br>
+OFFの場合は通常艦隊用の式をそのまま適用します。</li>
 </ul>
 </p>
 
-<h4>索敵スコア(33式)</h4>
+<h4>索敵スコア</h4>
 <div class="formula">
 	<strong>索敵スコア</strong> = <strong>艦娘索敵値</strong>によるスコア + <strong>隻数補正</strong> + <strong>装備</strong>によるスコア * <strong>分岐点係数</strong> - <strong>司令部補正</strong>
 </div>
 <p>
 <strong>分岐点係数</strong>は海域によって変わります。この式から、分岐点係数が大きくなるほど装備の比重が大きくなることが分かります。<br>
-当計算機では、小数点以下第4位を切り捨てて表示しています。マウスポインターを合わせると切り捨て前の値が出ます。
+当計算機では、小数点以下第4位を切り捨てて表示しています。マウスポインターを合わせると切り捨て前の値が出ます。<br>
+いわゆる33式と呼ばれるものですが、混乱防止のため、司令部補正が ceil(0.4*Lv) の場合のみを33式値として扱います。
 </p>
 
 <h4>艦娘索敵値によるスコア/隻数補正</h4>
@@ -511,6 +526,11 @@ ceil() を切り上げ関数として <strong>ceil(0.4*Lv)</strong> と <strong>
 司令部レベルが120であれば、この司令部補正の項目は無視してかまいません。
 </p>
 
+
+<h5>参考リンク</h5>
+<p>
+<a href="https://wikiwiki.jp/kancolle/%E3%83%AB%E3%83%BC%E3%83%88%E5%88%86%E5%B2%90#los_formula" target="_blank">艦これwiki＞ルート分岐　索敵スコア計算式</a>
+</p>
 
 <h5>その他の検証データリンク</h5>
 <div class="verification_data">

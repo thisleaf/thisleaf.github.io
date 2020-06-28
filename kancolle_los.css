@@ -69,6 +69,9 @@ table {
 #score_table tr.width_set th {
 	min-width: 50px;
 }
+#score_table td.small {
+	font-size: 80%;
+}
 #memo_cell {
 	padding: 0px;
 	text-align: left;
@@ -109,6 +112,15 @@ table {
 }
 #fleet_table input[type="number"][title] {
 	cursor: unset; /* default */
+}
+#fleet_table .space_line {
+	padding: 0px 0px 1px 0px;
+}
+#fleet_table tbody tr:nth-child(-n+8) {
+	height: 26px;
+}
+.waste_box {
+	background-color: lightsteelblue;
 }
 
 #chara_name {
