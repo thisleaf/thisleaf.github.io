@@ -18,6 +18,7 @@ export const HINT_TABLE_CATEGORY_DEF = [
 		{category: "水上戦闘機", header_bgcolor: "#9f9"},
 		{category: "対潜哨戒機", header_bgcolor: "#eff"},
 		{category: "回転翼機"  , header_bgcolor: "#eff"},
+		{category: "大型飛行艇", header_bgcolor: "#9ff"},
 	], [
 		{category: "小型電探"  , header_bgcolor: "#ffc"},
 		{category: "大型電探"  , header_bgcolor: "#ffc"},
@@ -40,6 +41,7 @@ export const LOS_FACTOR_DEF = [
 	{category: "艦上攻撃機", factor: 0.8, impr_factor: 0},
 	{category: "小型電探", factor: 0.6, impr_factor: 1.25},
 	{category: "大型電探", factor: 0.6, impr_factor: 1.4},
+	{category: "大型飛行艇", factor: 0.6, impr_factor: 1.2},
 ];
 
 export const LOS_FACTOR_OTHER = {factor: 0.6, impr_factor: 0};
@@ -54,6 +56,7 @@ export const LOS_CATEGORIES_DEF = [
 	{id: 3, category: "水上戦闘機"},
 	{id: 4, category: "対潜哨戒機"},
 	{id: 5, category: "回転翼機"},
+	{id: 13, category: "大型飛行艇"},
 	{id: 6, category: "小型電探"},
 	{id: 7, category: "大型電探"},
 	{id: 8, category: "艦上偵察機"},
@@ -78,7 +81,7 @@ export const DIRECT_INPUT_ID = -1;
 
 // 装備ボーナス
 // 条件に当てはまるものはすべて合算
-export const LOS_EQUIPBONUS_LASTMOD = "2020/06/15";
+export const LOS_EQUIPBONUS_LASTMOD = "2020/08/02";
 
 export const LOS_EQUIPBONUS = [
 	{	// Late 298B
@@ -129,42 +132,63 @@ export const LOS_EQUIPBONUS = [
 			"Johnston", "Johnston改",
 			"Samuel B.Roberts", "Samuel B.Roberts改",
 			"Colorado", "Colorado改",
+			"South Dakota", "South Dakota改",
 			"Iowa", "Iowa改",
 			"Saratoga", "Saratoga改", "Saratoga Mk.II", "Saratoga Mk.II Mod.2",
+			"Hornet", "Hornet改",
 			"Intrepid", "Intrepid改",
 			"Gambier Bay", "Gambier Bay改",
 			"Houston", "Houston改",
+			"Helena", "Helena改",
 			"Atlanta", "Atlanta改",
 		],
 		LoS: 4, accumulation: "可", effect: "索敵スコアには影響しない",
+		// 沖波改二: 索敵ボーナスなし
 		
 	}, {
 		// SKレーダー
 		equipment_id: 278,
 		ship_names: [
 			"Colorado", "Colorado改",
+			"South Dakota", "South Dakota改",
 			"Iowa", "Iowa改",
 			"Saratoga", "Saratoga改", "Saratoga Mk.II", "Saratoga Mk.II Mod.2",
+			"Hornet", "Hornet改",
 			"Intrepid", "Intrepid改",
 			"Gambier Bay", "Gambier Bay改",
 			"Houston", "Houston改",
+			"Helena", "Helena改",
 			"Atlanta", "Atlanta改",
 		],
 		LoS: 1, accumulation: "不可", effect: "艦娘索敵値に加算",
+		// Warspite, Nelson, Ark Royal, Perth: 索敵ボーナスなし
 		
 	}, {
 		// SK+SGレーダー
 		equipment_id: 279,
 		ship_names: [
 			"Colorado", "Colorado改",
+			"South Dakota", "South Dakota改",
 			"Iowa", "Iowa改",
 			"Saratoga", "Saratoga改", "Saratoga Mk.II", "Saratoga Mk.II Mod.2",
+			"Hornet", "Hornet改",
 			"Intrepid", "Intrepid改",
 			"Gambier Bay", "Gambier Bay改",
 			"Houston", "Houston改",
+			"Helena", "Helena改",
 			"Atlanta", "Atlanta改",
 		],
 		LoS: 2, accumulation: "不可", effect: "艦娘索敵値に加算",
+	}, {
+		// SK+SGレーダー
+		equipment_id: 279,
+		ship_names: [
+			"Warspite", "Warspite改",
+			"Nelson", "Nelson改",
+			"Ark Royal", "Ark Royal改",
+		],
+		LoS: 1, accumulation: "不可", effect: "艦娘索敵値に加算",
+		// Perth: 索敵ボーナスなし
 		
 	}, { // 熟練見張員
 		equipment_id: 129,
