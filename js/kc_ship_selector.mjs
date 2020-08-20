@@ -42,6 +42,7 @@ const SHIP_GROUPING_DEF = [
 	{viewname: "駆逐艦 (夕雲型)"},
 	{viewname: "駆逐艦 (秋月型)"},
 	{viewname: "駆逐艦 (島風型)"},
+	{viewname: "駆逐艦 (松型)"},
 	{viewname: "駆逐艦 (海外艦)"},
 
 	{viewname: "海防艦"},
