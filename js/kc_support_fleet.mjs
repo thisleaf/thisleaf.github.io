@@ -513,7 +513,7 @@ function SupportFleet_set_draggable(provider){
 function SupportFleet_get_support_type(){
 	let def = [
 		{key: "駆逐艦"     , types: ["駆逐艦"]},
-		{key: "空母系"     , types: ["正規空母", "装甲空母", "軽空母"]},
+		{key: "空母系"     , types: ["正規空母", "装甲空母", "軽空母", "夜間作戦航空母艦", "近代化航空母艦"]},
 		{key: "航空支援系A", types: ["水上機母艦", "揚陸艦"]},
 		{key: "航空支援系B", types: ["航空戦艦", "改装航空戦艦", "航空巡洋艦", "補給艦"]},
 		{key: "砲撃支援系" , types: ["戦艦", "重巡洋艦"]},
@@ -586,7 +586,7 @@ function SupportFleet_get_support_type(){
 function SupportFleet_get_ammocost_rate(){
 	let def = [
 		// 装甲空母は除外されている
-		{key: "空母系", types: ["正規空母", "軽空母", "水上機母艦"]},
+		{key: "空母系", types: ["正規空母", "軽空母", "水上機母艦", "夜間作戦航空母艦", "近代化航空母艦"]},
 	];
 	
 	let count = new Object;

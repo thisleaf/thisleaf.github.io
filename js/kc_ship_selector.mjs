@@ -21,7 +21,7 @@ export {
 const SHIP_GROUPING_DEF = [
 	{viewname: "戦艦"},
 	{viewname: "航空戦艦", keys: ["航空戦艦", "改装航空戦艦"]},
-	{viewname: "正規空母", keys: ["正規空母", "装甲空母"]},
+	{viewname: "正規空母", keys: ["正規空母", "装甲空母", "夜間作戦航空母艦", "近代化航空母艦"]},
 	{viewname: "軽空母"},
 	
 	{viewname: "重巡洋艦"},

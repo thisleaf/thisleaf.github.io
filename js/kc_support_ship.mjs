@@ -116,7 +116,7 @@ Object.assign(SupportShip, {
 	// 砲撃支援時、空母系とみなす shipType のリスト
 	// ちなみに速吸は空母系ではない
 	cv_shelling_types: [
-		"軽空母", "正規空母", "装甲空母"
+		"軽空母", "正規空母", "装甲空母", "夜間作戦航空母艦", "近代化航空母艦"
 	],
 	
 	get_border_power: SupportShip_static_get_border_power,

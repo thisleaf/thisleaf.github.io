@@ -96,7 +96,7 @@ export const LOS_EQUIPBONUS = [
 		
 	}, { // 彩雲
 		equipment_id: 54,
-		ship_types: ["正規空母", "装甲空母", "軽空母"],
+		ship_types: ["正規空母", "装甲空母", "軽空母", "夜間作戦航空母艦", "近代化航空母艦"],
 		ignore_ship_names: ["春日丸", "大鷹", "大鷹改", "神鷹", "神鷹改"],
 		LoS: i => (i == 0 ? 0 : i == 2 ? 1 : null), accumulation: "不可", effect: "艦娘索敵値に加算",
 		
@@ -108,7 +108,7 @@ export const LOS_EQUIPBONUS = [
 		
 	}, { // 二式艦偵
 		equipment_id: 61,
-		ship_types: ["正規空母", "装甲空母", "軽空母"],
+		ship_types: ["正規空母", "装甲空母", "軽空母", "夜間作戦航空母艦", "近代化航空母艦"],
 		ship_names: ["伊勢改二", "日向改二"],
 		LoS: i => Math.floor((i + 2) / 4), accumulation: "不可", effect: "艦娘索敵値に加算",
 	}, {
