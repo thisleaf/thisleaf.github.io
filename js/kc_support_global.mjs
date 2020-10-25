@@ -28,23 +28,69 @@ export const FORMATION_DEFINITION = [
 // wiki: 交戦形態補正、攻撃側陣形補正、損傷補正の3つは左側の補正から順に乗算。
 
 // 装備の表示と分類
+/*
+viewname: 表示名、省略するとcategory
+category: メインのカテゴリー(省略可)
+cates: カテゴリー名の配列(表示はカテゴリーごと)
+ids: ID指定(IDの配列)
+tab_class_name: 
+airplane: 航空機かどうか
+ignore_zero_param: 寄与しない装備は無視
+
+「すべて」での表示順はここで現れた順番になる
+装備の重複はないと仮定する
+*/
 export const SUPPORT_EQUIPLIST_DEF = [
-	{category: "大型電探", className: "radar_L"},
-	{category: "小型電探", className: "radar_S"},
-	{category: "大口径主砲", className: "maingun_L"},
-	{category: "中口径主砲", className: "maingun_M", default_hidden: true},
-	{category: "小口径主砲", className: "maingun_S", default_hidden: true},
-	{category: "副砲", className: "secgun", default_hidden: true},
-	{category: "艦上爆撃機", className: "cv_bomber", airplane: true},
-	{category: "噴式戦闘爆撃機", className: "cv_jet", airplane: true},
-	{category: "艦上攻撃機", className: "cv_attacker", airplane: true},
-	{category: "対空機銃", className: "antiair", ignore_zero_param: true},
-	{category: "水上艦要員", className: "personnel", ignore_zero_param: true},
-//	{category: "航空要員", className: "antiair"},
+	{category: "小型電探"},
+	{category: "大型電探"},
+	{category: "小口径主砲"},
+	{category: "中口径主砲"},
+	{category: "大口径主砲"},
+	{category: "副砲"},
+	{viewname: "艦爆/噴式", cates: ["艦上爆撃機", "噴式戦闘爆撃機"], airplane: true},
+	{viewname: "艦攻", category: "艦上攻撃機", airplane: true},
+	{viewname: "機銃/見張員", cates: ["対空機銃", "水上艦要員"], ignore_zero_param: true},
+//	{category: "航空要員"},
+];
+
+// 表示するパラメータ
+export const SUPPORT_EQUIPDETAIL_PARAMS = [
+	{viewname: "火力", key: "firepower", show_zero: true},
+	{viewname: "雷装", key: "torpedo", show_zero: false},
+	{viewname: "爆装", key: "bombing", show_zero: false},
+	{viewname: "対空", key: "antiair", show_zero: false},
+	{viewname: "対潜", key: "ASW", show_zero: false},
+	{viewname: "索敵", key: "LoS", show_zero: false},
+	{viewname: "命中", key: "accuracy", show_zero: true},
+	{viewname: "回避", key: "evasion", show_zero: false},
+	{viewname: "装甲", key: "armor", show_zero: false},
+	{viewname: "対爆", key: "antibomber", show_zero: false},
+	{viewname: "迎撃", key: "interception", show_zero: false},
+];
+
+// ソート順
+export const SORT_BY_ID       = 1;
+export const SORT_BY_POWER    = 2;
+export const SORT_BY_ACCURACY = 3;
+
+// ソートのカテゴリーの順番定義
+// ここにないものは後ろ
+export const SORT_CATEGORY_DEF = [
+	"大口径主砲",
+	"中口径主砲",
+	"小口径主砲",
+	"艦上攻撃機",
+	"艦上爆撃機",
+	"噴式戦闘爆撃機",
+	"副砲",
+	"大型電探",
+	"小型電探",
+	"水上艦要員",
+	"対空機銃",
 ];
 
 // LocalStorage に保存するデータのバージョン
-export const SUPPORT_SAVEDATA_VERSION = 1;
+export const SUPPORT_SAVEDATA_VERSION = 2;
 
 // ページの読込ごとに変更される定数
 export const PAGE_TOKEN = Math.floor(Math.random() * 0xffffffff).toString(16);

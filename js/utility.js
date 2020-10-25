@@ -203,8 +203,9 @@ function strYMDHM(d){
 // url       : URL
 // use_header: 1行目をヘッダーとみなす。各行はヘッダー行をキーとする連想配列になる (false の場合は通常の配列)
 // func(obj) : 読み込み完了時に呼ばれる関数。obj には行データの配列。ただしエラーの場合は null
-// 戻り値: XMLHttpRequest, GCに回収されないようにロード中は保持しておく
-function httpload_csv_async(url, use_header, func){
+// func(obj) : (後方互換) 読み込み完了時に呼ばれる関数。obj には行データの配列。ただしエラーの場合は null
+// 戻り値    : Promiseオブジェクト。読み込み完了時に解決される。エラー時はreject
+function httpload_csv_async(url, use_header, func = null){
 	let data = null;
 	let xml = new XMLHttpRequest;
 	
@@ -212,14 +213,21 @@ function httpload_csv_async(url, use_header, func){
 	xml.addEventListener("load", function (){
 		data = parse_csv_text(xml.responseText, use_header);
 	});
-	// リクエスト終了時のイベント(loadの後)
-	xml.addEventListener("loadend", function (){
-		func(data);
+	let promise = new Promise((resolve, reject) => {
+		// リクエスト終了時のイベント(loadの後。エラーでも発生)
+		xml.addEventListener("loadend", function (){
+			if (func) func(data);
+			if (data) {
+				resolve(data);
+			} else {
+				reject();
+			}
+		});
 	});
 	
 	xml.open("GET", url);
 	xml.send();
-	return xml;
+	return promise;
 }
 
 

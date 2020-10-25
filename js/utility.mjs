@@ -63,6 +63,11 @@ export function xor(a, b){
 	return (a ? 1 : 0) != (b ? 1 : 0);
 }
 
+// [a, b] の範囲に収める
+export function limit(x, a, b){
+	return x <= a ? a : x >= b ? b : x;
+}
+
 
 // てきーとな変換関数
 // xとかflenが大きくなるとうまく変換できないかも
@@ -202,9 +207,9 @@ export function strYMDHM(d){
 // csvファイルのロード。データはすべて文字列だが、改行は\nに置き換えられる
 // url       : URL
 // use_header: 1行目をヘッダーとみなす。各行はヘッダー行をキーとする連想配列になる (false の場合は通常の配列)
-// func(obj) : 読み込み完了時に呼ばれる関数。obj には行データの配列。ただしエラーの場合は null
-// 戻り値: XMLHttpRequest, GCに回収されないようにロード中は保持しておく
-export function httpload_csv_async(url, use_header, func){
+// func(obj) : (後方互換) 読み込み完了時に呼ばれる関数。obj には行データの配列。ただしエラーの場合は null
+// 戻り値    : Promiseオブジェクト。読み込み完了時に解決される。エラー時はreject
+export function httpload_csv_async(url, use_header, func = null){
 	let data = null;
 	let xml = new XMLHttpRequest;
 	
@@ -212,14 +217,21 @@ export function httpload_csv_async(url, use_header, func){
 	xml.addEventListener("load", function (){
 		data = parse_csv_text(xml.responseText, use_header);
 	});
-	// リクエスト終了時のイベント(loadの後)
-	xml.addEventListener("loadend", function (){
-		func(data);
+	let promise = new Promise((resolve, reject) => {
+		// リクエスト終了時のイベント(loadの後。エラーでも発生)
+		xml.addEventListener("loadend", function (){
+			if (func) func(data);
+			if (data) {
+				resolve(data);
+			} else {
+				reject();
+			}
+		});
 	});
 	
 	xml.open("GET", url);
 	xml.send();
-	return xml;
+	return promise;
 }
 
 
@@ -347,6 +359,14 @@ export function ELEMENT(tag, id_or_props, className){
 // text-node の生成
 export function TEXT(text){
 	return document.createTextNode(text);
+}
+
+// html版　DocumentFragmentを返す
+// そのまま appendChild() できる
+export function HTML(html){
+	let temp = ELEMENT("template");
+	temp.innerHTML = html;
+	return temp.content;
 }
 
 
@@ -584,6 +604,17 @@ export function show_limited_notice(){
 		
 		e.classList.remove("limited_notice");
 	}
+}
+
+
+// EventTarget の継承
+// コンストラクターで自分を引数に呼び出す
+export function attach_event_target(obj){
+	let ev = new EventTarget();
+	// bindで実装
+	obj.addEventListener    = ev.addEventListener   .bind(ev);
+	obj.removeEventListener = ev.removeEventListener.bind(ev);
+	obj.dispatchEvent       = ev.dispatchEvent      .bind(ev);
 }
 
 

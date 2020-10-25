@@ -188,3 +188,134 @@ th.center, td.center {
 	min-width: 100px;
 }
 
+
+/* dom_dialog.mjs */
+
+/* 変数 */
+.dialog_container {
+	--top-margin: 20px;
+	--bottom-margin: 20px;
+	--left-margin: 20px;
+	--right-margin: 20px;
+	--bar-height: calc(24px * 1.0);
+	--bar-font-size: 100%;
+}
+
+/* ダイアログを収納する要素 とりあえずz-index:100 */
+.dialog_container {
+	z-index: 100;
+}
+
+/* 選択を無効にする */
+.dialog_container .noselect {
+	user-select: none;
+}
+
+/* ダイアログを包む、外側の要素 クリックでキャンセル */
+.dialog_container .outside {
+	display: block;
+	position: fixed;
+	left: 0px;
+	top: 0px;
+	height: 100%;
+	width: 100%;
+	background-color: #0000004d;
+}
+.dialog_container .outside.hidden {
+	display: none;
+}
+
+/* ダイアログ本体 タイトルバーと内容を持つ */
+.dialog_container .inside {
+	position: fixed;
+	left: 0;
+	right: 0;
+	top: var(--top-margin);
+	margin-left: auto;
+	margin-right: auto;
+	width: fit-content; /* 個別に上書きすべき */
+	height: fit-content;
+	max-width: calc(100vw - var(--left-margin) - var(--right-margin));
+	max-height: calc(100vh - var(--top-margin) - var(--bottom-margin));
+	background-color: white;
+	border: 1px solid #444;
+	/*border-radius: 4px;*/
+}
+.dialog_container .inside.hidden {
+	display: none;
+}
+/* 縦も中央揃え */
+.dialog_container .inside.vcenter {
+	top: 0px;
+	bottom: 0px;
+	margin-top: auto;
+	margin-bottom: auto;
+}
+
+/* タイトルバー */
+.dialog_container .inside .bar {
+	position: relative;
+	height: var(--bar-height);
+	border-bottom-style: solid;
+	border-bottom-width: 1px;
+	border-bottom-color: #444;
+	font-size: var(--bar-font-size);
+	white-space: nowrap;
+	cursor: default;
+	overflow: hidden;
+}
+/* タイトル */
+.dialog_container .inside .bar .title {
+	display: flex;
+	align-items: center;
+	height: 100%;
+	padding-left: 0.5em;
+	padding-right: var(--bar-height);
+	font-weight: bold;
+	background-color: #cfefff;
+}
+/* 右上の閉じるボタン */
+.dialog_container .inside .bar .close {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	position: absolute;
+	top: 0px;
+	right: 0px;
+	width: var(--bar-height);
+	height: 100%;
+	background-color: #00000022;
+}
+.dialog_container .inside .bar .close:hover {
+	background-color: #00000055;
+}
+
+/* ダイアログの内容 */
+.dialog_container .inside .contents {
+/*
+	max-width: calc(100% - var(--left-margin) - var(--right-margin));
+	max-height: calc(100vh - var(--bar-height) - 3px - var(--top-margin) - var(--bottom-margin));
+*/
+	overflow: auto;
+}
+
+/* alert用 */
+.dialog_container .inside.alert {
+	width: fit-content;
+	height: fit-content;
+	min-width: 200px;
+	top: 0;
+	bottom: 0;
+	margin: auto;
+}
+.dialog_container .inside.alert .message {
+	padding: 0.5em 1em;
+}
+.dialog_container .inside.alert .button_div {
+	text-align: center;
+	padding-bottom: 0.5em;
+}
+.dialog_container .inside.alert .button_div button {
+	/*font-size: 100%;*/
+	width: 4em;
+}

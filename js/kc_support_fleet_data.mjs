@@ -8,15 +8,22 @@ import {
 	EquipmentBonusData,
 	EquipmentBonus,
 } from "./kc_equipment.mjs";
-import {SupportShip, SupportShipData} from "./kc_support_ship.mjs";
+import {
+	SupportShip,
+	SupportShipData,
+} from "./kc_support_ship.mjs";
 import {
 	SupportFleetData_fill,
 	SupportFleetData_hill_climbling1,
 	SupportFleetData_single,
 	SupportFleetData_single_nosynergy,
+	SupportFleetData_single_nosynergy_pre,
 	SupportFleetData_single_climbling,
-	SupportFleetData_annealing,
+	SupportFleetData_annealing_old,
 } from "./kc_support_fleet_data2.mjs";
+import {
+	SupportFleetData_annealing,
+} from "./kc_support_fleet_data3.mjs";
 
 export {
 	SupportFleetData,
@@ -27,66 +34,83 @@ export {
 Object.assign(SupportFleetData.prototype, {
 	ssd_list         : null, // array of SupportShipData
 	own_list         : null, // array of OwnEquipmentData
+	own_map          : null, // map: id -> OwnEquipmentData
 	
 	set_own_data     : SupportFleetData_set_own_data,
 	append_fleet     : SupportFleetData_append_fleet,
 	save_to_form     : SupportFleetData_save_to_form,
 	
-	clone            : SupportFleetData_clone    ,
+	clone            : SupportFleetData_clone,
 	move_from        : SupportFleetData_move_from,
 	
-	init_calcvars    : SupportFleetData_init_calcvars    ,
-	countup_equipment: SupportFleetData_countup_equipment,
-	clear_not_in_owns: SupportFleetData_clear_not_in_owns,
-	clear_varslot    : SupportFleetData_clear_varslot    ,
-	clear_varslot_all: SupportFleetData_clear_varslot_all,
-	verify           : SupportFleetData_verify           ,
-	get_own_map      : SupportFleetData_get_own_map      ,
-	sort_equipment   : SupportFleetData_sort_equipment   ,
+	verify            : SupportFleetData_verify,
+	modify_remainings    : SupportFleetData_modify_remainings,
+	countup_equipment_ssd: SupportFleetData_countup_equipment_ssd,
+	countup_equipment    : SupportFleetData_countup_equipment,
+	clear_slots_ssd   : SupportFleetData_clear_slots_ssd,
+	clear_slots       : SupportFleetData_clear_slots,
+	swap_slot_ptr     : SupportFleetData_swap_slot_ptr,
+	check_swappable   : SupportFleetData_check_swappable,
+	sort_equipment    : SupportFleetData_sort_equipment,
 	allow_fixed_exslot: SupportFleetData_allow_fixed_exslot,
-	priority_call    : SupportFleetData_priority_call,
+	priority_call     : SupportFleetData_priority_call,
 	
 	assert_count     : SupportFleetData_assert_count,
 	get_own_list_text: SupportFleetData_get_own_list_text,
 	get_text_diff    : SupportFleetData_get_text_diff,
-	swap_slot        : SupportFleetData_swap_slot,
 	
-	// kancolle_support_data1.js
+	
+	// kancolle_support_data2.mjs
 	fill             : SupportFleetData_fill,
 	hill_climbling1  : SupportFleetData_hill_climbling1,
 	single           : SupportFleetData_single,
 	single_nosynergy : SupportFleetData_single_nosynergy,
+	single_nosynergy_pre: SupportFleetData_single_nosynergy_pre,
 	single_climbling : SupportFleetData_single_climbling,
+	annealing_old    : SupportFleetData_annealing_old,
+	
+	// kancolle_support_data3.mjs
 	annealing        : SupportFleetData_annealing,
 });
 
 
 function SupportFleetData(){
 	this.ssd_list = new Array;
-	this.own_list = new Array;
 }
 
-function SupportFleetData_set_own_data(own_forms){
-	this.own_list = own_forms.get_own_list();
-	return this.own_list;
+// 所持装備データのセット
+// 所持数が0でも、入力可能な装備かどうかの判定に利用する
+// 計算用変数の初期化も行う
+function SupportFleetData_set_own_data(own_list){
+	// 除外は除いて、入力欄がない装備と同じとする
+	this.own_list = own_list.filter(own => !own.exclude);
+	
+	let map = new Object;
+	for (let own of own_list) {
+		map[own.id] = own;
+	}
+	this.own_map = map;
+	
+	own_list.forEach(own => own.init_varcounts());
 }
 
+// 艦を追加
 function SupportFleetData_append_fleet(fleet){
-	// 艦情報
 	let good = true;
 	for (let sup of fleet.support_ships) {
 		if (!sup.empty()) {
 			let ssd = new SupportShipData;
-			if (!sup.get_data(ssd)) {
+			if (sup.get_data(ssd)) {
+				this.ssd_list.push(ssd);
+			} else {
 				good = false;
-				break;
 			}
-			this.ssd_list.push(ssd);
 		}
 	}
 	return good;
 }
 
+// 現在の ssd_list の状態をフォームに反映
 function SupportFleetData_save_to_form(){
 	for (let i=0; i<this.ssd_list.length; i++) {
 		let ssd = this.ssd_list[i];
@@ -100,6 +124,9 @@ function SupportFleetData_clone(){
 	let fleet = new SupportFleetData;
 	fleet.ssd_list = this.ssd_list.map(x => x.clone());
 	fleet.own_list = this.own_list.map(x => x.clone());
+	let map = new Object;
+	for (let own of fleet.own_list) map[own.id] = own;
+	fleet.own_map = map;
 	return fleet;
 }
 
@@ -110,110 +137,146 @@ function SupportFleetData_move_from(src){
 }
 
 
-// 計算用変数の初期化
-// 現在装備されている数もカウントする
-// own_list にないものは全て無視とする
-function SupportFleetData_init_calcvars(){
-	let own_map = new Object;
-	
+// 装備数データに矛盾がないかどうか
+function SupportFleetData_verify(){
 	for (let own of this.own_list) {
-		own.remaining = own.remaining_max();
-		own.fixed = 0;
-		own_map[own.id] = own;
+		for (let c of own.rem_counts) {
+			if (c < 0) return false;
+		}
 	}
-	
-	for (let ssd of this.ssd_list) {
-		this.countup_equipment(ssd, own_map, false, 1);
-	}
+	return true;
 }
 
 
-// 装備数をカウントして own_map に反映
-// ignore_fixed: 固定を無視
-// inc_dec: 1本あたりの変動量。remainingは減少。省略すると1。-1を指定することで減算できる
-function SupportFleetData_countup_equipment(ssd, own_map, ignore_fixed, inc_dec){
-	let val = inc_dec || 1;
-	
-	for (let i=0; i<ssd.allslot_equipment.length; i++) {
-		let fixed = ssd.allslot_fixes[i];
-		if (fixed && ignore_fixed) continue;
-		
-		let id = ssd.allslot_equipment[i].equipment_id;
-		if (id) {
-			let own = own_map[id];
-			if (own) {
-				own.remaining -= val;
-				if (fixed) own.fixed += val;
+// 改修値に矛盾があっても、適当に修正する(rem_counts)
+function SupportFleetData_modify_remainings(){
+	for (let own of this.own_list) {
+		if (!own.rem_counts) {
+			debugger;
+		}
+		for (let i=0; i<own.rem_counts.length; i++) {
+			let rem = own.rem_counts[i];
+			if (rem >= 0) continue;
+			
+			// 残り数が負数のときは改修値の大きい方優先で修正をかける
+			for (let j=own.rem_counts.length-1; j>=0; j--) {
+				let c = own.rem_counts[j];
+				
+				if (c > 0) {
+					// d > 0 の数だけ i -> j に移動
+					let d = Math.min(c, -rem);
+					own.rem_counts[j] -= d;
+					rem += d;
+					if (rem >= 0) break;
+				}
 			}
+			
+			own.rem_counts[i] = rem;
 		}
 	}
 }
 
-// own_listにない装備を全て解除する
-// fixed: 固定も含め解除
-function SupportFleetData_clear_not_in_owns(fixed){
-	let own_map = this.get_own_map();
+
+// ssd の装備数をカウントして own_map に反映
+// unfixed: 固定以外をカウント
+// fixed  : 固定をカウント
+// inc_dec: 1本あたりの変動量、省略すると1。カウントするとremainingは減少。-1を指定することで減算できる
+function SupportFleetData_countup_equipment_ssd(ssd, unfixed, fixed, inc_dec = 1){
+	let own_map = this.own_map;
 	
-	for (let ssd of this.ssd_list) {
-		for (let i=0; i<ssd.allslot_equipment.length; i++) {
-			if (fixed || !ssd.allslot_fixes[i]) {
-				let id = ssd.allslot_equipment[i].equipment_id;
-				if (!own_map[id]) {
-					ssd.allslot_equipment[i].set_equipment(0);
+	for (let i=0; i<ssd.allslot_equipment.length; i++) {
+		let slot_fixed = ssd.allslot_fixes[i];
+		if (slot_fixed ? fixed : unfixed) {
+			let id = ssd.allslot_equipment[i].equipment_id;
+			if (id) {
+				let own = own_map[id];
+				if (own) {
+					let p = ssd.allslot_equipment[i].improvement;
+					own.rem_counts[p] -= inc_dec;
+					own.remaining -= inc_dec;
+					if (slot_fixed) {
+						own.fix_counts[p] += inc_dec;
+						own.fixed += inc_dec;
+					}
 				}
 			}
 		}
 	}
 }
 
-// 固定されていないスロットをクリア
-// own_map(optional): map: id -> OwnEquipmentData
-// own_map を指定するとそちらにも反映される
-function SupportFleetData_clear_varslot(ssd, own_map){
-	if (own_map) {
-		for (let i=0; i<ssd.allslot_equipment.length; i++) {
-			if (!ssd.allslot_fixes[i]) {
-				let own = own_map[ssd.allslot_equipment[i].equipment_id];
-				if (own) own.remaining++;
+// 全体版
+function SupportFleetData_countup_equipment(unfixed, fixed, inc_dec = 1){
+	for (let ssd of this.ssd_list) {
+		this.countup_equipment_ssd(ssd, unfixed, fixed, inc_dec);
+	}
+}
+
+
+// スロットをクリアする　own_list への変更は行わない
+// unfixed: 固定でないスロット
+// fixed  : 固定スロット
+// suggested    : 所持数入力を用意している
+// not_suggested: 所持数入力を用意していない
+function SupportFleetData_clear_slots_ssd(ssd, unfixed, fixed, suggested = true, not_suggested = true){
+	for (let i=0; i<ssd.allslot_equipment.length; i++) {
+		if (ssd.allslot_fixes[i] ? fixed : unfixed) {
+			let slot = ssd.allslot_equipment[i];
+			let own = this.own_map[slot.equipment_id];
+			
+			if (own ? suggested : not_suggested) {
+				// 装備解除
+				slot.set_equipment(0, null, 0);
 			}
 		}
 	}
-	// 分割するとslotの重複に強くなる　固定との重複はないとする
-	for (let i=0; i<ssd.allslot_equipment.length; i++) {
-		if (!ssd.allslot_fixes[i]) {
-			ssd.allslot_equipment[i].set_equipment(0);
-		}
-	}
 }
 
-// 全ての艦について、固定されていないスロットをクリア
-function SupportFleetData_clear_varslot_all(own_map){
+// 全体版
+function SupportFleetData_clear_slots(unfixed, fixed, suggested = true, not_suggested = true){
 	for (let ssd of this.ssd_list) {
-		this.clear_varslot(ssd, own_map);
+		this.clear_slots_ssd(ssd, unfixed, fixed, suggested, not_suggested);
 	}
 }
 
 
-// 装備数データに矛盾がないかどうか
-function SupportFleetData_verify(){
-	for (let own of this.own_list) {
-		if (own.remaining < 0) return false;
+// ssd1 の pos1 番目の装備と ssd2 の pos2 番目の装備を入れ替える
+// 入れ替える場合はポインターのみを入れ替え
+// 他と衝突しなければこっちが速い、はず
+// 入れ替えができたら true を返す
+function SupportFleetData_swap_slot_ptr(ssd1, pos1, ssd2, pos2){
+	if (ssd1.allslot_fixes[pos1] || ssd2.allslot_fixes[pos2]) return false;
+	
+	// EquipmentSlot はポインターの入れ替えのみで行ける
+	let id1 = ssd1.allslot_equipment[pos1].equipment_id;
+	let id2 = ssd2.allslot_equipment[pos2].equipment_id;
+	
+	// 入れ替え可能
+	if (ssd1.allslot_equipables[pos1][id2] && ssd2.allslot_equipables[pos2][id1]) {
+		let slot1 = ssd1.allslot_equipment[pos1];
+		ssd1.allslot_equipment[pos1] = ssd2.allslot_equipment[pos2];
+		ssd2.allslot_equipment[pos2] = slot1;
+		return true;
+		
+	} else {
+		return false;
 	}
-	return true;
 }
 
-function SupportFleetData_get_own_map(){
-	let map = new Object;
-	for (let own of this.own_list) {
-		map[own.id] = own;
-	}
-	return map;
+// ssd1 の pos1 番目の装備と ssd2 の pos2 番目の装備の入れ替えが可能か
+function SupportFleetData_check_swappable(ssd1, pos1, ssd2, pos2){
+	if (ssd1.allslot_fixes[pos1] || ssd2.allslot_fixes[pos2]) return false;
+	
+	let id1 = ssd1.allslot_equipment[pos1].equipment_id;
+	let id2 = ssd2.allslot_equipment[pos2].equipment_id;
+	
+	// 入れ替え可能条件
+	return ssd1.allslot_equipables[pos1][id2] && ssd2.allslot_equipables[pos2][id1];
 }
 
-// 装備を強い順に並び替える
-function SupportFleetData_sort_equipment(){
+// 装備を並び替える
+function SupportFleetData_sort_equipment(sort_by, use_category){
 	for (let ssd of this.ssd_list) {
-		ssd.sort_equipment();
+		ssd.sort_equipment(sort_by, use_category);
 	}
 }
 
@@ -230,7 +293,7 @@ function SupportFleetData_allow_fixed_exslot(){
 			// からっぽ！
 			if (!eq) return false;
 			
-			let list = this.own_list.filter(x => x.remaining_max() > 0 && eqab[x.id]);
+			let list = this.own_list.filter(x => x.rem_counts.reduce((a, c) => a + c) > 0 && eqab[x.id]);
 			for (let own of list) {
 				let own_eq = EquipmentDatabase.equipment_data_map[own.id];
 				if (eq.firepower < own_eq.firepower || eq.accuracy < own_eq.accuracy) {
@@ -252,15 +315,15 @@ function SupportFleetData_allow_fixed_exslot(){
 function SupportFleetData_priority_call(func, single_call){
 	let orig_ssds = this.ssd_list.map(x => x.clone());
 	
-	// new_ssds の装備を全解除　元の装備情報は orig_ssds に
-	this.clear_varslot_all(this.get_own_map());
+	// 装備を全解除　元の装備情報は orig_ssds に
+	this.countup_equipment(true, false, -1);
+	this.clear_slots(true, false);
 	
 	let uneq_ssds = this.ssd_list;
 	let new_ssds = new Array;
 	let do_equip = true;
 	
 	for (let p=1; p<=12; p++) {
-		let own_map = this.get_own_map();
 		let cur_ssds = new Array;
 		
 		for (let i=0; i<orig_ssds.length; i++) {
@@ -269,7 +332,7 @@ function SupportFleetData_priority_call(func, single_call){
 				
 				if (do_equip) {
 					// 装備可能かどうか
-					this.countup_equipment(orig_ssds[i], own_map, true, 1);
+					this.countup_equipment_ssd(orig_ssds[i], true, false);
 					
 					if (this.verify()) {
 						// OK
@@ -278,7 +341,7 @@ function SupportFleetData_priority_call(func, single_call){
 					} else {
 						// 足りません
 						do_equip = false;
-						this.countup_equipment(orig_ssds[i], own_map, true, -1);
+						this.countup_equipment_ssd(orig_ssds[i], true, false, -1);
 					}
 				}
 				cur_ssds.push(ssd);
@@ -290,7 +353,8 @@ function SupportFleetData_priority_call(func, single_call){
 		if (!do_equip) {
 			// 装備ができなかった場合は全解除
 			for (let ssd of cur_ssds) {
-				this.clear_varslot(ssd, own_map);
+				this.countup_equipment_ssd(ssd, true, false, -1);
+				this.clear_slots_ssd(ssd, true, false);
 			}
 		}
 		
@@ -329,27 +393,44 @@ function SupportFleetData_assert_count(message = "?"){
 	for (let ssd of this.ssd_list) {
 		for (let i=0; i<ssd.allslot_equipment.length; i++) {
 			let id = ssd.allslot_equipment[i].equipment_id;
+			let star = ssd.allslot_equipment[i].improvement;
 			if (id) {
-				support_use[id] = (support_use[id] || 0) + 1;
-				if (ssd.allslot_fixes[i]) fixed[id] = (fixed[id] || 0) + 1;
+				let sup = support_use[id] || (support_use[id] = new Array(11).fill(0));
+				sup[star]++;
+				if (ssd.allslot_fixes[i]) {
+					let fix = fixed[id] || (fixed[id] = new Array(11).fill(0));
+					fix[star]++;
+				}
 			}
 		}
 	}
 	
 	for (let own of this.own_list) {
-		let use = own.main_use + (support_use[own.id] || 0);
-		let fix = fixed[own.id] || 0;
+		let sup = support_use[own.id];
+		let fix = fixed[own.id];
+		
+		let b_rem = own.rem_counts.reduce((a, c) => a && c >= 0, true);
+		let b_use = own.rem_counts.reduce((a, c, i) => {
+			let r = own.total_counts[i] - own.main_counts[i] - (sup ? sup[i] : 0);
+			return a && c == r;
+		}, true);
+		let b_fix = own.fix_counts.reduce((a, c, i) => {
+			return a && c == (fix ? fix[i] : 0);
+		}, true);
 		
 		// 不一致・矛盾
-		if (own.remaining < 0) {
-			console.log(own, own.remaining);
+		if (!b_rem) {
+			console.log(own, own.rem_counts);
+			debugger;
 			throw "remaining < 0 at " + message;
-		} else if (own.total != own.remaining + use) {
-			console.log(own, own.total, own.remaining, use);
-			throw "own.total != own.remaining + use at " + message;
-		} else if (own.fixed != fix) {
-			console.log(own, own.fixed, fix);
-			throw "own.fixed != fix at " + message;
+		} else if (!b_use) {
+			console.log(own, own.total_counts, own.rem_counts, sup);
+			debugger;
+			throw "remaining counts mismatched at " + message;
+		} else if (!b_fix) {
+			console.log(own, own.fix_counts, fix);
+			debugger;
+			throw "fixed counts mismatched at " + message;
 		}
 	}
 	
@@ -375,26 +456,5 @@ function SupportFleetData_get_text_diff(a, b){
 	return arr;
 }
 
-
-// ssd1 の pos1 番目の装備と ssd2 の pos2 番目の装備を入れ替える
-// 入れ替えができたら true を返す
-function SupportFleetData_swap_slot(ssd1, pos1, ssd2, pos2){
-	if (ssd1.allslot_fixes[pos1] || ssd2.allslot_fixes[pos2]) return false;
-	
-	// EquipmentSlot はポインターの入れ替えのみで行ける
-	let id1 = ssd1.allslot_equipment[pos1].equipment_id;
-	let id2 = ssd2.allslot_equipment[pos2].equipment_id;
-	
-	// 入れ替え可能
-	if (ssd1.allslot_equipables[pos1][id2] && ssd2.allslot_equipables[pos2][id1]) {
-		let slot1 = ssd1.allslot_equipment[pos1];
-		ssd1.allslot_equipment[pos1] = ssd2.allslot_equipment[pos2];
-		ssd2.allslot_equipment[pos2] = slot1;
-		return true;
-		
-	} else {
-		return false;
-	}
-}
 
 

@@ -1,135 +1,449 @@
 /* らくらく */
 
+/* 共通 */
+body {
+	margin-bottom: 8px;
+}
+
 *[title] {
 	cursor: help;
 }
 *[title=""] {
 	cursor: default;
 }
-
 .debug {
 	display: none;
 }
 
 
-/* ヘッダー等 */
-#header_link {
-	margin: 0.5em;
+/* 最初は隠しておくもの スクリプトで表示を制御 */
+.hidden_init {
+	display: none;
 }
-#header_link a {
-	font-size: 75%;
+
+
+/* cssで矢印をつくる サイズはフォントサイズに依存
+  .disabled を同時指定で使用不可を表す */
+.left_arrow {
+	display: inline-block;
+	vertical-align: middle;
+	border-style: solid;
+	border-width: 0.5em 0.866em 0.5em 0.0em;
+	border-color: transparent #08f transparent transparent;
+}
+.left_arrow.disabled {
+	border-color: transparent #ccc transparent transparent;
+}
+.right_arrow {
+	display: inline-block;
+	vertical-align: middle;
+	border-style: solid;
+	border-width: 0.5em 0.0em 0.5em 0.866em;
+	border-color: transparent transparent transparent #08f;
+}
+.right_arrow.disabled {
+	border-color: transparent transparent transparent #ccc;
+}
+/* 数値の左右に矢印を配置 */
+.arrow_input {
+	white-space: nowrap;
+}
+.arrow_input > .left_arrow,
+.arrow_input > .right_arrow {
+	font-size: 80%;
+}
+.arrow_input > .input_number {
+	margin: 0.0em 0.2em;
+}
+
+/* ダイアログのボタン */
+.dialog_okcancel {
+	text-align: right;
+}
+.dialog_okcancel.center {
+	text-align: center;
+}
+.dialog_okcancel > .ok {
+	min-width: 90px;
+	margin: 1em 0.5em 1em 1.5em;
+}
+.dialog_okcancel > .cancel {
+	min-width: 90px;
+	margin: 1em 1.5em 1em 0.5em;
+}
+
+/* 共通ここまで */
+
+
+/* ヘッダーのタブ */
+#header_tab {
+	display: flex;
+	column-gap: 3px;
+	row-gap: 2px;
+	flex-wrap: wrap;
+	user-select: none;
+	margin-bottom: 3px;
+}
+#header_tab > div {
+	padding: 2px 5px;
+	border: 1px solid #444;
+	border-radius: 6px;
+	cursor: pointer;
+	min-width: 80px;
+	text-align: center;
+	background-color: #ddd;
+}
+#header_tab > div.selected {
 	font-weight: bold;
-	color: blue;
-	margin-right: 0.5em;
-}
-.to_top {
-	float: right;
-	color: #40f;
-	margin-right: 0.5em;
-	text-decoration: none;
+	background-color: #fff;
 }
 
 
-/* 所有装備 */
+/* 使い方 */
+#explanation p {
+	margin: 2px 0px;
+	padding-left: 1em;
+}
+#explanation h3 {
+	margin-bottom: 0.5em;
+	padding-left: 0.4em;
+	background-color: #64a4ff;
+}
+#explanation h3:first-child {
+	margin-top: 0;
+}
+#explanation h4 {
+	margin: 0.5em 0em 0em 0em;
+	padding-left: 0.5em;
+	background-color: #cfe3ff;
+}
+#explanation h5 {
+	margin: 0.5em 0em 0em 0em;
+	padding-left: 0.5em;
+	background-color: #cfe3ff;
+}
+#explanation div.formula {
+	margin: 0.5em 2em;
+}
+#explanation div.verification_data {
+	font-size: 75%;
+	margin: 0.5em 1em;
+}
+
+
+/* 所持装備 */
+#own_equipment {
+	user-select: none;
+}
+
 .own_header {
+	position: relative;
+	display: flex;
+	column-gap: 2px;
 	padding: 1px 8px;
 	background-color: #bbf;
 }
-.own_header .rightfloat {
-	float: right;
-}
-.own_header .button {
-	color: blue;
-	text-decoration: underline;
-	cursor: pointer;
+.own_header > .flex_space {
+	flex-basis: 0;
+	flex-grow: 1;
 }
 .own_header button {
+	display: block;
+	min-width: 7em;
+	color: #303;
 	background-color: lavender;
-	border: solid 1px lightsteelblue;
+	border: solid 1px #893dad;
+	border-radius: 4px;
+}
+.own_header .hint {
+	display: none;
+	padding: 0.2em 0.5em;
+	border: 1px black solid;
+	position: absolute;
+	top: 2em;
+	right: 0em;
+	background: white;
+	font-size: 80%;
+	z-index: 10;
+}
+.own_header button:hover + .hint {
+	display: block;
 }
 
-#own_equipment {
-	font-size: 75%;
-	line-height: 1.1;
+
+#eq_displaytools {
+	/*position: relative;*/
+	margin: 0.3em 0.5em;
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	column-gap: 0.5em;
 }
-#own_equipment h3 {
-	margin: 0px;
-	padding: 4px 0px 0px 4px;
+#eq_displaytools > .flex_space {
+	flex-basis: 0;
+	flex-grow: 1;
 }
-#own_equipment .own_equipment_item {
-	vertical-align: middle;
-	display: inline-block;
-	margin-left: 4px;
+/*
+#eq_displaytools .hint {
+	display: none;
+	padding: 0.2em 0.5em;
+	border: 1px black solid;
+	position: absolute;
+	bottom: 2em;
+	background: white;
+	font-size: 80%;
+	z-index: 10;
 }
-#own_equipment .item_name {
-	width: 170px;
-	vertical-align: middle;
-	display: inline-block;
+#eq_displaytools label:hover + .hint {
+	display: block;
+}
+*/
+
+#eq_category_tab {
+	display: flex;
+	justify-content: flex-start;
+	align-items: stretch;
+	flex-wrap: wrap;
+	column-gap: 1px;
+	font-size: 80%;
+}
+#eq_category_tab > div {
+	min-width: 60px;
+	padding: 0px 5px;
+	border: 1px solid #444;
+	border-bottom-width: 0px;
+	border-top-left-radius: 4px;
+	border-top-right-radius: 4px;
+	cursor: pointer;
+	text-align: center;
+	background-color: #ddd;
+	
+	color: #006;
+	border-color: #008;
+	background-color: #dde;
+}
+#eq_category_tab > div.selected {
+	background-color: #fff;
+	
+	font-weight: bold;
+	color: #00a;
+	border-color: #44c;
+}
+
+
+/* 所持装備 > 装備一覧 */
+#eq_inputarea {
+	height: calc(100vh - 13.5em);
+	min-height: 60vh;
+	border: 1px solid #008;
+	overflow-y: auto;
+	user-select: none;
+}
+
+.eq_row {
+	display: flex;
+	align-items: stretch;
+	cursor: default;
+	border-bottom: 1px solid lightblue;
+}
+.eq_row.eq_rowheader {
+	position: relative;
+	z-index: 1;
+	color: #006;
+	background-color: white;
+	border-bottom: 1px solid #008;
+	text-align: center;
+	white-space: nowrap;
+}
+.eq_row:not(.eq_rowheader):hover {
+	background-color: #f0f8ff;
+}
+
+.eq_row > div {
+	display: flex;
+	flex-basis: 40px;
+	justify-content: center;
+	align-items: center;
+}
+.eq_row > div.eq_name {
+	flex-basis: 160px;
+	flex-grow: 1;
+	justify-content: flex-start;
+	max-width: 32em;
 	white-space: nowrap;
 	overflow: hidden;
-	margin-left: 2px;
+	padding-left: 6px;
+}
+.eq_row:not(.eq_rowheader) > div.eq_name {
+	cursor: pointer;
+}
+.eq_row:not(.eq_rowheader) > div.eq_name:hover {
+	color: blue;
+	text-decoration: underline;
+}
+.eq_row > div.eq_main {
+	flex-basis: 52px;
+}
+.eq_row > div.eq_main.error {
+	color: red;
+	font-weight: bold;
+}
+.eq_row > div.eq_comment {
+	flex-basis: 80px;
+	flex-grow: 1;
+	justify-content: flex-start;
+	font-size: 80%;
+}
+
+
+/* 所持装備 > 入力ダイアログ */
+.dialog_container div.eq_dialog_inside {
+	user-select: none;
+	top: 2em;
+	width: calc(100vw - 4em);
+	max-width: 800px;
+}
+.dialog_container div.eq_dialog_inside .bar .title {
+	font-weight: bold;
+	padding-left: 0.5em;
+}
+
+.dialog_container div.eq_dialog_inside h4 {
+	margin: 1em 0em 0em 0em;
+	padding: 0em 1em;
+	background-color: #cfe3ff;
+}
+
+.dialog_container div.eq_detail {
+	margin-top: 1em;
+	padding-left: 1.5em;
+	display: flex;
 	cursor: default;
 }
-#own_equipment .item_count {
-	display: inline-block;
-	white-space: nowrap;
+.dialog_container div.eq_detail > div {
+	flex-basis: 200px;
+	flex-grow: 1;
 }
-#own_equipment .using, #own_equipment .total {
-	width: 34px;
-	height: 12px;
+.dialog_container div.eq_detail .eq_status {
+	font-size: 80%;
+}
+.dialog_container div.eq_detail .eq_category {
+	font-weight: bold;
+}
+.dialog_container div.eq_detail .eq_params {
+	display: flex;
+	flex-wrap: wrap;
+	column-gap: 1em;
+}
+.dialog_container div.eq_options {
+	padding-left: 1em;
+}
+
+.dialog_container div.eq_inputs {
+	display: flex;
+	flex-direction: row;
+	justify-content: center;
+	flex-wrap: wrap;
+	column-gap: 5px;
+}
+.dialog_container div.eq_inputs > div {
+	flex-basis: 50px;
+}
+.dialog_container div.eq_inputs > div.item_total {
+	flex-basis: 60px;
+}
+.dialog_container div.eq_inputs div.eq_star {
+	text-align: center;
+	color: #0c8e89;
+	cursor: grab;
+}
+.dialog_container div.eq_inputs div.eq_star.error {
+	color: #ff0000;
+}
+.dialog_container div.eq_inputs input.eq_countbox {
+	display: block;
 	text-align: right;
+	width: 45px;
 }
-#own_equipment .error {
-	color: red;
-	background-color: #fcc;
+.dialog_container div.eq_inputs input.eq_countbox.zero {
+	color: #aaa;
+}
+.dialog_container div.eq_inputs div.eq_total,
+.dialog_container div.eq_inputs div.eq_totalinput
+{
+	text-align: center;
+	font-weight: bold;
 }
 
-#own_equipment > div {
-	border-style: solid;
-	border-width: 0px 0px 1px 0px;
+/* 所持装備 > リセットダイアログ */
+.dialog_container .inside.reset {
+	user-select: none;
 }
-/* > 大型電探 */
-#own_equipment h3.radar_L  { background-color: #ffa; }
-#own_equipment div.radar_L { border-color: #dd0; }
-/* > 小型電探 */
-#own_equipment h3.radar_S  { background-color: #ffa; }
-#own_equipment div.radar_S { border-color: #dd0; }
-/* > 大口径主砲 */
-#own_equipment h3.maingun_L  { background-color: #fbb; }
-#own_equipment div.maingun_L { border-color: #f00; }
-/* > 中口径主砲 */
-#own_equipment h3.maingun_M  { background-color: #fbb; }
-#own_equipment div.maingun_M { border-color: #f00; }
-/* > 小口径主砲 */
-#own_equipment h3.maingun_S  { background-color: #fbb; }
-#own_equipment div.maingun_S { border-color: #f00; }
-/* > 副砲 */
-#own_equipment h3.secgun  { background-color: khaki; }
-#own_equipment div.secgun { border-color: #dd4; }
-/* > 艦上爆撃機 */
-#own_equipment h3.cv_bomber  { background-color: #f99; }
-#own_equipment div.cv_bomber { border-color: #f66; }
-/* > 噴式戦闘爆撃機 */
-#own_equipment h3.cv_jet  { background-color: #ff4; }
-#own_equipment div.cv_jet { border-color: #dd4; }
-/* > 艦上攻撃機 */
-#own_equipment h3.cv_attacker  { background-color: #8cf; }
-#own_equipment div.cv_attacker { border-color: #59f; }
-/* > 対空機銃 */
-#own_equipment h3.antiair  { background-color: #afa; }
-#own_equipment div.antiair { border-color: #8f8; }
-/* > 水上艦要員 */
-#own_equipment h3.personnel  { background-color: #dfb; }
-#own_equipment div.personnel { border-color: #af8; }
+.dialog_container .inside.reset h4 {
+	margin: 1em 0em 0em 0em;
+	padding: 0em 0.8em;
+	background-color: #cfe3ff;
+}
+.dialog_container .inside.reset .contents > h4 {
+	margin: 0em;
+}
+.dialog_container .inside.reset .contents > div {
+	margin: 0.5em 1em;
+}
+.dialog_container .inside.reset .contents > div label {
+	margin: 0em 0.4em;
+}
+.dialog_container .inside.reset .contents > div.button_div {
+	text-align: center;
+	margin-top: 1em;
+}
+.dialog_container .inside.reset .contents > div.button_div button {
+	min-width: 6em;
+	margin: 0em 0.25em;
+}
+
+/* 所持装備 > データ読み込みダイアログ */
+.dialog_container .inside.convert {
+	user-select: none;
+}
+.dialog_container .inside.convert .contents {
+	padding: 0em 0.5em;
+}
+.dialog_container .inside.convert .contents .data_type {
+}
+.dialog_container .inside.convert .contents .code_area {
+	width: 50vw;
+	height: 20vh;
+}
+.dialog_container .inside.convert .contents .option {
+	text-align: center;
+}
+.dialog_container .inside.convert .contents .option_text {
+	font-size: 80%;
+	width: 50vw;
+	margin: auto;
+}
+.dialog_container .inside.convert .contents > div.button_div {
+	text-align: center;
+	margin: 0.5em 0em;
+}
+.dialog_container .inside.convert .contents > div.button_div button {
+	min-width: 6em;
+	margin: 0em 0.25em;
+}
 
 
-/* ツールバー */
+/* 支援艦隊 */
+.support_header {
+	padding: 1px 8px;
+	background-color: #aae1ff;
+	font-weight: bold;
+}
 #optimize_tool {
 	margin: 0.5em;
 }
 
-
-/* 支援艦隊table */
+/* 支援艦隊 > table */
 .support_table {
 	font-size: 80%;
 	line-height: 1.3;
@@ -138,7 +452,8 @@
 .support_table tbody th, .support_table tbody td {
 	padding: 0px;
 }
-/* > ヘッダー */
+
+/* 支援艦隊 > tableヘッダー */
 .support_table thead .support_type {
 	font-weight: bold;
 	padding-left: 6px;
@@ -171,7 +486,7 @@
 	color: blue;
 }
 
-/* > 各艦 */
+/* 支援艦隊 > table各艦 */
 .support_table .number {
 	width: 20px;
 	text-align: center;
@@ -233,6 +548,10 @@
 	width: 300px;
 	min-height: 18px;
 	border-width: 0px;
+}
+.support_table select.star {
+	border-width: 0px;
+	color: #45a9a5;
 }
 .support_table .eq_firepower {
 	height: 20px;
@@ -320,7 +639,14 @@
 }
 
 
-/* 損害表 */
+/* 付録 */
+#appendix h3 {
+	margin: 0em 0em 0.5em 0em;
+	padding-left: 0.4em;
+	background-color: #64a4ff;
+}
+
+/* > 損害表 */
 #damage {
 	margin: 1em;
 	font-size: 80%;
@@ -414,35 +740,5 @@
 	width: 45px;
 	text-align: right;
 }
-
-
-/* 使い方 */
-p {
-	margin: 2px 0px;
-	padding-left: 1em;
-}
-h3 {
-	margin-bottom: 0.5em;
-	padding-left: 0.4em;
-	background-color: #64a4ff;
-}
-h4 {
-	margin: 0.5em 0em 0em 0em;
-	padding-left: 0.5em;
-	background-color: #cfe3ff;
-}
-h5 {
-	margin: 0.5em 0em 0em 0em;
-	padding-left: 0.5em;
-	background-color: #cfe3ff;
-}
-div.formula {
-	margin: 0.5em 2em;
-}
-div.verification_data {
-	font-size: 75%;
-	margin: 0.5em 1em;
-}
-
 
 

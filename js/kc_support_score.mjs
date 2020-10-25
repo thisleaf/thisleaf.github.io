@@ -53,7 +53,7 @@ function SupportFleetScore_clear(){
 
 // ボーナス値は自動計算しない(先に計算しておく)
 function SupportFleetScore_add(ssd, border_power = ssd.border_basic_power){
-	let basic = ssd.get_basic_power();
+	let basic = ssd.get_basic_power(true);
 	let border_basic_power = border_power;
 	let acc = ssd.get_accuracy();
 	
@@ -75,7 +75,7 @@ function SupportFleetScore_add_score(score){
 }
 
 function SupportFleetScore_sub(ssd, border_power = ssd.border_basic_power){
-	let basic = ssd.get_basic_power();
+	let basic = ssd.get_basic_power(true);
 	let border_basic_power = border_power;
 	let acc = ssd.get_accuracy();
 	
@@ -164,7 +164,7 @@ function SupportShipScore_clear(){
 }
 
 function SupportShipScore_add(ssd, basic_power = ssd.border_basic_power, test){
-	let basic = ssd.get_basic_power();
+	let basic = ssd.get_basic_power(true);
 	let acc = ssd.get_accuracy();
 	
 	this.unreached_power   += Math.min(basic - basic_power, 0);

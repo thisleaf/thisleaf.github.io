@@ -32,13 +32,28 @@
 </head>
 <body>
 
+
+<div id="message_bar"></div>
+<div class="dialog_container"></div>
+
 <div style="float: right;" class="debug">
 <button id="test">計算テスト</button>
 <button id="test2">計算テスト2</button>
 <button id="test3">計算テスト3</button>
 </div>
 
-<h2>らくらく支援艦隊</h2>
+
+<!-- ヘッダー -->
+<div>
+<h2 style="display: inline-block; margin: 5px 0px;">らくらく支援艦隊</h2>
+<!--
+<small>@2020/10/25</small>
+-->
+</div>
+
+<!-- (重要な)おしらせがあれば
+<div class="notice"></div>
+-->
 
 <noscript>
 <font color="red">
@@ -46,27 +61,50 @@
 </font>
 </noscript>
 
-<div class="notice">
+<div id="header_tab">
+	<div class="selected" data-relate-id="explanation">使い方</div>
+	<div data-relate-id="own_equipment">装備</div>
+	<div data-relate-id="support_form">支援艦隊</div>
+	<div data-relate-id="optimize_options">オプション</div>
+	<div data-relate-id="appendix">付録</div>
+	<!--<div data-relate-id="">仕様</div>-->
 </div>
+<!-- /ヘッダー -->
 
-<div id="message_bar"></div>
-<div id="header_link">
-<a href="#owns">▽所持装備▽</a><a href="#optimize_tool">▽支援艦隊A▽</a><a href="#support_B">▽支援艦隊B▽</a><a href="#usage">▽使い方▽</a><a href="#damage">▽損傷率▽</a>
-</div>
 
-<div id="owns" class="own_header">
-	<div class="rightfloat noselect">
-		<button id="clear_owns_main" class="equipment_input">本隊装備数クリア</button>
-		<button id="clear_owns" class="equipment_input">所持数クリア</button>
-		<small>[<span id="hide_owns" class="button">非表示</span>]</small>
+<!-- 所持装備 -->
+<div id="own_equipment" class="hidden_init">
+
+<div class="own_header">
+	<b>所持装備の入力</b>
+	<div class="flex_space"></div>
+	<div>
+		<button id="reset_dialog">一括クリア</button>
+		<div class="hint">本隊装備数や装備所持数を一括でクリアするダイアログを呼び出します</div>
+	</div><div>
+		<button id="convert_dialog">データ変換</button>
+		<div class="hint">他サイト様のデータを取り込むダイアログを呼び出します</div>
 	</div>
-	<b>所持装備 (本隊装備数/所持数)</b>
 </div>
-<div id="own_equipment" class="equipment_input"></div>
+
+<div id="eq_displaytools">
+	<label><input id="eqop_main" type="checkbox">本隊装備</label>
+	<label><input id="eqop_own" type="checkbox">所持装備</label>
+	<label><input id="eqop_noexclude" type="checkbox">除外非表示</label>
+	<label><input id="eqop_error" type="checkbox">エラーあり</label>
+</div>
+
+<div id="eq_category_tab"></div>
+<div id="eq_inputarea"></div>
+
+</div>
+<!-- /所持装備 -->
 
 
-<!-- 保存・読み込み -->
-<div id="header_tool"></div>
+<!-- 支援艦隊 -->
+<div id="support_form" class="hidden_init">
+<div class="support_header">支援艦隊</div>
+
 <div id="optimize_tool">
 	<b>装備探索 (砲撃支援)</b>:
 	<button id="fast_optimize">高速探索</button>
@@ -79,21 +117,43 @@
 
 <div style="clear: both;"></div>
 
-<h3 id="usage"><a href="#header_link" class="to_top">▲</a>使い方</h3>
+</div>
+<!-- /支援艦隊 -->
+
+
+<!-- オプション -->
+<div id="optimize_options" class="hidden_init">
+オプションはまだないです
+</div>
+<!-- /オプション -->
+
+
+<!-- 付録 -->
+<div id="appendix" class="hidden_init">
+
+<h3>付録</h3>
+<table id="damage" class="black_border center_text"></table>
+
+</div>
+<!-- /付録 -->
+
+
+<!-- 使い方 -->
+<div id="explanation">
+
+<h3 id="usage">使い方</h3>
 <p>
 支援艦隊の最適装備を計算するツールです。<br>
 装備命中値の合計がなるべく高いものを探します。<br>
-(命中キャップ等は考慮していないので、どちらかというと楽をするためのもの……かも)<br>
 <ol>
-<li>所持装備の数を入力します。(本隊装備数を入力するとその分は差し引かれます)</li>
-<li>支援艦隊の艦名を入力します。</li>
+<li>「装備」から、所持装備の数を入力します。(本隊装備数を入力するとその分は差し引かれます)</li>
+<li>「支援艦隊」に移動し、支援艦隊で使用する艦を入力します。</li>
 <li>目標にする火力(反航戦キャップなど)を入力します。</li>
 <li>探索ボタンをクリック！</li>
 </ol>
 <ul>
 <li>艦名の左の数字や装備のE1,E2などをドラッグ＆ドロップで入れ替えができます</li>
-<li>β版なのでいまあるフォームの分しか入力を保存しておけません <s>(あとでね)</s></li>
-<li>★付きでボーナスが変わる装備が出ましたが未対応です　すまぬすまぬ</li>
+<li>所持数・装備数の入力ダイアログでも、★のドラッグドロップができます</li>
 </ul>
 </p>
 
@@ -101,7 +161,9 @@
 <p>
 まず最初に、<strong>持っている装備の数</strong>と<strong>本隊で使っている数</strong>を入力します。ブラウザを閉じても記録されているので、一回入力してしまえば楽なはず。<br>
 探索時にここに入力した装備を利用します。使わなさそうな装備は0でも構いません。<br>
-内部の計算でも適宜間引いているので、たくさん入力しても速度に大きな影響はない……はずですー！
+「除外」にチェックを入れた場合も探索から除外します。探索の精度向上や高速化などに。<br>
+(一応、内部の計算でも適宜間引いてはいます)<br>
+艦隊分析さんや、デッキビルダーさん(の形式)のデータから入力することも可能です。
 </p>
 
 <h4>支援タイプ・消費</h4>
@@ -115,7 +177,8 @@
 <strong>高速探索</strong>と<strong>ランダム探索</strong>があります。<br>
 高速探索でも十分良い解が出ますが、ランダム探索のほうが良い解が出てくれます。ランダムなアルゴリズムなので、何度かやると更に良い解が出るかもしれません。<br>
 見つかった解は引き継がれます。そのうち最適解っぽいのが出てくれるっぽい！<br>
-ちなみに、ChromeのほうがFirefoxよりも2.5倍くらい高速です＠2019/10/30
+<s>ちなみに、ChromeのほうがFirefoxよりも2.5倍くらい高速です＠2019/10/30</s><br>
+Chromeのほうが速いですが、Firefoxでも十分高速に動作するようです。15%ぐらい違う？＠2020/10/25
 </p>
 
 <h4>優先度</h4>
@@ -151,15 +214,15 @@
 <li>消費一覧表 (昔LibreOfficeで作った)</li>
 <li>検証リンクの充実 (あとでね)</li>
 <li>高速化、解の精度 (もう十分頑張った)</li>
-<li>単艦ならば高速なうえ最適解が保証される (良い出来)</li>
+<li>単艦ならば高速なうえ最適解が保証される (バグってなければ)</li>
 <li>同じ優先度の艦がいない場合、単艦のアルゴリズムになって高速になる</li>
 <li>合計命中が同じ組み合わせなら、なるべく命中値が偏らないほうを優先する</li>
+<li>所持数と本隊装備数に(改修値の)矛盾がある場合、所持数を優先し本隊の方は適宜修正される</li>
 </ul>
 </p>
 
-
-<h3><a href="#header_link" class="to_top">▲</a>付録</h3>
-<table id="damage" class="black_border center_text"></table>
+</div>
+<!-- /使い方 div#explanation -->
 
 
 <div class="footer">

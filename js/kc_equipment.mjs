@@ -308,30 +308,50 @@ function EquipableInfo_generate_equipables(){
 // EquipmentSelect ---------------------------------------------------------------------------------
 // select を管理
 // value は装備の図鑑番号
+// 改修値の選択も管理(optional)
 Object.assign(EquipmentSelect.prototype, {
 	// DOM
 	e_select: null,
+	e_star  : null,
 	// 関連付いた EquipableInfo の map
 	infomap : null,
 	// 装備名のカスタマイズ用コールバック関数。renamer(equip)
 	renamer : null,
-	// callback
+	// callback (後方互換用)
 	onchange: null,
 	
 	recreate_options: EquipmentSelect_recreate_options,
 	get_id          : EquipmentSelect_get_id          ,
 	set_id          : EquipmentSelect_set_id          ,
-	call_onchange   : EquipmentSelect_call_onchange   ,
+	get_star        : EquipmentSelect_get_star        ,
+	set_star        : EquipmentSelect_set_star        ,
+	set_id_star     : EquipmentSelect_set_id_star     ,
 	ev_change_select: EquipmentSelect_ev_change_select,
 });
 
 EquipmentSelect.className = "equipment";
+EquipmentSelect.star_className = "star";
 
 
 function EquipmentSelect(){
 	this.e_select = ELEMENT("select");
 	this.e_select.className = EquipmentSelect.className;
 	this.e_select.addEventListener("change", e => this.ev_change_select(e));
+	
+	this.e_star = ELEMENT("select");
+	this.e_star.className = EquipmentSelect.star_className;
+	this.e_star.addEventListener("change", e => this.ev_change_select(e));
+	
+	// 改修値の方は作っておく
+	for (let i=0; i<=10; i++) {
+		this.e_star.appendChild(new Option("★" + i, i));
+	}
+	this.e_star.selectedIndex = 0;
+	
+	Util.attach_event_target(this);
+	this.addEventListener("change", e => {
+		if (this.onchange) this.onchange.call(null);
+	});
 }
 
 // リストを再生成
@@ -407,14 +427,27 @@ function EquipmentSelect_set_id(id){
 	}
 }
 
-function EquipmentSelect_call_onchange(){
-	if (this.onchange) {
-		this.onchange.call(null);
+// 改修値の整数
+// ただし、装備が選択されていない場合は0
+function EquipmentSelect_get_star(){
+	return (this.e_select.value ? +this.e_star.value : 0);
+}
+
+function EquipmentSelect_set_star(star){
+	this.e_star.value = star;
+	if (this.e_star.selectedIndex < 0) {
+		this.e_star.value = "0";
 	}
 }
 
+// 同時
+function EquipmentSelect_set_id_star(id, star){
+	this.set_id(id);
+	this.set_star(star);
+}
+
 function EquipmentSelect_ev_change_select(e){
-	this.call_onchange();
+	this.dispatchEvent(new CustomEvent("change"));
 }
 
 
@@ -424,6 +457,8 @@ Object.assign(EquipmentSlot.prototype, {
 	equipment_id   : 0, // 0 で装備なし
 	improvement    : 0, // 改修値
 	equipment_data : null,
+	
+	same_index     : 0, // ボーナスの計算用
 	
 	bonus_firepower: 0,
 	bonus_torpedo  : 0,
@@ -438,10 +473,13 @@ Object.assign(EquipmentSlot.prototype, {
 	// plane_count_max
 	// proficiency
 	
-	clone        : EquipmentSlot_clone,
-	set_equipment: EquipmentSlot_set_equipment,
-	clear_bonus  : EquipmentSlot_clear_bonus,
-	swap_equipment: EquipmentSlot_swap_equipment,
+	clone                : EquipmentSlot_clone,
+	set_equipment        : EquipmentSlot_set_equipment,
+	set_equipment_from   : EquipmentSlot_set_equipment_from,
+	clear_bonus          : EquipmentSlot_clear_bonus,
+	swap_equipment       : EquipmentSlot_swap_equipment,
+	is_upper_or_equal    : EquipmentSlot_is_upper_or_equal,
+	is_upper_or_equal_raw: EquipmentSlot_is_upper_or_equal_raw,
 	
 	get_power_min  : EquipmentSlot_get_power_min,
 	get_power_float: EquipmentSlot_get_power_float,
@@ -449,12 +487,9 @@ Object.assign(EquipmentSlot.prototype, {
 });
 
 
-function EquipmentSlot(id, data, impr){
+function EquipmentSlot(id = 0, data = null, impr = 0){
 	if (id) {
-		this.set_equipment(id, data);
-	}
-	if (impr) {
-		this.improvement = impr;
+		this.set_equipment(id, data, impr);
 	}
 }
 
@@ -462,26 +497,25 @@ function EquipmentSlot_clone(){
 	return Object.assign(new EquipmentSlot, this);
 }
 
-// dataには装備データ
-function EquipmentSlot_set_equipment(id, data = null){
+// dataには装備データ(nullでもよい)
+function EquipmentSlot_set_equipment(id, data = null, star = 0){
 	this.equipment_id = id;
-	
-	let d = data;
-	if (!d && id > 0) {
-		d = EquipmentDatabase.equipment_data_map[id];
-	}
-	
-	this.equipment_data = d;
+	this.improvement = star;
+	this.equipment_data = data || (id > 0 ? EquipmentDatabase.equipment_data_map[id] : null);
+}
+
+function EquipmentSlot_set_equipment_from(slot){
+	this.set_equipment(slot.equipment_id, slot.equipment_data, slot.improvement);
 }
 
 function EquipmentSlot_clear_bonus(){
-	this.bonus_firepower= 0;
-	this.bonus_torpedo  = 0;
-	this.bonus_antiair  = 0;
-	this.bonus_ASW      = 0;
-	this.bonus_evasion  = 0;
-	this.bonus_LoS      = 0;
-	this.bonus_armor    = 0;
+	this.bonus_firepower = 0;
+	this.bonus_torpedo   = 0;
+	this.bonus_antiair   = 0;
+	this.bonus_ASW       = 0;
+	this.bonus_evasion   = 0;
+	this.bonus_LoS       = 0;
+	this.bonus_armor     = 0;
 }
 
 function EquipmentSlot_swap_equipment(argv){
@@ -500,11 +534,50 @@ function EquipmentSlot_swap_equipment(argv){
 	argv.equipment_data = temp;
 }
 
+// bの上位互換とみなしてよいか (火力と命中について)
+// ボーナス値も含める　シナジーには注意
+function EquipmentSlot_is_upper_or_equal(b, cv_shelling){
+	let t_eq = this.equipment_data;
+	let b_eq = b.equipment_data;
+	
+	let t_fpw = t_eq.firepower + this.bonus_firepower;
+	let b_fpw = b_eq.firepower + b.bonus_firepower;
+	
+	return cv_shelling ? (
+		t_fpw         >= b_fpw &&
+		t_eq.torpedo  >= b_eq.torpedo &&
+		t_eq.bombing  >= b_eq.bombing &&
+		t_eq.accuracy >= b_eq.accuracy
+	) : (
+		t_fpw         >= b_fpw &&
+		t_eq.accuracy >= b_eq.accuracy
+	);
+}
+
+// ボーナス値を含めない
+function EquipmentSlot_is_upper_or_equal_raw(b, cv_shelling){
+	let t_eq = this.equipment_data;
+	let b_eq = b.equipment_data;
+	
+	let t_fpw = t_eq.firepower;
+	let b_fpw = b_eq.firepower;
+	
+	return cv_shelling ? (
+		t_fpw         >= b_fpw &&
+		t_eq.torpedo  >= b_eq.torpedo &&
+		t_eq.bombing  >= b_eq.bombing &&
+		t_eq.accuracy >= b_eq.accuracy
+	) : (
+		t_fpw         >= b_fpw &&
+		t_eq.accuracy >= b_eq.accuracy
+	);
+}
+
 function EquipmentSlot_get_power_min(cv_shelling){
 	let eq = this.equipment_data;
 	return ( eq
 		? ( cv_shelling
-			? Math.floor((eq.firepower + this.bonus_firepower + eq.torpedo + this.bonus_torpedo + Math.floor(eq.bombing * 1.3)) * 1.5)
+			? Math.floor((eq.firepower + this.bonus_firepower + eq.torpedo /*+ this.bonus_torpedo*/ + Math.floor(eq.bombing * 1.3)) * 1.5)
 			: eq.firepower + this.bonus_firepower )
 		: 0
 	);
@@ -515,7 +588,7 @@ function EquipmentSlot_get_power_min(cv_shelling){
 function EquipmentSlot_get_power_float(cv_shelling, base = true, bonus = true){
 	let eq = this.equipment_data;
 	let fpw = (base ? eq.firepower : 0) + (bonus ? this.bonus_firepower : 0);
-	let tor = (base ? eq.torpedo : 0) + (bonus ? this.bonus_torpedo : 0);
+	let tor = (base ? eq.torpedo : 0) /*+ (bonus ? this.bonus_torpedo : 0)*/;
 	let bom = base ? eq.bombing : 0;
 	return ( eq
 		? ( cv_shelling
@@ -529,7 +602,7 @@ function EquipmentSlot_get_power_max(cv_shelling){
 	let eq = this.equipment_data;
 	return ( eq
 		? ( cv_shelling
-			? Math.ceil((eq.firepower + this.bonus_firepower + eq.torpedo + this.bonus_torpedo + Math.ceil(eq.bombing * 1.3)) * 1.5)
+			? Math.ceil((eq.firepower + this.bonus_firepower + eq.torpedo /*+ this.bonus_torpedo*/ + Math.ceil(eq.bombing * 1.3)) * 1.5)
 			: eq.firepower + this.bonus_firepower )
 		: 0
 	);
@@ -542,10 +615,16 @@ Object.assign(EquipmentBonusData.prototype, {
 	// 複数の場合は equipment_id=0, equipment_id_array がIDの配列になる(一つの場合後者はnull)
 	equipment_id: 0,
 	equipment_id_array: null,
+	// 適用する装備IDかどうかを判定するmap
+	equipment_id_map: null,
 	// 何本目に適用するか
 	count_map: null, // map: count -> bool
 	// これまでのボーナスを無効にするか
 	reset: false,
+	// このボーナスをグループ化するか
+	// グループ化しない場合は各装備にボーナスが独立して与えられるが
+	// グループ化すると同一種のボーナスとみなされる
+	grouping: false,
 	// ship条件 map: shipname -> bool
 	shipname_map: null,
 	// 複合ボーナス条件その1/その2　map: equipid -> bool
@@ -561,6 +640,7 @@ Object.assign(EquipmentBonusData.prototype, {
 	evasion  : null,
 	LoS      : null,
 	armor    : null,
+	//accuracy: null,
 	// 一応元のデータへの参照を
 	line: null,
 	
@@ -587,9 +667,14 @@ function EquipmentBonusData_set_csv_line(line){
 	if (line.equipId.indexOf("|") >= 0) {
 		this.equipment_id = 0;
 		this.equipment_id_array = line.equipId.split("|").map(x => +x);
+		this.equipment_id_map = this.equipment_id_array.reduce((a, c) => {
+			a[c] = true;
+			return a;
+		}, {});
 	} else {
 		this.equipment_id = +line.equipId;
 		this.equipment_id_array = null;
+		this.equipment_id_map = {[this.equipment_id]: true};
 	}
 	
 	this.count_map = new Object;
@@ -599,9 +684,12 @@ function EquipmentBonusData_set_csv_line(line){
 	}
 	
 	this.reset = +line.reset;
+	this.grouping = +line.grouping;
 	
 	let names  = line.shipNames && line.shipNames.split("|");
 	let substr_names = names && names.filter(x => /^\[.+\]$/.test(x)).map(x => x.substr(1, x.length - 2));
+	let not_names    = names && names.filter(x => /^!/.test(x)).map(x => x.substr(1));
+	let not_substr_names = not_names && not_names.filter(x => /^\[.+\]$/.test(x)).map(x => x.substr(1, x.length - 2));
 	
 	let types  = line.shipTypes && line.shipTypes.split("|");
 	let jp_types = types && types.filter(x => /^日本/.test(x)).map(x => x.substr(2));
@@ -614,7 +702,7 @@ function EquipmentBonusData_set_csv_line(line){
 	this.shipname_map = new Object;
 	
 	for (let ship of EquipmentDatabase.csv_shiplist) {
-		this.shipname_map[ship.name] = (
+		let hit = (
 			(names && names.indexOf(ship.name) >= 0) ||
 			(substr_names && substr_names.findIndex(ss => ship.name.indexOf(ss) >= 0) >= 0) ||
 			(cnames && cnames.indexOf(ship.className) >= 0) ||
@@ -622,6 +710,15 @@ function EquipmentBonusData_set_csv_line(line){
 			(kaini_cnames && /改二$/.test(ship.name) && kaini_cnames.indexOf(ship.className) >= 0) ||
 			(types && types.indexOf(ship.shipType) >= 0)
 		);
+		if (hit) {
+			// not
+			let hit_ignore = (
+				(not_names && not_names.indexOf(ship.name) >= 0)
+				|| (not_substr_names && not_substr_names.findIndex(ss => ship.name.indexOf(ss) >= 0) >= 0)
+			);
+			if (hit_ignore) hit = false;
+		}
+		this.shipname_map[ship.name] = hit;
 	}
 	
 	let subids1   = line.subEquipIds && line.subEquipIds.split("|");
@@ -710,6 +807,10 @@ Object.assign(EquipmentBonus.prototype, {
 	name: "",
 	ship: null,
 	
+	// 「支援艦隊」モード
+	// 支援に関係ないボーナスは無視する
+	support_mode: false,
+	
 	// shipに関するボーナス情報
 	bonus_data_array: null, // array of EquipmentBonusData
 	bonus_data_map  : null, // map: equipId -> array of EquipmentBonusData
@@ -724,6 +825,7 @@ Object.assign(EquipmentBonus.prototype, {
 	
 	bonus_exists         : EquipmentBonus_bonus_exists,
 	assist_exists        : EquipmentBonus_assist_exists,
+	assist_3p_exists     : EquipmentBonus_assist_3p_exists,
 	bonus_concerns       : EquipmentBonus_bonus_concerns,
 	bonus_independent    : EquipmentBonus_bonus_independent,
 	bonus_synergy_main   : EquipmentBonus_bonus_synergy_main,
@@ -731,7 +833,8 @@ Object.assign(EquipmentBonus.prototype, {
 });
 
 
-function EquipmentBonus(name){
+function EquipmentBonus(name, sup = false){
+	if (sup) this.support_mode = sup;
 	if (name) {
 		this.set_name(name);
 	}
@@ -770,6 +873,11 @@ function EquipmentBonus_set_name(name){
 	
 	for (let data of EquipmentDatabase.bonusdata_array) {
 		if (data.shipname_map[this.ship.name]) {
+			// 支援艦隊の場合、火力ボーナスしか意味がない
+			if (this.support_mode && data.firepower[10] == 0) {
+				continue;
+			}
+			
 			this.bonus_data_array.push(data);
 			
 			_simple(data, data.equipment_id);
@@ -785,27 +893,47 @@ function EquipmentBonus_set_name(name){
 
 // こちらの関数群では改修値によるソートは行わない
 // 改修値が影響し、かつ本数制限がある場合には呼び出し元で大きいものからソートしておく
-function EquipmentBonus_get_bonus(slot_array){
-	let counter = new Object;
+function EquipmentBonus_get_bonus(slot_array, synergy_only = false){
+	for (let i=0; i<slot_array.length; i++) {
+		slot_array[i].same_index = 1;
+	}
+	for (let i=0; i<slot_array.length; i++) {
+		let c = slot_array[i].same_index;
+		if (c == 1) {
+			let id = slot_array[i].equipment_id;
+			if (id != 0) {
+				for (let j=i+1; j<slot_array.length; j++) {
+					if (slot_array[j].equipment_id == id) {
+						slot_array[j].same_index = ++c;
+					}
+				}
+			}
+		}
+	}
 	
 	for (let i=0; i<slot_array.length; i++) {
 		let slot = slot_array[i];
-		slot.bonus_firepower = 0;
-		slot.bonus_torpedo   = 0;
-		slot.bonus_antiair   = 0;
-		slot.bonus_ASW       = 0;
-		slot.bonus_evasion   = 0;
-		slot.bonus_LoS       = 0;
-		slot.bonus_armor     = 0;
+		slot.clear_bonus();
 		
 		let arr = this.bonus_data_map[slot.equipment_id];
 		if (!arr) continue;
 		
-		let count = counter[slot.equipment_id] || 0;
-		counter[slot.equipment_id] = ++count;
-		
 		for (let j=0; j<arr.length; j++) {
 			let data = arr[j];
+			
+			let count;
+			if (data.grouping) {
+				// グループ化されたボーナス
+				// しょうがないので毎回カウントする
+				let group = data.equipment_id_map;
+				count = 1;
+				for (let p=0; p<i; p++) {
+					if (group[ slot_array[p].equipment_id ]) count++;
+				}
+			} else {
+				count = slot.same_index;
+			}
+			
 			if (!data.count_map[count]) continue;
 			
 			if (data.subequip_map1) {
@@ -829,6 +957,10 @@ function EquipmentBonus_get_bonus(slot_array){
 					if (pos2 >= slot_array.length) continue;
 				}
 				// 厳密にはこのチェックで漏れる可能性はあるが、そういった複雑な条件は書かない（分割する）こととする
+				// 具体的にはsub1とsub2に同じ装備が含まれる場合
+			} else {
+				// シナジーのみ
+				if (synergy_only && data.independent()) continue;
 			}
 			
 			// チェックを通過、このボーナスが有効
@@ -921,6 +1053,21 @@ function EquipmentBonus_bonus_exists(id){
 
 function EquipmentBonus_assist_exists(id){
 	return Boolean(this.assist_data_map[id]);
+}
+
+// 3点シナジーを与える装備かどうか
+function EquipmentBonus_assist_3p_exists(id){
+	let syn_3p = false;
+	let arr = this.assist_data_map[id];
+	if (arr) {
+		for (let i=0; i<arr.length; i++) {
+			if (arr[i].subequip_map1 && arr[i].subequip_map2) {
+				syn_3p = true;
+				break;
+			}
+		}
+	}
+	return syn_3p;
 }
 
 // 装備ボーナスに関係する装備か
