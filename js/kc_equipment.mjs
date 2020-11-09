@@ -47,11 +47,20 @@ Object.assign(EquipmentDatabase, {
 	bonusdata_array: null, // EquipmentBonusData[]
 	// map: 装備ID -> 装備データ(csv)
 	equipment_data_map: null,
+	// 装備IDの最大値
+	// 初期化でも利用するため、最初のほうで設定しなければならない
+	equipment_max_number: 0,
 	
 	initialized: false,
 	init_jp_def: EquipmentDatabase_init_jp_def,
 	initialize : EquipmentDatabase_initialize,
+	
+	// マルチスレッド用
+	// 通常のオブジェクトは共有できないのでコピーする必要がある
+	get_data: EquipmentDatabase_get_data,
+	set_data: EquipmentDatabase_set_data,
 });
+
 
 Object.assign(EquipmentDatabase, {
 	eqab_special_def: {
@@ -125,6 +134,10 @@ function EquipmentDatabase_initialize(csv_shiplist, csv_equiplist_raw, csv_equip
 	
 	EquipmentDatabase.init_jp_def();
 	
+	for (let i=0; i<csv_shiplist.length; i++) {
+		csv_shiplist[i].temporary_id = i + 1;
+	}
+	
 	// 数値に変換する
 	// ひとまず装備リストのみ
 	let csv_equiplist = new Array;
@@ -136,13 +149,19 @@ function EquipmentDatabase_initialize(csv_shiplist, csv_equiplist_raw, csv_equip
 	// 空母の攻撃条件を満たす装備か
 	let cv_attackable_cates = ["艦上爆撃機", "艦上攻撃機", "噴式戦闘爆撃機"];
 	
-	for (let d of csv_equiplist_raw) {
-		let eq = Object.assign(new Object, d);
+	let max_number = 0;
+	for (let i=0; i<csv_equiplist_raw.length; i++) {
+		let eq = Object.assign(new Object, csv_equiplist_raw[i]);
 		for (let prop of number_props) eq[prop] = +eq[prop];
 		eq.cv_attackable = cv_attackable_cates.indexOf(eq.category) >= 0;
 		csv_equiplist.push(eq);
+		
+		if (max_number < eq.number) max_number = eq.number;
 	}
 	EquipmentDatabase.csv_equiplist = csv_equiplist;
+	EquipmentDatabase.equipment_max_number = max_number;
+	
+	if (max_number > 65535) debugger;
 	
 	// csv_equipable
 	// 色々文字列で保有しているが、ひとまず次のものだけ配列変換
@@ -190,6 +209,38 @@ function EquipmentDatabase_initialize(csv_shiplist, csv_equiplist_raw, csv_equip
 	EquipmentDatabase.equipment_data_map = eqmap;
 	
 	EquipmentDatabase.initialized = true;
+}
+
+// postMessage() するデータ
+// postMessage() の際にコピーされるはず
+// SharedArrayBuffer はそのまま転送してよい
+function EquipmentDatabase_get_data(){
+	if (!EquipmentDatabase.initialized) debugger;
+	
+	return {
+		csv_equiplist_raw   : EquipmentDatabase.csv_equiplist_raw   ,
+		csv_equipable_raw   : EquipmentDatabase.csv_equipable_raw   ,
+		csv_shiplist        : EquipmentDatabase.csv_shiplist        ,
+		csv_equiplist       : EquipmentDatabase.csv_equiplist       ,
+		csv_equipable       : EquipmentDatabase.csv_equipable       ,
+		csv_equipbonus      : EquipmentDatabase.csv_equipbonus      ,
+		bonusdata_array     : EquipmentDatabase.bonusdata_array     ,
+		equipment_data_map  : EquipmentDatabase.equipment_data_map  ,
+		equipment_max_number: EquipmentDatabase.equipment_max_number,
+		initialized         : EquipmentDatabase.initialized         ,
+	};
+}
+
+function EquipmentDatabase_set_data(data){
+	Object.assign(EquipmentDatabase, data);
+	
+	// bonusdata_array だけ変換が必要
+	let arr = EquipmentDatabase.bonusdata_array;
+	for (let i=0; i<arr.length; i++) {
+		let bonus = new EquipmentBonusData();
+		Object.assign(bonus, arr[i]);
+		arr[i] = bonus;
+	}
 }
 
 
@@ -481,6 +532,10 @@ Object.assign(EquipmentSlot.prototype, {
 	is_upper_or_equal    : EquipmentSlot_is_upper_or_equal,
 	is_upper_or_equal_raw: EquipmentSlot_is_upper_or_equal_raw,
 	
+	// ボーナス値は保存されない
+	get_json: EquipmentSlot_get_json,
+	set_json: EquipmentSlot_set_json,
+	
 	get_power_min  : EquipmentSlot_get_power_min,
 	get_power_float: EquipmentSlot_get_power_float,
 	get_power_max  : EquipmentSlot_get_power_max,
@@ -573,6 +628,20 @@ function EquipmentSlot_is_upper_or_equal_raw(b, cv_shelling){
 	);
 }
 
+function EquipmentSlot_get_json(){
+	return {
+		equipment_id: this.equipment_id,
+		improvement : this.improvement,
+	};
+}
+
+function EquipmentSlot_set_json(json){
+	let id = +json.equipment_id || 0;
+	let star = +json.improvement;
+	if (!(0 <= star && star <= 10)) star = 0;
+	this.set_equipment(id, null, star);
+}
+
 function EquipmentSlot_get_power_min(cv_shelling){
 	let eq = this.equipment_data;
 	return ( eq
@@ -613,20 +682,24 @@ function EquipmentSlot_get_power_max(cv_shelling){
 Object.assign(EquipmentBonusData.prototype, {
 	// 適用する装備ID
 	// 複数の場合は equipment_id=0, equipment_id_array がIDの配列になる(一つの場合後者はnull)
-	equipment_id: 0,
-	equipment_id_array: null,
+	equipment_id: 0, // omit
+	equipment_id_array: null, // omit
 	// 適用する装備IDかどうかを判定するmap
 	equipment_id_map: null,
 	// 何本目に適用するか
-	count_map: null, // map: count -> bool
+	// 旧式　今は null
+	count_map: null, // map: count -> bool, omit
+	// ビットデータの形　下(0x01)が1本目
+	count_bit: 0,
 	// これまでのボーナスを無効にするか
 	reset: false,
 	// このボーナスをグループ化するか
-	// グループ化しない場合は各装備にボーナスが独立して与えられるが
+	// グループ化しない場合は指定した各装備にボーナスが独立して与えられるが
 	// グループ化すると同一種のボーナスとみなされる
 	grouping: false,
-	// ship条件 map: shipname -> bool
-	shipname_map: null,
+	// ship条件 map: shipname -> bool, map: shipid -> bool
+	shipname_map: null, // omit
+	shipid_map  : null,
 	// 複合ボーナス条件その1/その2　map: equipid -> bool
 	// nullでない場合、ここで指定されている装備を同時に装備しているときのみ有効
 	subequip_map1: null,
@@ -646,7 +719,7 @@ Object.assign(EquipmentBonusData.prototype, {
 	
 	// method
 	set_csv_line: EquipmentBonusData_set_csv_line,
-	independent: EquipmentBonusData_independent,
+	independent : EquipmentBonusData_independent,
 });
 
 Object.assign(EquipmentBonusData, {
@@ -664,23 +737,90 @@ function EquipmentBonusData(line){
 }
 
 function EquipmentBonusData_set_csv_line(line){
-	if (line.equipId.indexOf("|") >= 0) {
-		this.equipment_id = 0;
-		this.equipment_id_array = line.equipId.split("|").map(x => +x);
-		this.equipment_id_map = this.equipment_id_array.reduce((a, c) => {
-			a[c] = true;
-			return a;
-		}, {});
-	} else {
-		this.equipment_id = +line.equipId;
-		this.equipment_id_array = null;
-		this.equipment_id_map = {[this.equipment_id]: true};
+	let max_number = EquipmentDatabase.equipment_max_number;
+	if (max_number == 0) debugger;
+	
+	// SharedArrayBuffer/ArrayBufferを使用する
+	const array_buffer_mode = true;
+	const use_shared_buffer = true;
+	// 一時IDを使ってメモリーを節約する
+	const shipid_mode = true;
+	// 旧式の個数判定用オブジェクトを作る
+	const init_count_map = false;
+	
+	// bytes
+	let shipid_bufsize = EquipmentDatabase.csv_shiplist.length + 1;
+	let buffer_size = (max_number + 1) * 4 + 11 * 7 + shipid_bufsize;
+	if (init_count_map) buffer_size += 7;
+	buffer_size = Math.ceil(buffer_size / 4) * 4; // なんとなく4の倍数にしておく
+	
+	let buffer = null;
+	let assigned_size = 0;
+	
+	if (array_buffer_mode) {
+		if (use_shared_buffer) {
+			try {
+				buffer = new SharedArrayBuffer(buffer_size);
+			} catch (e) {}
+		}
+		if (!buffer) {
+			try {
+				buffer = new ArrayBuffer(buffer_size);
+			} catch (e2) {}
+		}
+		// 節約のため保存しないでおく
+		//this.buffer = buffer;
 	}
 	
-	this.count_map = new Object;
+	let _assign_bool_map = (length) => {
+		if (!buffer) return new Object();
+		
+		let begin = assigned_size;
+		let size = length;
+		if (begin + size > buffer_size) {
+			throw new Error("バッファサイズが足りません");
+		}
+		let ptr = new Int8Array(buffer, begin, length);
+		assigned_size = begin + size;
+		return ptr;
+	};
+	let _assign_short_array = (length) => {
+		if (!buffer) return new Array(length);
+		// アライメントを考慮する
+		let begin = Math.ceil(assigned_size / 2) * 2;
+		let size = length * 2;
+		if (begin + size > buffer_size) {
+			throw new Error("バッファサイズが足りません");
+		}
+		let ptr = new Uint16Array(buffer, begin, length);
+		assigned_size = begin + size;
+		return ptr;
+	};
+	
+	{
+		let arr = line.equipId.split("|");
+		this.equipment_id_map = arr.reduce((a, c) => {
+			let num = +c;
+			if (!(1 <= num && num <= max_number)) debugger;
+			a[num] = true;
+			return a;
+		}, _assign_bool_map(max_number + 1));
+	}
+	
+	
+	if (init_count_map) {
+		this.count_map = _assign_bool_map(7);
+	}
+	this.count_bit = 0;
 	let arr = line.countAt.split("|");
 	for (let i=1; i<=6; i++) {
-		this.count_map[i] = !line.countAt || line.countAt == "*" || arr.some(x => x == i);
+		let b = !line.countAt || line.countAt == "*" || arr.some(x => x == i);
+		if (init_count_map) {
+			this.count_map[i] = b;
+		}
+		if (b) {
+			this.count_bit |= 1 << (i - 1);
+		}
 	}
 	
 	this.reset = +line.reset;
@@ -699,7 +839,11 @@ function EquipmentBonusData_set_csv_line(line){
 	let kaini_cnames = cnames_raw && cnames_raw.filter(x => /改二$/.test(x)).map(x => x.substr(0, x.length - 2));
 	let cnames       = cnames_raw && cnames_raw.filter(x => !/改二$/.test(x));
 	
-	this.shipname_map = new Object;
+	if (shipid_mode) {
+		this.shipid_map = _assign_bool_map(shipid_bufsize);
+	} else {
+		this.shipname_map = new Object;
+	}
 	
 	for (let ship of EquipmentDatabase.csv_shiplist) {
 		let hit = (
@@ -718,7 +862,12 @@ function EquipmentBonusData_set_csv_line(line){
 			);
 			if (hit_ignore) hit = false;
 		}
-		this.shipname_map[ship.name] = hit;
+		if (this.shipname_map) {
+			this.shipname_map[ship.name] = hit;
+		}
+		if (this.shipid_map) {
+			this.shipid_map[ship.temporary_id] = hit;
+		}
 	}
 	
 	let subids1   = line.subEquipIds && line.subEquipIds.split("|");
@@ -731,9 +880,9 @@ function EquipmentBonusData_set_csv_line(line){
 	let aa_radar2 = subcates2 && subcates2.indexOf("対空電探") >= 0;
 	let sf_radar2 = subcates2 && subcates2.indexOf("水上電探") >= 0;
 	
-	let sub1 = new Object;
+	let sub1 = _assign_bool_map(max_number + 1);
 	let sub1_count = 0;
-	let sub2 = new Object;
+	let sub2 = _assign_bool_map(max_number + 1);
 	let sub2_count = 0;
 	
 	function _eq_match(eq, ids, cates, aa, sf){
@@ -764,7 +913,7 @@ function EquipmentBonusData_set_csv_line(line){
 			ret = EquipmentBonusData.constant_bonus[str];
 			
 		} else {
-			ret = new Array;
+			ret = _assign_bool_map(11);
 			let sp = str.split("|");
 			for (let i=0; i<=10; i++) {
 				// 空の場合一つ下の改修値のものを引き継ぐ
@@ -792,12 +941,24 @@ function EquipmentBonusData_set_csv_line(line){
 // 単体ボーナス(累積可能)であるか
 // 他のスロットの装備によらないのであれば改修値でボーナスが変わってもよい
 function EquipmentBonusData_independent(){
-	if (this.subequip_map1) return false;
+/*
+	// 旧式と同値かチェックするコード
+	let _old = () => {
+		if (this.subequip_map1) return false;
 	
-	for (let n=1; n<=6; n++) {
-		if (!this.count_map[n]) return false;
-	}
-	return true;
+		for (let n=1; n<=6; n++) {
+			if (!this.count_map[n]) return false;
+		}
+		return true;
+	};
+	let b1 = this.subequip_map1 == null && this.count_bit == 0x3f;
+	let b2 = _old();
+	
+	if (b1 != b2) debugger;
+*/
+	
+	// 6個目まですべて
+	return this.subequip_map1 == null && this.count_bit == 0x3f;
 }
 
 
@@ -841,6 +1002,9 @@ function EquipmentBonus(name, sup = false){
 }
 
 function EquipmentBonus_set_name(name){
+	let max_number = EquipmentDatabase.equipment_max_number;
+	
+	this.name = name;
 	this.ship = EquipmentDatabase.csv_shiplist.find(x => x.name == name);
 	this.bonus_data_array = new Array;
 	this.bonus_data_map = new Object;
@@ -849,7 +1013,7 @@ function EquipmentBonus_set_name(name){
 	let _assist = (data, submap) => {
 		if (!submap) return;
 		
-		for (let key of Object.keys(submap)) {
+		for (let key=1; key<=max_number; key++) {
 			if (submap[key]) {
 				let arr = this.assist_data_map[key];
 				if (!arr) {
@@ -872,7 +1036,9 @@ function EquipmentBonus_set_name(name){
 	};
 	
 	for (let data of EquipmentDatabase.bonusdata_array) {
-		if (data.shipname_map[this.ship.name]) {
+		if ( (data.shipname_map && data.shipname_map[this.ship.name])
+			|| (data.shipid_map && data.shipid_map[this.ship.temporary_id]) )
+		{
 			// 支援艦隊の場合、火力ボーナスしか意味がない
 			if (this.support_mode && data.firepower[10] == 0) {
 				continue;
@@ -880,10 +1046,15 @@ function EquipmentBonus_set_name(name){
 			
 			this.bonus_data_array.push(data);
 			
+			for (let i=1; i<=max_number; i++) {
+				if (data.equipment_id_map[i]) _simple(data, i);
+			}
+/*
 			_simple(data, data.equipment_id);
 			if (data.equipment_id_array) {
 				data.equipment_id_array.forEach(id => _simple(data, id));
 			}
+*/
 			
 			_assist(data, data.subequip_map1);
 			_assist(data, data.subequip_map2);
@@ -934,7 +1105,15 @@ function EquipmentBonus_get_bonus(slot_array, synergy_only = false){
 				count = slot.same_index;
 			}
 			
-			if (!data.count_map[count]) continue;
+			/*
+			{	// 旧式と同値かチェックするコード
+				let b1 = data.count_map[count];
+				let b2 = (data.count_bit & (1 << (count - 1))) != 0;
+				if (b1 != b2) debugger;
+			}
+			*/
+			
+			if ((data.count_bit & (1 << (count - 1))) == 0) continue;
 			
 			if (data.subequip_map1) {
 				let pos1 = 0;

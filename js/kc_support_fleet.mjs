@@ -70,6 +70,7 @@ Object.assign(SupportFleet, {
 });
 
 
+// name はユニークに
 function SupportFleet(arg_table, name){
 	this.e_table = arg_table;
 	this.name = name;
@@ -85,7 +86,7 @@ function SupportFleet_create(caption, def_priority){
 	let _onchange_sup = e => this.ev_change_sup(e);
 	
 	for (let i=0; i<6; i++) {
-		let sup = new SupportShip(i + 1);
+		let sup = new SupportShip(i + 1, this.name + "_" + (i + 1));
 		sup.create(def_priority);
 		this.e_table.appendChild(sup.e_tbody);
 		sup.onchange = _onchange_sup;

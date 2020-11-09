@@ -64,6 +64,8 @@ Object.assign(SupportShip.prototype, {
 	
 	// 左に表示する番号
 	number: 0,
+	// このオブジェクトを区別するID
+	object_id: "",
 	// 艦名(改造度合いを含む)
 	name  : "",
 	
@@ -124,9 +126,11 @@ Object.assign(SupportShip, {
 
 
 // SupportShip -------------------------------------------------------------------------------------
-function SupportShip(number, name){
+function SupportShip(number, object_id){
+	if (!object_id) debugger;
+	
 	this.number = number;
-	if (name) this.set_name(name);
+	this.object_id = object_id;
 }
 
 function SupportShip_set_name(name){
@@ -680,7 +684,9 @@ function SupportShip_refresh_equipstatus(){
 
 
 function SupportShip_get_data(data){
-	data.support_ship = this;
+	//data.support_ship = this;
+	data.ship_object_id = this.object_id;
+	data.ship_name = this.name;
 	
 	if (this.empty()) {
 		return false;
@@ -877,7 +883,9 @@ function SupportShip_static_get_border_power(engagement_form, formation, target_
 // SupportShipData ---------------------------------------------------------------------------------
 // SupportShip のデータを計算用に
 Object.assign(SupportShipData.prototype, {
-	support_ship: null,
+	//support_ship: null,
+	ship_object_id: "",
+	ship_name     : "",
 	
 	// 優先度
 	priority: 0,
@@ -922,6 +930,9 @@ Object.assign(SupportShipData.prototype, {
 	get_accuracy       : SupportShipData_get_accuracy     ,
 	sort_equipment     : SupportShipData_sort_equipment   ,
 	is_upper_equipment : SupportShipData_is_upper_equipment,
+	
+	get_json_MT: SupportShipData_get_json_MT,
+	set_json_MT: SupportShipData_set_json_MT,
 	
 	eqab_compare        : SupportShipData_eqab_compare,
 	has_irregular_exslot: SupportShipData_has_irregular_exslot,
@@ -1199,6 +1210,53 @@ function SupportShipData_is_upper_equipment(upper, base){
 	
 	return false;
 }
+
+// サブスレッドへの転送用
+function SupportShipData_get_json_MT(){
+	// いくつかは変換する
+	return {
+		ship_object_id       : this.ship_object_id       ,
+		ship_name            : this.ship_name            ,
+		priority             : this.priority             ,
+		engagementform_modify: this.engagementform_modify,
+		formation_modify     : this.formation_modify     ,
+		border_basic_power   : this.border_basic_power   ,
+		border_final_power   : this.border_final_power   ,
+		raw_firepower        : this.raw_firepower        ,
+		cv_shelling          : this.cv_shelling          ,
+		cv_force_attackable  : this.cv_force_attackable  ,
+		slot_count           : this.slot_count           ,
+		exslot_available     : this.exslot_available     ,
+		allslot_equipment    : this.allslot_equipment.map(s => s.get_json()),
+		allslot_equipables   : this.allslot_equipables   ,
+		allslot_fixes        : this.allslot_fixes        ,
+		//equipment_bonus_name : this.equipment_bonus.name , // ship_name
+	};
+}
+
+function SupportShipData_set_json_MT(json){
+	this.ship_object_id       = json.ship_object_id       ,
+	this.ship_name            = json.ship_name            ,
+	this.priority             = json.priority             ,
+	this.engagementform_modify= json.engagementform_modify,
+	this.formation_modify     = json.formation_modify     ,
+	this.border_basic_power   = json.border_basic_power   ,
+	this.border_final_power   = json.border_final_power   ,
+	this.raw_firepower        = json.raw_firepower        ,
+	this.cv_shelling          = json.cv_shelling          ,
+	this.cv_force_attackable  = json.cv_force_attackable  ,
+	this.slot_count           = json.slot_count           ,
+	this.exslot_available     = json.exslot_available     ,
+	this.allslot_equipment    = json.allslot_equipment.map(d => {
+		let sl = new EquipmentSlot();
+		sl.set_json(d);
+		return sl;
+	}),
+	this.allslot_equipables   = json.allslot_equipables   ,
+	this.allslot_fixes        = json.allslot_fixes        ,
+	this.equipment_bonus = new EquipmentBonus(json.ship_name, true);
+}
+
 
 // 2つの装備の、この艦への装備可能条件に関する包含関係
 // ただし固定されているスロットは除く

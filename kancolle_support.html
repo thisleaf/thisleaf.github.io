@@ -105,12 +105,14 @@
 <div id="support_form" class="hidden_init">
 <div class="support_header">支援艦隊</div>
 
-<div id="optimize_tool">
-	<b>装備探索 (砲撃支援)</b>:
+<h5>装備探索 (砲撃支援)</h5>
+<div class="optimize_tool">
 	<button id="fast_optimize">高速探索</button>
 	<button id="random_optimize">ランダム探索</button>
+	<button id="random_optimize_cont">ランダム探索(継続)</button>
 	<button id="clear_equipment">装備解除</button>
 </div>
+<div id="optimize_comment">待機中</div>
 
 <table id="support_A" class="black_border support_table"></table>
 <table id="support_B" class="black_border support_table"></table>
@@ -123,7 +125,33 @@
 
 <!-- オプション -->
 <div id="optimize_options" class="hidden_init">
-オプションはまだないです
+<div class="option_header">オプション</div>
+
+<div class="option_block">
+	ランダム探索の反復回数
+	<select id="iteration_select"></select>
+	<div class="option_block comment_text">
+		1回の探索の実行時間の設定です。値を大きくすると、精度がよくなるかわりに時間がかかります。<br>
+		本当は200%~300%くらい反復したいのですが、100%でも十分良いはずです。
+	</div>
+	
+	<label><input id="use_mt" type="checkbox">マルチスレッドで探索する</label>
+	<div class="option_block">
+		スレッド数:
+		<label><input id="thread_auto" type="radio" name="thread" checked>自動<span id="thread_autodisp"></span></label>
+		<label><input id="thread_custom" type="radio" name="thread">指定</label>
+		<input id="thread_input" type="number" min="1" max="32">
+		<div class="option_block comment_text">
+			バックグラウンドで実行するのでブラウザを固めません。Firefoxでは使えないかも。<br>
+			ランダム探索: 各スレッドで1回ずつ探索関数を実行
+		</div>
+		
+		<label><input id="thread_keep_alive" type="checkbox">探索後待機状態に移行</label>
+		<div class="option_block comment_text">
+			スレッドの起動はやや時間がかかるので、次の探索に備えて少し待機します。30秒ほど待つと終了します。
+		</div>
+	</div>
+</div>
 </div>
 <!-- /オプション -->
 
@@ -145,6 +173,7 @@
 <p>
 支援艦隊の最適装備を計算するツールです。<br>
 装備命中値の合計がなるべく高いものを探します。<br>
+</p>
 <ol>
 <li>「装備」から、所持装備の数を入力します。(本隊装備数を入力するとその分は差し引かれます)</li>
 <li>「支援艦隊」に移動し、支援艦隊で使用する艦を入力します。</li>
@@ -155,7 +184,6 @@
 <li>艦名の左の数字や装備のE1,E2などをドラッグ＆ドロップで入れ替えができます</li>
 <li>所持数・装備数の入力ダイアログでも、★のドラッグドロップができます</li>
 </ul>
-</p>
 
 <h4>所持装備</h4>
 <p>
@@ -205,7 +233,6 @@ Chromeのほうが速いですが、Firefoxでも十分高速に動作するよ�
 </p>
 
 <h4>未実装とか、仕様とか、予定とか</h4>
-<p>
 <ul>
 <li>編成の記録 (今あるフォームのぶんは記録できるけど)</li>
 <li>一部の装備が装備できない (多分使わないしで入力をサボっている)</li>
@@ -219,7 +246,6 @@ Chromeのほうが速いですが、Firefoxでも十分高速に動作するよ�
 <li>合計命中が同じ組み合わせなら、なるべく命中値が偏らないほうを優先する</li>
 <li>所持数と本隊装備数に(改修値の)矛盾がある場合、所持数を優先し本隊の方は適宜修正される</li>
 </ul>
-</p>
 
 </div>
 <!-- /使い方 div#explanation -->

@@ -32,6 +32,7 @@ Object.assign(OwnEquipmentData.prototype, {
 	// 探索除外
 	exclude: false,
 	
+	set_id          : OwnEquipmentData_set_id,
 	reset           : OwnEquipmentData_reset,
 	is_valid        : OwnEquipmentData_is_valid,
 	get_main_count  : OwnEquipmentData_get_main_count,
@@ -45,6 +46,8 @@ Object.assign(OwnEquipmentData.prototype, {
 	get_json  : OwnEquipmentData_get_json,
 	set_json  : OwnEquipmentData_set_json,
 	empty_json: OwnEquipmentData_empty_json,
+	get_json_MT: OwnEquipmentData_get_json_MT,
+	set_json_MT: OwnEquipmentData_set_json_MT,
 	
 	// 計算用
 	rem_counts: null, // array, 残り数
@@ -78,6 +81,11 @@ function OwnEquipmentData(data){
 	this.total_counts = new Array(11).fill(0);
 }
 
+
+function OwnEquipmentData_set_id(id, data = null){
+	this.id = id;
+	this.data = data || EquipmentDatabase.equipment_data_map[id];
+}
 
 // ID関連以外をクリア
 function OwnEquipmentData_reset(){
@@ -152,6 +160,7 @@ function OwnEquipmentData_decrement_main(){
 // 複製
 function OwnEquipmentData_clone(){
 	let out = new OwnEquipmentData(this.csv_data);
+	out.id = this.id; // csv_data は null かも
 	
 	for (let i=0; i<=10; i++) {
 		out.main_counts[i]  = this.main_counts[i];
@@ -219,6 +228,27 @@ function OwnEquipmentData_set_json(json){
 // jsonデータとして保存しなくてもよいなら true
 function OwnEquipmentData_empty_json(){
 	return this.get_main_count() == 0 && this.get_total_count() == 0 && !this.exclude;
+}
+
+// マルチスレッド用json  postMessage() でコピーされるはず
+// 計算用データも複製する
+function OwnEquipmentData_get_json_MT(){
+	let json = this.get_json();
+	json.rem_counts = this.rem_counts;
+	json.fix_counts = this.fix_counts;
+	json.remaining = this.remaining;
+	json.fixed = this.fixed;
+	json.rem_stars = this.rem_stars;
+	return json;
+}
+
+function OwnEquipmentData_set_json_MT(json){
+	this.set_json(json);
+	this.rem_counts = json.rem_counts;
+	this.fix_counts = json.fix_counts;
+	this.remaining = json.remaining;
+	this.fixed = json.fixed;
+	this.rem_stars = json.rem_stars;
 }
 
 
@@ -555,8 +585,12 @@ function OwnEquipmentDialog_create(){
 		let inputs = new Array;
 		
 		for (let i=0; i<=10; i++) {
+			let si_div = ELEMENT("div");
 			let star = NODE(ELEMENT("div", "", "eq_star"), [TEXT("★" + i)]);
 			let input = ELEMENT("input", {type: "number", className: "eq_countbox", value: 0, min: 0, max: 99});
+			
+			si_div.dataset.star = i;
+			si_div.dataset.key = stars_key;
 			star.dataset.star = i;
 			star.dataset.key = stars_key;
 			star.draggable = true;
@@ -565,7 +599,7 @@ function OwnEquipmentDialog_create(){
 			inputs.push(input);
 			
 			NODE(div, [
-				NODE(ELEMENT("div"), [
+				NODE(si_div, [
 					star,
 					input,
 				]),
@@ -637,8 +671,9 @@ function OwnEquipmentDialog_create(){
 	let _set_dd = el => {
 		el.addEventListener("dragstart", e => this.ev_dragstart(e));
 		el.addEventListener("dragend"  , e => this.ev_dragend  (e));
-		el.addEventListener("dragover" , e => this.ev_dragover (e));
-		el.addEventListener("drop"     , e => this.ev_drop     (e));
+		// dropは親divに
+		el.parentElement.addEventListener("dragover", e => this.ev_dragover(e));
+		el.parentElement.addEventListener("drop", e => this.ev_drop(e));
 	};
 	this.e_total_stars.forEach(_set_dd);
 	this.e_main_stars.forEach(_set_dd);
@@ -1225,7 +1260,7 @@ function OwnResetDialog_create(){
 	DOMDialog.prototype.create.call(this, "modal", "一括クリア", true);
 	
 	this.e_inside.classList.add("reset");
-	this.e_inside.classList.add("vcenter");
+	//this.e_inside.classList.add("vcenter");
 	
 	let ok_btn = ELEMENT("button", {textContent: "実行"});
 	let cancel_btn = ELEMENT("button", {textContent: "キャンセル"});
@@ -1259,6 +1294,10 @@ function OwnResetDialog_create(){
 	this.add_dialog_button(ok_btn, "ok");
 	this.add_dialog_button(cancel_btn, "cancel");
 	
+	this.addEventListener("show", e => {
+		// 中央に置く(この位置でないとサイズがうまく計算できない)
+		this.move_to(this.get_max_x() / 2, this.get_max_y() / 2);
+	});
 	this.addEventListener("cancel", e => {
 		if (e.detail == "outside") e.preventDefault();
 	});
@@ -1330,7 +1369,7 @@ function OwnConvertDialog_create(){
 	DOMDialog.prototype.create.call(this, "modal", "データの読み込み", true);
 	
 	this.e_inside.classList.add("convert");
-	this.e_inside.classList.add("vcenter");
+	//this.e_inside.classList.add("vcenter");
 	
 	let ok_btn, cancel_btn;
 	this.e_deckbuilder_fleets = new Array;
@@ -1399,6 +1438,9 @@ function OwnConvertDialog_create(){
 	this.refresh_hint();
 	
 	// event
+	this.addEventListener("show", e => {
+		this.move_to(this.get_max_x() / 2, this.get_max_y() / 2);
+	});
 	this.e_select.addEventListener("change", e => {
 		this.refresh_hint();
 		this.reset_confirmation();

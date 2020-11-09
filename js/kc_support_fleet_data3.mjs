@@ -48,7 +48,7 @@ Object.assign(SASlotData.prototype, {
 function SASlotData(ssd, ssd_index, slot_index){
 	this.ssd = ssd;
 	this.ssd_index = ssd_index;
-	this.csv_ship = ssd.support_ship.ship_selector.get_ship();
+	this.csv_ship = EquipmentDatabase.csv_shiplist.find(line => line.name == ssd.ship_name);
 	this.group_id = SASlotData_get_group_id(this.csv_ship.shipType);
 	this.slot_index = slot_index;
 	this.slot = ssd.allslot_equipment[slot_index];
@@ -77,17 +77,14 @@ function SASlotData_get_group_id(shipType){
 
 
 // 焼きなまし法による解の探索
-function SupportFleetData_annealing(){
+// iteration_scale: 反復回数を基準の何倍にするか
+function SupportFleetData_annealing(iteration_scale = 1){
 	if (this.ssd_list.length == 0) return;
 	
 	this.fill();
 	
-	let own_map = this.own_map;
 	this.ssd_list.forEach(ssd => ssd.calc_bonus());
 	this.own_list.forEach(own => own.generate_rem_stars());
-	
-	let max_fleet = this.clone();
-	let max_score = new SupportFleetScore(this.ssd_list);
 	
 	let ssd_list = this.ssd_list;
 	let own_list = this.own_list.filter(x => x.get_total_count() - x.get_main_count() > 0);
@@ -178,7 +175,6 @@ function SupportFleetData_annealing(){
 	
 	let retry_count = 0;
 	let retry_max = 1;
-	let loop_count_max = 1000000; // ストッパー
 	let start_temperature = 5000;
 	let end_temperature = 1;
 /*
@@ -188,19 +184,24 @@ function SupportFleetData_annealing(){
 	let coefficient = 0.85;
 */
 	// 反復回数固定で設定
-	let expect_loop_count = 18000 * ssd_list.length; // まだ成績が伸びる？
+	let expect_loop_count = 18000 * ssd_list.length * iteration_scale; // まだ成績が伸びる？
 	let coefficient = 0.8;
 	let max_step = Math.floor(Math.log(end_temperature / start_temperature) / Math.log(coefficient)) + 1;
 	let phasechange_count = expect_loop_count / (max_step * retry_max);
 	
-	let loop_count = 0;
 	let newphase_count = 0;
-	let temperature = start_temperature;
 	let move_count = 0;
+	let temperature = start_temperature;
 	
-	let current_score = max_score.clone();
+	let own_map = this.own_map;
 	
-	for (; loop_count<loop_count_max; loop_count++) {
+	// スコアは使い回して、メモリ割り当てを少なくする
+	let max_fleet = this.clone(false);
+	const max_score = new SupportFleetScore(this.ssd_list);
+	const current_score = max_score.clone();
+	const temp_score = current_score.clone();
+	
+	for ( ; ; newphase_count++) {
 		if (newphase_count >= phasechange_count) {
 			temperature *= coefficient;
 			if (temperature < end_temperature) {
@@ -247,7 +248,9 @@ function SupportFleetData_annealing(){
 			if (swap_sa) {
 				// 装備の入れ替え
 				let swap_ssd = swap_sa.ssd;
-				let score = current_score.clone();
+				let score = temp_score;
+				score.copy_from(current_score);
+				
 				score.sub(ssd);
 				score.sub(swap_ssd);
 				
@@ -263,7 +266,7 @@ function SupportFleetData_annealing(){
 				
 				if (move) {
 					// 移動
-					current_score = score;
+					current_score.copy_from(score);
 					move_count++;
 					
 				} else {
@@ -304,7 +307,9 @@ function SupportFleetData_annealing(){
 				let old_data = slot.equipment_data;
 				let old_star = slot.improvement;
 				
-				let score = current_score.clone();
+				let score = temp_score;
+				score.copy_from(current_score);
+				
 				score.sub(ssd);
 				
 				// 装備をownに
@@ -321,7 +326,7 @@ function SupportFleetData_annealing(){
 					// 移動
 					swap_own.pop_rem_star();
 					own_map[old_id].insert_rem_star(old_star);
-					current_score = score;
+					current_score.copy_from(score);
 					move_count++;
 					
 				} else {
@@ -335,12 +340,12 @@ function SupportFleetData_annealing(){
 		
 		// check
 		if (max_score.compare(current_score) < 0) {
-			max_fleet = this.clone();
-			max_score = current_score;
+			max_fleet = this.clone(false);
+			max_score.copy_from(current_score);
 		}
-		newphase_count++;
 	}
 	
+	max_fleet.generate_own_map();
 	this.move_from(max_fleet);
 }
 

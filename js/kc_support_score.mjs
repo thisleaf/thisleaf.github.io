@@ -3,6 +3,7 @@
 export {
 	SupportFleetScore,
 	SupportShipScore,
+	SupportFleetScorePrior,
 };
 
 
@@ -26,6 +27,7 @@ Object.assign(SupportFleetScore.prototype, {
 	total_bonus_power: 0,
 	
 	clear    : SupportFleetScore_clear,
+	copy_from: SupportFleetScore_copy_from,
 	add      : SupportFleetScore_add,
 	add_score: SupportFleetScore_add_score,
 	sub      : SupportFleetScore_sub,
@@ -49,6 +51,14 @@ function SupportFleetScore_clear(){
 	this.total_accuracy_sq = 0;
 	this.total_basic_power = 0;
 	this.total_bonus_power = 0;
+}
+
+function SupportFleetScore_copy_from(src){
+	this.unreached_power   = src.unreached_power  ;
+	this.total_accuracy    = src.total_accuracy   ;
+	this.total_accuracy_sq = src.total_accuracy_sq;
+	this.total_basic_power = src.total_basic_power;
+	this.total_bonus_power = src.total_bonus_power;
 }
 
 // ボーナス値は自動計算しない(先に計算しておく)
@@ -145,6 +155,7 @@ Object.assign(SupportShipScore.prototype, {
 	total_bonus_power: 0,
 	
 	clear    : SupportShipScore_clear,
+	copy_from: SupportShipScore_copy_from,
 	add      : SupportShipScore_add,
 	compare  : SupportShipScore_compare,
 	compare2 : SupportShipScore_compare2,
@@ -161,6 +172,13 @@ function SupportShipScore_clear(){
 	this.total_accuracy    = 0;
 	this.total_basic_power = 0;
 	this.total_bonus_power = 0;
+}
+
+function SupportShipScore_copy_from(src){
+	this.unreached_power   = src.unreached_power  ;
+	this.total_accuracy    = src.total_accuracy   ;
+	this.total_basic_power = src.total_basic_power;
+	this.total_bonus_power = src.total_bonus_power;
 }
 
 function SupportShipScore_add(ssd, basic_power = ssd.border_basic_power, test){
@@ -191,5 +209,78 @@ function SupportShipScore_compare2(b){
 
 function SupportShipScore_clone(){
 	return Object.assign(new SupportShipScore, this);
+}
+
+
+// SupportFleetScorePrior --------------------------------------------------------------------------
+// 優先度も考慮してのスコア
+Object.assign(SupportFleetScorePrior.prototype, {
+	scores: null, // map: priority -> SupportFleetScore
+	total_score: null, // 全合計
+	
+	add: SupportFleetScorePrior_add,
+	add_array: SupportFleetScorePrior_add_array,
+	compare: SupportFleetScorePrior_compare,
+	compare_accuracy: SupportFleetScorePrior_compare_accuracy,
+	set_json: SupportFleetScorePrior_set_json,
+});
+
+
+function SupportFleetScorePrior(ssd_list){
+	this.scores = new Array(13);
+	this.total_score = new SupportFleetScore();
+	if (ssd_list) this.add_array(ssd_list);
+}
+
+function SupportFleetScorePrior_add(ssd){
+	let score = this.scores[ssd.priority];
+	if (!score) {
+		score = new SupportFleetScore();
+		this.scores[ssd.priority] = score;
+	}
+	score.add(ssd);
+	this.total_score.add(ssd);
+}
+
+function SupportFleetScorePrior_add_array(ssd_list){
+	for (let i=0; i<ssd_list.length; i++) {
+		let ssd = ssd_list[i];
+		this.add(ssd, ssd.border_basic_power);
+	}
+}
+
+function SupportFleetScorePrior_compare(b){
+	for (let i=1; i<=12; i++) {
+		let c = (this.scores[i] ? 1 : 0) - (b.scores[i] ? 1 : 0);
+		if (c == 0 && this.scores[i]) {
+			c = this.scores[i].compare(b.scores[i]);
+		}
+		if (c != 0) return c;
+	}
+	return 0;
+}
+
+function SupportFleetScorePrior_compare_accuracy(b){
+	for (let i=1; i<=12; i++) {
+		let c = (this.scores[i] ? 1 : 0) - (b.scores[i] ? 1 : 0);
+		if (c == 0 && this.scores[i]) {
+			c = this.scores[i].total_accuracy - b.scores[i].total_accuracy;
+		}
+		if (c != 0) return c;
+	}
+	return 0;
+}
+
+// getのほうはそのままstringifyでよい
+function SupportFleetScorePrior_set_json(json){
+	for (let i=1; i<=12; i++) {
+		if (json.scores[i]) {
+			this.scores[i] = Object.assign(new SupportFleetScore(), json.scores[i]);
+		} else {
+			delete this.scores[i];
+		}
+	}
+	this.total_score = Object.assign(new SupportFleetScore(), json.total_score);
+	return this;
 }
 

@@ -233,6 +233,8 @@ th.center, td.center {
 	top: var(--top-margin);
 	margin-left: auto;
 	margin-right: auto;
+	width: -moz-fit-content; /* firefox */
+	height: -moz-fit-content;
 	width: fit-content; /* 個別に上書きすべき */
 	height: fit-content;
 	max-width: calc(100vw - var(--left-margin) - var(--right-margin));
@@ -245,6 +247,7 @@ th.center, td.center {
 	display: none;
 }
 /* 縦も中央揃え */
+/* firefoxでうまくうごかない？ */
 .dialog_container .inside.vcenter {
 	top: 0px;
 	bottom: 0px;
@@ -301,6 +304,8 @@ th.center, td.center {
 
 /* alert用 */
 .dialog_container .inside.alert {
+	width: -moz-fit-content;
+	height: -moz-fit-content;
 	width: fit-content;
 	height: fit-content;
 	min-width: 200px;

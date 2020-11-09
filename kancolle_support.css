@@ -434,13 +434,26 @@ body {
 
 
 /* 支援艦隊 */
-.support_header {
+#support_form .support_header {
 	padding: 1px 8px;
 	background-color: #aae1ff;
 	font-weight: bold;
 }
-#optimize_tool {
-	margin: 0.5em;
+#support_form h5 {
+	margin: 0em 0em 0em 0.5em;
+}
+#support_form .optimize_tool {
+	margin-left: 1em;
+}
+#support_form .optimize_tool button {
+	min-width: 6em;
+}
+#support_form .optimize_tool #random_optimize_cont {
+	min-width: 10em;
+}
+#support_form #optimize_comment {
+	font-size: 80%;
+	margin-left: 1.2em;
 }
 
 /* 支援艦隊 > table */
@@ -636,6 +649,26 @@ body {
 }
 #support_B tbody .eq_dragdrop {
 	background-color: lavender;
+}
+
+
+/* オプション */
+.option_header {
+	margin-bottom: 0.5em;
+	padding: 1px 8px;
+	background-color: #9eb;
+	font-weight: bold;
+}
+.option_block {
+	margin: 0px 0px 0px 16px;
+}
+.option_block.comment_text {
+	font-size: 80%;
+	margin-bottom: 0.5em;
+}
+#thread_input {
+	text-align: right;
+	width: 3em;
 }
 
 

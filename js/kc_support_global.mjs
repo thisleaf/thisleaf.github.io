@@ -94,3 +94,31 @@ export const SUPPORT_SAVEDATA_VERSION = 2;
 
 // ページの読込ごとに変更される定数
 export const PAGE_TOKEN = Math.floor(Math.random() * 0xffffffff).toString(16);
+
+// 各種設定
+export const DefaultSettings = {
+	// マルチスレッドの設定
+	// 最大スレッド数
+	ThreadMax: 32,
+	// 実行していないワーカーの生存時間(msec)
+	ThreadKeepTime: 30000,
+	// チェック間隔
+	ThreadDestroyInterval: 5000,
+	// マルチスレッド探索を利用する
+	MultiThreading: false,
+	// スレッド数の指定 "auto": 自動, "custom": 指定
+	ThreadCountMode: "auto",
+	// "custom" の場合のスレッド数
+	CustomThreadCount: navigator.hardwareConcurrency || 1,
+	// 探索後待機状態に移行、時間経過で解放
+	ThreadKeepAlive: true,
+	
+	// 焼きなまし
+	// 反復回数倍率*100
+	AnnealingIteration100: 100,
+	AnnealingIterationMin100: 10,
+	AnnealingIterationMax100: 2000,
+};
+
+export const Settings = Object.create(DefaultSettings);
+

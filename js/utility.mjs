@@ -68,6 +68,13 @@ export function limit(x, a, b){
 	return x <= a ? a : x >= b ? b : x;
 }
 
+// 数値への変換とデフォルト値付き
+// arg_x が数値でない場合は def を返す
+export function safe_limit(arg_x, a, b, def){
+	let x = +arg_x;
+	return x <= a ? a : x >= b ? b : isFinite(x) ? x : def;
+}
+
 
 // てきーとな変換関数
 // xとかflenが大きくなるとうまく変換できないかも

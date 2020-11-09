@@ -9,6 +9,9 @@ import {
 	EquipmentBonus,
 } from "./kc_equipment.mjs";
 import {
+	OwnEquipmentData,
+} from "./kc_support_equip.mjs";
+import {
 	SupportShip,
 	SupportShipData,
 } from "./kc_support_ship.mjs";
@@ -32,16 +35,20 @@ export {
 
 // SupportFleetData --------------------------------------------------------------------------------
 Object.assign(SupportFleetData.prototype, {
+	support_ships    : null, // array of SupportShip
 	ssd_list         : null, // array of SupportShipData
 	own_list         : null, // array of OwnEquipmentData
 	own_map          : null, // map: id -> OwnEquipmentData
 	
 	set_own_data     : SupportFleetData_set_own_data,
+	generate_own_map : SupportFleetData_generate_own_map,
 	append_fleet     : SupportFleetData_append_fleet,
 	save_to_form     : SupportFleetData_save_to_form,
 	
 	clone            : SupportFleetData_clone,
 	move_from        : SupportFleetData_move_from,
+	get_json_MT      : SupportFleetData_get_json_MT,
+	set_json_MT      : SupportFleetData_set_json_MT,
 	
 	verify            : SupportFleetData_verify,
 	modify_remainings    : SupportFleetData_modify_remainings,
@@ -75,6 +82,7 @@ Object.assign(SupportFleetData.prototype, {
 
 
 function SupportFleetData(){
+	this.support_ships = new Array;
 	this.ssd_list = new Array;
 }
 
@@ -84,14 +92,18 @@ function SupportFleetData(){
 function SupportFleetData_set_own_data(own_list){
 	// 除外は除いて、入力欄がない装備と同じとする
 	this.own_list = own_list.filter(own => !own.exclude);
+	this.generate_own_map();
 	
+	own_list.forEach(own => own.init_varcounts());
+}
+
+// own_map の再生成
+function SupportFleetData_generate_own_map(){
 	let map = new Object;
-	for (let own of own_list) {
+	for (let own of this.own_list) {
 		map[own.id] = own;
 	}
 	this.own_map = map;
-	
-	own_list.forEach(own => own.init_varcounts());
 }
 
 // 艦を追加
@@ -99,6 +111,12 @@ function SupportFleetData_append_fleet(fleet){
 	let good = true;
 	for (let sup of fleet.support_ships) {
 		if (!sup.empty()) {
+			// check id
+			if (!sup.object_id || this.support_ships.findIndex(c => c.object_id == sup.object_id) >= 0) {
+				debugger;
+			}
+			this.support_ships.push(sup);
+			
 			let ssd = new SupportShipData;
 			if (sup.get_data(ssd)) {
 				this.ssd_list.push(ssd);
@@ -114,19 +132,20 @@ function SupportFleetData_append_fleet(fleet){
 function SupportFleetData_save_to_form(){
 	for (let i=0; i<this.ssd_list.length; i++) {
 		let ssd = this.ssd_list[i];
-		ssd.support_ship.set_data(ssd);
+		let ship = this.support_ships.find(s => s.object_id == ssd.ship_object_id);
+		if (!ship) debugger;
+		ship.set_data(ssd);
 	}
 }
 
 
 // 複製
-function SupportFleetData_clone(){
+function SupportFleetData_clone(gen_map = true){
 	let fleet = new SupportFleetData;
+	fleet.support_ships = this.support_ships.concat();
 	fleet.ssd_list = this.ssd_list.map(x => x.clone());
 	fleet.own_list = this.own_list.map(x => x.clone());
-	let map = new Object;
-	for (let own of fleet.own_list) map[own.id] = own;
-	fleet.own_map = map;
+	if (gen_map) fleet.generate_own_map();
 	return fleet;
 }
 
@@ -136,6 +155,40 @@ function SupportFleetData_move_from(src){
 	Object.assign(this, src);
 }
 
+// マルチスレッドのためのjson変換
+function SupportFleetData_get_json_MT(json, get_dom){
+	let obj = json || {};
+	obj.ssd_list = this.ssd_list.map(ssd => ssd.get_json_MT());
+	obj.own_list = this.own_list.map(own => own.get_json_MT());
+	
+	if (get_dom) {
+		obj.support_ships = this.support_ships.map(sup => sup.get_json());
+	}
+	return obj;
+}
+
+// set_dom: support_ships もセットする(DOMが変更される)　ワーカーではDOMをさわれない
+// 探索は ssd_list で足りる
+function SupportFleetData_set_json_MT(json, set_dom){
+	if (set_dom) {
+		for (let i=0; i<json.support_ships.length; i++) {
+			this.support_ships[i].set_json(json.support_ships[i]);
+		}
+	}
+	
+	this.ssd_list = json.ssd_list.map(obj => {
+		let ssd = new SupportShipData();
+		ssd.set_json_MT(obj);
+		return ssd;
+	});
+	this.own_list = json.own_list.map(obj => {
+		let own = new OwnEquipmentData();
+		own.set_id(obj.id);
+		own.set_json_MT(obj);
+		return own;
+	});
+	this.generate_own_map();
+}
 
 // 装備数データに矛盾がないかどうか
 function SupportFleetData_verify(){
