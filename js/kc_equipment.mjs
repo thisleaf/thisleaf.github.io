@@ -79,7 +79,7 @@ Object.assign(EquipmentDatabase, {
 		// 駆逐
 		"初春型", "吹雪型", "夕雲型", "島風型", "改白露型",
 		"暁型", "朝潮型", "白露型", "睦月型", "神風型",
-		"秋月型", "綾波型", "陽炎型", "松型",
+		"秋月型", "綾波型", "陽炎型", "松型", "改装陽炎型", "改陽炎型",
 		// 軽巡級
 		"夕張型", "大淀型", "天龍型", "川内型", "球磨型",
 		"長良型", "阿賀野型", "香取型",
@@ -88,7 +88,7 @@ Object.assign(EquipmentDatabase, {
 		"高雄型",
 		// 潜水艦
 		"三式潜航輸送艇", "巡潜3型", "巡潜乙型", "巡潜乙型改二", "巡潜甲型改二",
-		"海大VI型", "潜特型(伊400型潜水艦)",
+		"海大VI型", "潜特型(伊400型潜水艦)", "巡潜丙型",
 		// 戦艦・航空戦艦
 		"伊勢型", "大和型", "扶桑型", "改金剛型", "改伊勢型",
 		"金剛型", "長門型",
@@ -103,7 +103,7 @@ Object.assign(EquipmentDatabase, {
 		"占守型", "御蔵型", "択捉型", "日振型", "丁型海防艦",
 		// ほか
 		"大鯨型", "改風早型", "明石型", "特種船丙型", "神威型",
-		"陸軍特種船(R1)",
+		"陸軍特種船(R1)", "迅鯨型",
 	],
 	
 	// 上の日本艦を表すmap: class->boolean
@@ -302,6 +302,9 @@ function EquipableInfo_generate_equipables(){
 				matched = types.indexOf(this.ship.shipType) >= 0;
 				
 				if (!matched && this.ship.shipType == "戦艦" && this.ship.speed == "高速" && types.indexOf("高速戦艦") >= 0) {
+					matched = true;
+				}
+				if (!matched && this.ship.shipType == "陽字号駆逐艦" && types.indexOf("駆逐艦") >= 0) {
 					matched = true;
 				}
 			}
@@ -844,6 +847,10 @@ function EquipmentBonusData_set_csv_line(line){
 	} else {
 		this.shipname_map = new Object;
 	}
+	
+	// 丹陽の対応
+	if (types && types.indexOf("駆逐艦") >= 0) types.push("陽字号駆逐艦");
+	if (jp_types && jp_types.indexOf("駆逐艦") >= 0) jp_types.push("陽字号駆逐艦");
 	
 	for (let ship of EquipmentDatabase.csv_shiplist) {
 		let hit = (

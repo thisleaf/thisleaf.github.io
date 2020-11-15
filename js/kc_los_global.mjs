@@ -147,6 +147,14 @@ export const LOS_EQUIPBONUS = [
 		// 沖波改二: 索敵ボーナスなし
 		
 	}, {
+		// SG レーダー(初期型)
+		equipment_id: 315,
+		ship_names: [
+			"丹陽", "雪風改二",
+		],
+		LoS: 3, accumulation: "不可", effect: "索敵スコアには影響しない？",
+		
+	}, {
 		// SKレーダー
 		equipment_id: 278,
 		ship_names: [
@@ -193,7 +201,7 @@ export const LOS_EQUIPBONUS = [
 		
 	}, { // 熟練見張員
 		equipment_id: 129,
-		jp_ship_types: ["駆逐艦"],
+		jp_ship_types: ["駆逐艦", "陽字号駆逐艦"],
 		LoS: 1, accumulation: "可", effect: "艦娘索敵値に加算",
 	}, {
 		equipment_id: 129,

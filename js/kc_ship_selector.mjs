@@ -38,7 +38,7 @@ const SHIP_GROUPING_DEF = [
 	{viewname: "駆逐艦 (初春型)"},
 	{viewname: "駆逐艦 (白露型)", keys: ["駆逐艦 (白露型)", "駆逐艦 (改白露型)"]},
 	{viewname: "駆逐艦 (朝潮型)"},
-	{viewname: "駆逐艦 (陽炎型)"},
+	{viewname: "駆逐艦 (陽炎型)", keys: ["駆逐艦 (改陽炎型)", "陽字号駆逐艦"]},
 	{viewname: "駆逐艦 (夕雲型)"},
 	{viewname: "駆逐艦 (秋月型)"},
 	{viewname: "駆逐艦 (島風型)"},
