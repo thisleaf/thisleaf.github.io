@@ -77,6 +77,11 @@ const CHARACTER_NAME_DEF = [
 	{viewname: "伊504/UIT-25/Luigi Torelli", basename: "Luigi Torelli"},
 ];
 
+// これに追加しておくとデフォルトの改造度選択が変わる
+const DEFAULT_SELECT_SHIPS = [
+	"夕張改二特"
+];
+
 
 // Character ---------------------------------------------------------------------------------------
 // キャラクターを表す
@@ -213,13 +218,15 @@ function ShipSelector(){
 // 利用する変数の初期化を行う
 // shiplist : 艦データ(csv)
 // [optional] arg_grouping_def: 艦種リスト　指定しないとSHIP_GROUPING_DEF
-// [optional] default_select  : デフォルトで選択する艦名(Array)
+// [optional] arg_default_select  : デフォルトで選択する艦名(Array)
 // [optional] ship_checker    : 艦データの確認関数　真を返した艦データのみ有効とする(function)
-function ShipSelector__initialize(shiplist, arg_grouping_def, default_select, ship_checker){
+function ShipSelector__initialize(shiplist, arg_grouping_def, arg_default_select, ship_checker){
 	if (ShipSelector.initialized) return;
 	
 	// 艦種分類定義
 	let grouping_def = arg_grouping_def || SHIP_GROUPING_DEF;
+	// デフォルトの改造度選択
+	let default_select = arg_default_select || DEFAULT_SELECT_SHIPS;
 	
 	// 艦型の置換
 	// もしこれに登録がある場合は置き換える

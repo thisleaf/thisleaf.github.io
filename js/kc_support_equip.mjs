@@ -1332,6 +1332,7 @@ Object.assign(OwnConvertDialog.prototype = Object.create(DOMDialog.prototype), {
 	
 	// 艦隊分析用
 	e_fleetanalysis_div : null,
+	e_apiextract_div    : null,
 	
 	// デッキビルダー用
 	e_deckbuilder_div   : null,
@@ -1347,6 +1348,7 @@ Object.assign(OwnConvertDialog.prototype = Object.create(DOMDialog.prototype), {
 	// データの変換
 	// OwnEquipmentData の配列を返す
 	parse_fleetanalysis_text: OwnConvertDialog_parse_fleetanalysis_text,
+	parse_apiextract_text   : OwnConvertDialog_parse_apiextract_text,
 	parse_deckbuilder_text  : OwnConvertDialog_parse_deckbuilder_text,
 	
 	ev_close: OwnConvertDialog_ev_close,
@@ -1356,6 +1358,7 @@ Object.assign(OwnConvertDialog, {
 	select_enum: {
 		"艦隊分析": 1,
 		"デッキビルダー": 2,
+		"API抽出": 3,
 	},
 });
 
@@ -1369,7 +1372,6 @@ function OwnConvertDialog_create(){
 	DOMDialog.prototype.create.call(this, "modal", "データの読み込み", true);
 	
 	this.e_inside.classList.add("convert");
-	//this.e_inside.classList.add("vcenter");
 	
 	let ok_btn, cancel_btn;
 	this.e_deckbuilder_fleets = new Array;
@@ -1378,6 +1380,7 @@ function OwnConvertDialog_create(){
 		NODE(ELEMENT("div"), [
 			this.e_select = NODE(ELEMENT("select", "", "data_type"), [
 				new Option("艦隊分析 (装備＞JSON)", OwnConvertDialog.select_enum["艦隊分析"]),
+				new Option("艦隊分析 (装備＞装備反映)", OwnConvertDialog.select_enum["API抽出"]),
 				new Option("デッキビルダー", OwnConvertDialog.select_enum["デッキビルダー"]),
 			]),
 		]),
@@ -1392,6 +1395,18 @@ function OwnConvertDialog_create(){
 					'<a href="https://kancolle-fleetanalysis.firebaseapp.com/#/" target="_blank">艦隊分析</a>'
 					+ " さんの形式のデータを、<b>所持装備データ</b>として読み込みます<br>"
 					+ "装備＞JSONにある、装備情報jsonのデータを入力してください<br>"
+					+ "既にある所持装備データは破棄(リセット)されます<br>"
+					+ "注：艦隊分析さんが更新されていない場合、新装備のデータはありません"
+				),
+			]),
+		]),
+		
+		this.e_apiextract_div = NODE(ELEMENT("div", "", "option"), [
+			NODE(ELEMENT("div", "", "option_text"), [
+				HTML(
+					'<a href="https://kancolle-fleetanalysis.firebaseapp.com/#/" target="_blank">艦隊分析</a>'
+					+ " さんに取り込む際のJSONデータを、<b>所持装備データ</b>として読み込みます<br>"
+					+ "装備＞装備反映にある手順で取得したデータを入力してください<br>"
 					+ "既にある所持装備データは破棄(リセット)されます"
 				),
 			]),
@@ -1466,6 +1481,7 @@ function OwnConvertDialog_refresh_hint(){
 	let opt = this.e_select.options[this.e_select.selectedIndex];
 	
 	_disp(this.e_fleetanalysis_div, opt.value == OwnConvertDialog.select_enum["艦隊分析"]);
+	_disp(this.e_apiextract_div   , opt.value == OwnConvertDialog.select_enum["API抽出"]);
 	_disp(this.e_deckbuilder_div  , opt.value == OwnConvertDialog.select_enum["デッキビルダー"]);
 }
 
@@ -1520,6 +1536,51 @@ function OwnConvertDialog_parse_fleetanalysis_text(text){
 		}
 		
 		data.push(own);
+	}
+	
+	return data;
+}
+
+/* 内部データ抽出形式
+[
+	{"api_slotitem_id":378,"api_level":0},
+	...
+]
+*/
+function OwnConvertDialog_parse_apiextract_text(text){
+	let data = new Array;
+	
+	// 空データ
+	if (/^\s*$/.test(text)) return data;
+	
+	let json = null;
+	try {
+		json = JSON.parse(text);
+	} catch (err) {
+		return null;
+	}
+	
+	// 配列、もしくは配列風ではないデータはNGとする
+	// 別形式のデータと間違う可能性があるため
+	if (!("length" in json)) return null;
+	
+	for (let i=0; i<json.length; i++) {
+		if (!json[i]) continue;
+		
+		let id = +json[i].api_slotitem_id;
+		let star = +json[i].api_level;
+		
+		// ここがおかしいのは不可とする
+		if (!id || !(0 <= star && star <= 10)) return null;
+		
+		let own = data.find(d => d.id == id);
+		if (!own) {
+			own = new OwnEquipmentData();
+			own.id = id;
+			data.push(own);
+		}
+		
+		own.total_counts[star]++;
 	}
 	
 	return data;
@@ -1656,6 +1717,26 @@ function OwnConvertDialog_ev_close(e){
 			
 			// mainをセット
 			this.own_form.import_data(data, true, false, true);
+			
+		} else if (opt.value == OwnConvertDialog.select_enum["API抽出"]) {
+			let data = this.parse_apiextract_text(text);
+			
+			if (!data) {
+				e.preventDefault();
+				DOMDialog.alert("データの読み込みに失敗しました", "読み込み");
+				return;
+			}
+			
+			// 空データを除く
+			data = data.filter(own => own.get_total_count() > 0);
+			if (data.length == 0) {
+				e.preventDefault();
+				DOMDialog.alert("データが空です", "読み込み");
+				return;
+			}
+			
+			// totalをセット
+			this.own_form.import_data(data, false, true, true);
 			
 		} else {
 			// ん？
