@@ -412,7 +412,7 @@ body {
 .dialog_container .inside.convert .contents .data_type {
 }
 .dialog_container .inside.convert .contents .code_area {
-	width: 50vw;
+	width: 70vw;
 	height: 20vh;
 }
 .dialog_container .inside.convert .contents .option {
@@ -420,7 +420,7 @@ body {
 }
 .dialog_container .inside.convert .contents .option_text {
 	font-size: 80%;
-	width: 50vw;
+	width: 70vw;
 	margin: auto;
 }
 .dialog_container .inside.convert .contents > div.button_div {
