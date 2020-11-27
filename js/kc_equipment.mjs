@@ -965,7 +965,7 @@ function EquipmentBonusData_independent(){
 */
 	
 	// 6個目まですべて
-	return this.subequip_map1 == null && this.count_bit == 0x3f;
+	return this.subequip_map1 == null && this.count_bit == 0x3f && !this.grouping;
 }
 
 
@@ -1013,6 +1013,14 @@ function EquipmentBonus_set_name(name){
 	
 	this.name = name;
 	this.ship = EquipmentDatabase.csv_shiplist.find(x => x.name == name);
+	
+	if (!this.ship) {
+		this.bonus_data_array = null;
+		this.bonus_data_map = null;
+		this.assist_data_map = null;
+		return;
+	}
+	
 	this.bonus_data_array = new Array;
 	this.bonus_data_map = new Object;
 	this.assist_data_map = new Object;
