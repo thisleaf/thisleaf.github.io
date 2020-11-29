@@ -521,6 +521,8 @@ Object.assign(EquipmentSlot.prototype, {
 	bonus_evasion  : 0,
 	bonus_LoS      : 0,
 	bonus_armor    : 0,
+	bonus_accuracy : 0,
+	bonus_range    : 0,
 	
 	// 未使用
 	// plane_count
@@ -574,6 +576,8 @@ function EquipmentSlot_clear_bonus(){
 	this.bonus_evasion   = 0;
 	this.bonus_LoS       = 0;
 	this.bonus_armor     = 0;
+	this.bonus_accuracy  = 0;
+	this.bonus_range     = 0;
 }
 
 function EquipmentSlot_swap_equipment(argv){
@@ -716,7 +720,8 @@ Object.assign(EquipmentBonusData.prototype, {
 	evasion  : null,
 	LoS      : null,
 	armor    : null,
-	//accuracy: null,
+	accuracy : null,
+	range    : null,
 	// 一応元のデータへの参照を
 	line: null,
 	
@@ -753,7 +758,7 @@ function EquipmentBonusData_set_csv_line(line){
 	
 	// bytes
 	let shipid_bufsize = EquipmentDatabase.csv_shiplist.length + 1;
-	let buffer_size = (max_number + 1) * 4 + 11 * 7 + shipid_bufsize;
+	let buffer_size = (max_number + 1) * 4 + 11 * 9 + shipid_bufsize;
 	if (init_count_map) buffer_size += 7;
 	buffer_size = Math.ceil(buffer_size / 4) * 4; // なんとなく4の倍数にしておく
 	
@@ -912,7 +917,8 @@ function EquipmentBonusData_set_csv_line(line){
 	this.subequip_map1 = sub1_count >= 1 ? sub1 : null;
 	this.subequip_map2 = sub2_count >= 1 ? sub2 : null;
 	
-	function _by_impr(str){
+	function _by_impr(arg_str){
+		let str = arg_str ? arg_str : "0";
 		let ret;
 		let constant = /^\d+$/.test(str);
 		
@@ -940,6 +946,8 @@ function EquipmentBonusData_set_csv_line(line){
 	this.evasion   = _by_impr(line.evasion);
 	this.LoS       = _by_impr(line.LoS);
 	this.armor     = _by_impr(line.armor);
+	this.accuracy  = _by_impr(line.accuracy);
+	this.range     = _by_impr(line.range);
 	
 	this.line = line;
 }
@@ -1166,6 +1174,8 @@ function EquipmentBonus_get_bonus(slot_array, synergy_only = false){
 				slot.bonus_evasion   = data.evasion[slot.improvement];
 				slot.bonus_LoS       = data.LoS[slot.improvement];
 				slot.bonus_armor     = data.armor[slot.improvement];
+				slot.bonus_accuracy  = data.accuracy[slot.improvement];
+				slot.bonus_range     = data.range[slot.improvement];
 			} else {
 				slot.bonus_firepower += data.firepower[slot.improvement];
 				slot.bonus_torpedo   += data.torpedo[slot.improvement];
@@ -1174,6 +1184,8 @@ function EquipmentBonus_get_bonus(slot_array, synergy_only = false){
 				slot.bonus_evasion   += data.evasion[slot.improvement];
 				slot.bonus_LoS       += data.LoS[slot.improvement];
 				slot.bonus_armor     += data.armor[slot.improvement];
+				slot.bonus_accuracy  += data.accuracy[slot.improvement];
+				slot.bonus_range     += data.range[slot.improvement];
 			}
 		}
 	}
@@ -1198,6 +1210,8 @@ function EquipmentBonus_get_independent_bonus(slot){
 			slot.bonus_evasion   = data.evasion[slot.improvement];
 			slot.bonus_LoS       = data.LoS[slot.improvement];
 			slot.bonus_armor     = data.armor[slot.improvement];
+			slot.bonus_accuracy  = data.accuracy[slot.improvement];
+			slot.bonus_range     = data.range[slot.improvement];
 		} else {
 			slot.bonus_firepower += data.firepower[slot.improvement];
 			slot.bonus_torpedo   += data.torpedo[slot.improvement];
@@ -1206,6 +1220,8 @@ function EquipmentBonus_get_independent_bonus(slot){
 			slot.bonus_evasion   += data.evasion[slot.improvement];
 			slot.bonus_LoS       += data.LoS[slot.improvement];
 			slot.bonus_armor     += data.armor[slot.improvement];
+			slot.bonus_accuracy  += data.accuracy[slot.improvement];
+			slot.bonus_range     += data.range[slot.improvement];
 		}
 	}
 }
@@ -1228,6 +1244,8 @@ function EquipmentBonus_get_max_bonus(slot){
 			slot.bonus_evasion   = data.evasion[slot.improvement];
 			slot.bonus_LoS       = data.LoS[slot.improvement];
 			slot.bonus_armor     = data.armor[slot.improvement];
+			slot.bonus_accuracy  = data.accuracy[slot.improvement];
+			slot.bonus_range     = data.range[slot.improvement];
 		} else {
 			slot.bonus_firepower += data.firepower[slot.improvement];
 			slot.bonus_torpedo   += data.torpedo[slot.improvement];
@@ -1236,6 +1254,8 @@ function EquipmentBonus_get_max_bonus(slot){
 			slot.bonus_evasion   += data.evasion[slot.improvement];
 			slot.bonus_LoS       += data.LoS[slot.improvement];
 			slot.bonus_armor     += data.armor[slot.improvement];
+			slot.bonus_accuracy  += data.accuracy[slot.improvement];
+			slot.bonus_range     += data.range[slot.improvement];
 		}
 	}
 }

@@ -674,10 +674,80 @@ body {
 
 /* 付録 */
 #appendix h3 {
-	margin: 0em 0em 0.5em 0em;
+	/*margin: 0em 0em 0.5em 0em;*/
+	margin: 0em;
 	padding-left: 0.4em;
 	background-color: #64a4ff;
 }
+#appendix > .header {
+	margin: 0.5em 0em;
+	padding: 1px 8px;
+	background-color: #cfe3ff;
+	font-weight: bold;
+}
+
+/* > ボーナス一覧 */
+#bonus_viewer {
+	--param-count: 9;
+	--param-width: calc(49% / (var(--param-count) + 2));
+}
+#bonus_viewer .selector {
+	line-height: 1.3;
+	margin: 0.5em 1em;
+}
+#bonus_viewer select.character,
+#bonus_viewer select.shipclass,
+#bonus_viewer select.shipselect
+{
+	width: 180px;
+}
+
+#bonus_viewer .bonus_viewer_table {
+	width: calc(100% - 2em);
+	font-size: 80%;
+	margin: 0.5em 1em 1em 1em;
+	border-collapse: collapse;
+}
+#bonus_viewer .bonus_viewer_table th,
+#bonus_viewer .bonus_viewer_table td
+{
+	padding: 0px 3px;
+	border: 1px solid gray;
+	white-space: nowrap;
+}
+#bonus_viewer .bonus_viewer_table .indep_name {
+	/*width: 51%;*/
+}
+#bonus_viewer .bonus_viewer_table .synergy_name {
+	width: 17%;
+}
+#bonus_viewer .bonus_viewer_table .nth,
+#bonus_viewer .bonus_viewer_table .star,
+#bonus_viewer .bonus_viewer_table .param
+{
+	width: var(--param-width);
+	text-align: center;
+}
+/* >> 色 */
+#bonus_viewer .bonus_viewer_table .firepower { background-color: #fdd; }
+#bonus_viewer .bonus_viewer_table .torpedo   { background-color: #cef; }
+#bonus_viewer .bonus_viewer_table .antiair   { background-color: #cfc; }
+#bonus_viewer .bonus_viewer_table .ASW       { background-color: #bff; }
+#bonus_viewer .bonus_viewer_table .LoS       { background-color: #efc; }
+#bonus_viewer .bonus_viewer_table .armor     { background-color: #fec; }
+#bonus_viewer .bonus_viewer_table .evasion   { background-color: #dff; }
+#bonus_viewer .bonus_viewer_table .range     { background-color: #dde; }
+#bonus_viewer .bonus_viewer_table .accuracy  { background-color: #ffd; }
+#bonus_viewer .bonus_viewer_table .indep_name,
+#bonus_viewer .bonus_viewer_table .synergy_name,
+#bonus_viewer .bonus_viewer_table .name      { background-color: #eef5ff; }
+#bonus_viewer .bonus_viewer_table .nth       { background-color: #eef5ff; }
+#bonus_viewer .bonus_viewer_table .star      { background-color: #ffffff; }
+#bonus_viewer .bonus_viewer_table td.star    { color: teal; }
+#bonus_viewer .bonus_viewer_table .indep_header,
+#bonus_viewer .bonus_viewer_table .synergy_header { background-color: #eee; }
+#bonus_viewer .bonus_viewer_table .minus     { color: red; }
+
 
 /* > 損害表 */
 #damage {

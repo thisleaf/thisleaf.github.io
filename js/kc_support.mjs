@@ -33,6 +33,7 @@ import {
 	worker_release,
 	MultiThreadSearcher,
 } from "./kc_support_mt.mjs";
+import {BonusViewer} from "./kc_bonus_viewer.mjs";
 
 
 // 動的に読み込まれるデータ
@@ -50,6 +51,8 @@ let own_equipment_form = null;
 // 支援艦隊フォーム
 let support_fleet_A = null;
 let support_fleet_B = null;
+// ボーナスビューワー
+let bonus_viewer = null;
 // 損傷率
 let damage_table = null;
 // データの保存
@@ -69,7 +72,10 @@ Promise.all([
 	new Promise( resolve => document.addEventListener("DOMContentLoaded", () => resolve()) ),
 ])
 .then(kancolle_support_init)
-.catch(result => message_bar.show("読み込みエラーっぽい？"));
+.catch(result => {
+	message_bar.show("読み込みエラーっぽい？");
+	console.error(result);
+});
 
 
 // 初期化 ------------------------------------------------------------------------------------------
@@ -82,6 +88,7 @@ function kancolle_support_init(){
 	own_equipment_form = new OwnEquipmentForm();
 	support_fleet_A = new SupportFleet(DOM("support_A"), "A");
 	support_fleet_B = new SupportFleet(DOM("support_B"), "B");
+	bonus_viewer = new BonusViewer(DOM("bonus_viewer"));
 	damage_table = new DamageTable(DOM("damage"));
 	userdata_object = new LSUserData("kancolle_support_data", Global.SUPPORT_SAVEDATA_VERSION, update_userdata);
 	dragdata_provider = new DragdataProvider();
@@ -144,9 +151,9 @@ function kancolle_support_init(){
 	message_bar.start_hiding();
 	console.log("み");
 	
-/*  debug用
-	//let header = DOM("header_tab");
-	//select_header_tab(header.children[3]);
+//*  debug用
+	let header = DOM("header_tab");
+	select_header_tab(header.children[4]);
 	_click("test", ev_click_test);
 	_click("test2", ev_click_test2);
 	_click("test3", ev_click_test3);
@@ -237,6 +244,9 @@ function select_header_tab(tab){
 		if (show_elem) {
 			show_elem.style.display = "block";
 		}
+		
+		// 切替時のイベントがあれば
+		
 	}
 }
 

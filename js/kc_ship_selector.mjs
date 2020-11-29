@@ -135,6 +135,10 @@ function Shipgroup(name){
 // ShipSelector ------------------------------------------------------------------------------------
 // DOM要素を管理
 Object.assign(ShipSelector.prototype, {
+	/* EventTargetを継承
+		change: ユーザーによってフォームが変更された detailに艦名
+	*/
+	
 	// "-" (なし) を選択肢に出現させる
 	empty_option: true,
 	
@@ -171,7 +175,17 @@ Object.assign(ShipSelector.prototype, {
 	call_onchange: ShipSelector_call_onchange,
 	
 	// DOMイベントによって変更された場合に callback
-	onchange: null,
+	//onchange: null,
+});
+
+// 後方互換
+// 引数の扱いが異なる
+Object.defineProperties(ShipSelector.prototype, {
+	onchange: {
+		set: function (func){
+			if (func) this.addEventListener("change", e => func(e.detail));
+		},
+	},
 });
 
 Object.assign(ShipSelector, {
@@ -199,6 +213,7 @@ function ShipSelector(){
 		throw new Error("内部エラー");
 	}
 	
+	Util.attach_event_target(this);
 	
 	this.e_class_select = ELEMENT("select", "", "shipclass");
 	this.e_chara_select = ELEMENT("select", "", "character");
@@ -659,8 +674,11 @@ function ShipSelector_ev_change_ship(e){
 
 
 function ShipSelector_call_onchange(){
+/*
 	if (this.onchange) {
 		this.onchange.call(null, this.e_ship_select.value);
 	}
+*/
+	this.dispatchEvent(new CustomEvent("change", {detail: this.e_ship_select.value}));
 }
 
