@@ -205,7 +205,7 @@ function SupportShip_create(def_priority){
 	this.refresh_displaypower();
 	
 	// 装備欄
-	this.equipable_info = new EquipableInfo;
+	this.equipable_info = new EquipableInfo("", true);
 	this.e_slot_fixes = new Array;
 	this.equipment_selects = new Array;
 	

@@ -151,7 +151,7 @@ function kancolle_support_init(){
 	message_bar.start_hiding();
 	console.log("み");
 	
-//*  debug用
+/*  debug用
 	let header = DOM("header_tab");
 	select_header_tab(header.children[4]);
 	_click("test", ev_click_test);

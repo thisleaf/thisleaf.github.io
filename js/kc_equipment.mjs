@@ -43,6 +43,8 @@ Object.assign(EquipmentDatabase, {
 	csv_equiplist : null,
 	csv_equipable : null,
 	csv_equipbonus: null,
+	// 支援艦隊用
+	csv_equipable_support: null,
 	// 装備ボーナス
 	bonusdata_array: null, // EquipmentBonusData[]
 	// map: 装備ID -> 装備データ(csv)
@@ -166,14 +168,13 @@ function EquipmentDatabase_initialize(csv_shiplist, csv_equiplist_raw, csv_equip
 	// csv_equipable
 	// 色々文字列で保有しているが、ひとまず次のものだけ配列変換
 	// shipTypes -> shipTypesArray    "高速戦艦"はそのまま
-	// forSupport がないものは無視とする
+	// forSupport があるもののみ csv_equipable_support へ追加
 	
 	let sp_def = EquipmentDatabase.eqab_special_def;
 	let csv_equipable = new Array;
+	let csv_equipable_support = new Array;
 	
 	for (let d of csv_equipable_raw) {
-		if (!+d.forSupport) continue;
-		
 		let eqab = Object.assign(new Object, d);
 		let types = new Array;
 		
@@ -191,8 +192,12 @@ function EquipmentDatabase_initialize(csv_shiplist, csv_equiplist_raw, csv_equip
 		
 		eqab.shipTypesArray = types;
 		csv_equipable.push(eqab);
+		if (+d.forSupport) {
+			csv_equipable_support.push(eqab);
+		}
 	}
 	EquipmentDatabase.csv_equipable = csv_equipable;
+	EquipmentDatabase.csv_equipable_support = csv_equipable_support;
 	
 	
 	let bonusdata_array = new Array;
@@ -218,16 +223,17 @@ function EquipmentDatabase_get_data(){
 	if (!EquipmentDatabase.initialized) debugger;
 	
 	return {
-		csv_equiplist_raw   : EquipmentDatabase.csv_equiplist_raw   ,
-		csv_equipable_raw   : EquipmentDatabase.csv_equipable_raw   ,
-		csv_shiplist        : EquipmentDatabase.csv_shiplist        ,
-		csv_equiplist       : EquipmentDatabase.csv_equiplist       ,
-		csv_equipable       : EquipmentDatabase.csv_equipable       ,
-		csv_equipbonus      : EquipmentDatabase.csv_equipbonus      ,
-		bonusdata_array     : EquipmentDatabase.bonusdata_array     ,
-		equipment_data_map  : EquipmentDatabase.equipment_data_map  ,
-		equipment_max_number: EquipmentDatabase.equipment_max_number,
-		initialized         : EquipmentDatabase.initialized         ,
+		csv_equiplist_raw    : EquipmentDatabase.csv_equiplist_raw    ,
+		csv_equipable_raw    : EquipmentDatabase.csv_equipable_raw    ,
+		csv_shiplist         : EquipmentDatabase.csv_shiplist         ,
+		csv_equiplist        : EquipmentDatabase.csv_equiplist        ,
+		csv_equipable        : EquipmentDatabase.csv_equipable        ,
+		csv_equipbonus       : EquipmentDatabase.csv_equipbonus       ,
+		csv_equipable_support: EquipmentDatabase.csv_equipable_support,
+		bonusdata_array      : EquipmentDatabase.bonusdata_array      ,
+		equipment_data_map   : EquipmentDatabase.equipment_data_map   ,
+		equipment_max_number : EquipmentDatabase.equipment_max_number ,
+		initialized          : EquipmentDatabase.initialized          ,
 	};
 }
 
@@ -248,6 +254,8 @@ function EquipmentDatabase_set_data(data){
 Object.assign(EquipableInfo.prototype, {
 	name: "",
 	ship: null,
+	// 支援艦隊モード
+	support_mode: false,
 	
 	// 装備可能かどうかを示す ID から boolean への map
 	slot_equipables : null, // array
@@ -259,7 +267,9 @@ Object.assign(EquipableInfo.prototype, {
 });
 
 
-function EquipableInfo(name){
+function EquipableInfo(name, support_mode){
+	this.support_mode = support_mode;
+	
 	if (name) {
 		this.set_name(name);
 		this.generate_equipables();
@@ -281,12 +291,13 @@ function EquipableInfo_generate_equipables(){
 	this.exslot_equipable = null;
 	
 	let slot_count = this.get_slot_count();
+	let csv_equipable = this.support_mode ? EquipmentDatabase.csv_equipable_support : EquipmentDatabase.csv_equipable;
 	
 	for (let i=0; i<slot_count+1; i++) {
 		let exslot = i == slot_count;
 		let equipable = new Object;
 		
-		for (let d of EquipmentDatabase.csv_equipable) {
+		for (let d of csv_equipable) {
 			// 艦条件
 			let matched = false;
 			
@@ -857,8 +868,11 @@ function EquipmentBonusData_set_csv_line(line){
 	if (types && types.indexOf("駆逐艦") >= 0) types.push("陽字号駆逐艦");
 	if (jp_types && jp_types.indexOf("駆逐艦") >= 0) jp_types.push("陽字号駆逐艦");
 	
+	let all_ship = names && names.indexOf("*") >= 0;
+	
 	for (let ship of EquipmentDatabase.csv_shiplist) {
 		let hit = (
+			all_ship ||
 			(names && names.indexOf(ship.name) >= 0) ||
 			(substr_names && substr_names.findIndex(ss => ship.name.indexOf(ss) >= 0) >= 0) ||
 			(cnames && cnames.indexOf(ship.className) >= 0) ||

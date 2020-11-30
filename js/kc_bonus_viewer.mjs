@@ -82,7 +82,7 @@ function BonusViewer_create(container){
 	this.e_container = container;
 	this.ship_selector = new ShipSelector();
 	this.bonus = new EquipmentBonus("", false);
-	this.equipables = new EquipableInfo();
+	this.equipables = new EquipableInfo("", false);
 	
 	NODE(this.e_container, [
 		NODE(ELEMENT("div"), [
@@ -171,20 +171,23 @@ function BonusViewer_refresh(){
 	
 	let row_gens = [];
 	for (let d of this.bonus.bonus_data_array) {
-		let gen = new BonusRowGenerator();
-		if (!gen.set_data(d, this.equipables)) continue;
+		let generator = new BonusRowGenerator();
+		if (!generator.set_data(d, this.equipables)) continue;
 		
-		// 合算モード
-		for (let x of row_gens) {
-			if (x.equal_type(gen)) {
-				x.add(gen);
-				gen = null;
-				break;
+		for (let gen of generator.split()) {
+			// 合算モード
+			for (let x of row_gens) {
+				if (x.equal_type(gen)) {
+					x.add(gen);
+					gen = null;
+					break;
+				}
 			}
+			
+			if (gen) row_gens.push(gen);
 		}
-		
-		if (gen) row_gens.push(gen);
 	}
+	row_gens = row_gens.filter(gen => !gen.empty());
 	
 	// ID順
 	row_gens.sort((a, b) => a.compare_main_ids(b));
@@ -224,12 +227,6 @@ class BonusRowGenerator {
 	// ボーナスデータへの参照、addを使っても変化しない
 	bonus_data;
 	
-	set_data = BonusRowGenerator_set_data;
-	add = BonusRowGenerator_add;
-	create_rows = BonusRowGenerator_create_rows;
-	is_same_by_star = BonusRowGenerator_is_same_by_star;
-	
-	
 	equal_type(b){
 		return BonusRowGenerator.equal_array(this.main_ids, b.main_ids) &&
 			BonusRowGenerator.equal_array(this.sub1_ids, b.sub1_ids) &&
@@ -251,6 +248,7 @@ class BonusRowGenerator {
 		return c;
 	}
 	
+	
 	static equal_array(a, b){
 		if (!a && !b) return true;
 		if (!a || !b || a.length != b.length) return false;
@@ -261,8 +259,34 @@ class BonusRowGenerator {
 	}
 };
 
+Object.defineProperties(BonusRowGenerator.prototype, {
+	clone          : {value: BonusRowGenerator_clone          },
+	set_data       : {value: BonusRowGenerator_set_data       },
+	split          : {value: BonusRowGenerator_split          },
+	add            : {value: BonusRowGenerator_add            },
+	create_rows    : {value: BonusRowGenerator_create_rows    },
+	is_same_by_star: {value: BonusRowGenerator_is_same_by_star},
+	empty          : {value: BonusRowGenerator_empty          },
+});
+
+
+function BonusRowGenerator_clone(){
+	let clone_array = arr => (arr && arr.concat());
+	
+	let dup = new BonusRowGenerator();
+	dup.main_ids = clone_array(this.main_ids);
+	dup.sub1_ids = clone_array(this.sub1_ids);
+	dup.sub2_ids = clone_array(this.sub2_ids);
+	dup.grouping = this.grouping;
+	dup.independent = this.independent;
+	dup.counts = clone_array(this.counts);
+	dup.param_arrays = this.param_arrays.map(v => Object.assign({}, v));
+	dup.bonus_data = this.bonus_data;
+	return dup;
+}
 
 function BonusRowGenerator_set_data(bonus_data, equipables){
+	// あとで
 	let is_eqab = id => {
 		//return equipables.slot_equipables[0]?.[id] || equipables.exslot_equipable?.[id];
 		return true;
@@ -300,6 +324,24 @@ function BonusRowGenerator_set_data(bonus_data, equipables){
 	
 	this.bonus_data = bonus_data;
 	return this.main_ids != null;
+}
+
+function BonusRowGenerator_split(){
+	// main_ids が複数あって、grouping でない場合は分割する
+	let out = [];
+	
+	if (!this.grouping && this.main_ids.length >= 2) {
+		for (let i=0; i<this.main_ids.length; i++) {
+			let gen = this.clone();
+			gen.main_ids[0] = this.main_ids[i];
+			gen.main_ids.length = 1;
+			out.push(gen);
+		}
+	} else {
+		out.push(this);
+	}
+	
+	return out;
 }
 
 function BonusRowGenerator_add(b){
@@ -367,7 +409,7 @@ function BonusRowGenerator_create_rows(){
 			}, [])
 			.map(c => (
 				c.begin == 1 && c.end - 1 == 6 ? "*" : 
-				c.begin == c.end - 1           ? c.begin :
+				c.begin == c.end - 1 ? c.begin :
 				  `${c.begin}~${c.end-1}`
 			) )
 			.join(",");
@@ -425,6 +467,20 @@ function BonusRowGenerator_is_same_by_star(a, b){
 			return false;
 		}
 	}
+	return true;
+}
+
+function BonusRowGenerator_empty(){
+	if (this.main_ids.length == 0) return true;
+	
+	for (let i=0; i<=10; i++) {
+		for (let key of BonusViewer.param_keys) {
+			if (this.param_arrays[i][key] != 0) {
+				return false;
+			}
+		}
+	}
+	
 	return true;
 }
 
