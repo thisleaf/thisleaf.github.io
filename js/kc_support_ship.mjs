@@ -928,6 +928,7 @@ Object.assign(SupportShipData.prototype, {
 	get_bonus_firepower: SupportShipData_get_bonus_firepower,
 	get_bonus_torpedo  : SupportShipData_get_bonus_torpedo,
 	get_accuracy       : SupportShipData_get_accuracy     ,
+	get_equipment_priority: SupportShipData_get_equipment_priority,
 	sort_equipment     : SupportShipData_sort_equipment   ,
 	is_upper_equipment : SupportShipData_is_upper_equipment,
 	
@@ -938,11 +939,13 @@ Object.assign(SupportShipData.prototype, {
 	has_irregular_exslot: SupportShipData_has_irregular_exslot,
 	power_compare       : SupportShipData_power_compare,
 	accuracy_compare    : SupportShipData_accuracy_compare,
+	priority_compare    : SupportShipData_priority_compare,
 });
 
 Object.assign(SupportShipData, {
 	power_compare       : SupportShipData_static_power_compare,
 	accuracy_compare    : SupportShipData_accuracy_compare,
+	priority_compare    : SupportShipData_priority_compare,
 });
 
 
@@ -1073,6 +1076,18 @@ function SupportShipData_get_accuracy(){
 	return acc;
 }
 
+// 装備優先度の合計
+function SupportShipData_get_equipment_priority(){
+	let p = 0;
+	for (let i=0; i<this.allslot_equipment.length; i++) {
+		let data = this.allslot_equipment[i].equipment_data;
+		if (data) {
+			p += data.priority;
+		}
+	}
+	return p;
+}
+
 // 装備のソート
 function SupportShipData_sort_equipment(sort_by, use_category){
 	// 装備の比較(a, b: slot)
@@ -1173,6 +1188,9 @@ function SupportShipData_is_upper_equipment(upper, base){
 	let base_tor = base.torpedo;
 	
 	let bonus = this.equipment_bonus;
+	
+	// 装備優先度
+	if (upper.priority < base.priority) return false;
 	
 	// シナジーボーナスについて
 	if (bonus.assist_exists(base.number)) {
@@ -1346,6 +1364,13 @@ function SupportShipData_accuracy_compare(a, b){
 	let da = EquipmentDatabase.equipment_data_map[a];
 	let db = EquipmentDatabase.equipment_data_map[b];
 	return da.accuracy - db.accuracy;
+}
+
+// 装備優先度
+function SupportShipData_priority_compare(a, b){
+	let da = EquipmentDatabase.equipment_data_map[a];
+	let db = EquipmentDatabase.equipment_data_map[b];
+	return da.priority - db.priority;
 }
 
 function SupportShipData_static_power_compare(a, b, cv_shelling){

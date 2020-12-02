@@ -244,7 +244,12 @@ function SupportFleetData_single(ssd){
 	// 個数によって変動するものも広義のシナジー装備とみなす
 	// また、負の値となるシナジーはないものと仮定する(相殺で負数を定義してあるのはよい)
 	let owns_synergy = this.own_list.filter(x => x.remaining > 0 && eqbonus.bonus_concerns(x.id) && !eqbonus.bonus_independent(x.id));
-	owns_synergy.sort((a, b) => ssd.eqab_compare(b.id, a.id, true, false) || ssd.power_compare(b.id, a.id) || ssd.accuracy_compare(b.id, a.id));
+	owns_synergy.sort((a, b) =>
+		ssd.eqab_compare(b.id, a.id, true, false) ||
+		ssd.power_compare(b.id, a.id) ||
+		ssd.accuracy_compare(b.id, a.id) ||
+		ssd.priority_compare(b.id, a.id)
+	);
 	
 	// mainにあってもsubの役割をする場合もある
 	let owns_synergy_main = owns_synergy.filter(x => eqbonus.bonus_synergy_main(x.id));
@@ -594,7 +599,12 @@ function SupportFleetData_single_nosynergy(ssd, allow_shared = false){
 	// owns のソート
 	// 装備可能条件(装備可能なスロット)がだんだん狭くなっていくことを仮定する
 	// ただし特殊な増設は除く
-	owns.sort((a, b) => ssd.eqab_compare(b.id, a.id, true, !irregular_exslot) || ssd.power_compare(b.id, a.id) || ssd.accuracy_compare(b.id, a.id));
+	owns.sort((a, b) =>
+		ssd.eqab_compare(b.id, a.id, true, !irregular_exslot) ||
+		ssd.power_compare(b.id, a.id) ||
+		ssd.accuracy_compare(b.id, a.id) ||
+		ssd.priority_compare(b.id, a.id)
+	);
 	
 	// 空き数
 	let empty_slot_count = ssd.allslot_fixes.reduce((acc, cur) => cur ? acc : acc + 1, 0);
@@ -693,6 +703,8 @@ function SupportFleetData_single_nosynergy(ssd, allow_shared = false){
 		let c = ssd.eqab_compare(bid, aid, true, !irregular_exslot);
 		if (c == 0 && ssd.cv_shelling) c = (adata.cv_attackable ? 1 : 0) - (bdata.cv_attackable ? 1 : 0);
 		if (c == 0) c = ssd.power_compare(aid, bid);
+		if (c == 0) c = ssd.accuracy_compare(aid, bid);
+		if (c == 0) c = ssd.priority_compare(aid, bid);
 		return c;
 	});
 	
@@ -965,7 +977,11 @@ function SupportFleetData_single_nosynergy_pre(ssd){
 	
 	owns.forEach(own => own.generate_rem_stars());
 	// 降順
-	owns.sort((a, b) => ssd.power_compare(b.id, a.id) || ssd.accuracy_compare(b.id, a.id));
+	owns.sort((a, b) =>
+		ssd.power_compare(b.id, a.id) ||
+		ssd.accuracy_compare(b.id, a.id) ||
+		ssd.priority_compare(b.id, a.id)
+	);
 	
 	let slot_count = ssd.allslot_equipment.length;
 	for (let pos=slot_count-1; pos>=0; pos--) {

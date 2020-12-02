@@ -84,6 +84,7 @@ function kancolle_support_init(){
 	DOMDialog.initialize();
 	ShipSelector.initialize(KANCOLLE_SHIPLIST);
 	EquipmentDatabase.initialize(KANCOLLE_SHIPLIST, KANCOLLE_EQUIPLIST, KANCOLLE_EQUIPABLE, KANCOLLE_EQUIPBONUS);
+	EquipmentDatabase.add_equipment_property("priority", Global.EQUIP_PRIORITY_DEF);
 	
 	own_equipment_form = new OwnEquipmentForm();
 	support_fleet_A = new SupportFleet(DOM("support_A"), "A");
@@ -153,7 +154,7 @@ function kancolle_support_init(){
 	
 /*  debug用
 	let header = DOM("header_tab");
-	select_header_tab(header.children[4]);
+	select_header_tab(header.children[2]);
 	_click("test", ev_click_test);
 	_click("test2", ev_click_test2);
 	_click("test3", ev_click_test3);

@@ -21,6 +21,8 @@ Object.assign(SupportFleetScore.prototype, {
 	//total_final_power: 0,
 	// 命中二乗和(艦ごと)
 	total_accuracy_sq: 0,
+	// 装備優先度
+	total_priority: 0,
 	// 基本攻撃力合計
 	total_basic_power: 0,
 	// ボーナスで増えた火力
@@ -49,6 +51,7 @@ function SupportFleetScore_clear(){
 	this.unreached_power   = 0;
 	this.total_accuracy    = 0;
 	this.total_accuracy_sq = 0;
+	this.total_priority    = 0;
 	this.total_basic_power = 0;
 	this.total_bonus_power = 0;
 }
@@ -57,6 +60,7 @@ function SupportFleetScore_copy_from(src){
 	this.unreached_power   = src.unreached_power  ;
 	this.total_accuracy    = src.total_accuracy   ;
 	this.total_accuracy_sq = src.total_accuracy_sq;
+	this.total_priority    = src.total_priority   ;
 	this.total_basic_power = src.total_basic_power;
 	this.total_bonus_power = src.total_bonus_power;
 }
@@ -70,6 +74,7 @@ function SupportFleetScore_add(ssd, border_power = ssd.border_basic_power){
 	this.unreached_power   += Math.min(basic - border_basic_power, 0);
 	this.total_accuracy    += acc;
 	this.total_accuracy_sq += acc * acc;
+	this.total_priority    += ssd.get_equipment_priority();
 	this.total_basic_power += basic;
 	this.total_bonus_power += ssd.get_bonus_firepower();
 }
@@ -80,6 +85,7 @@ function SupportFleetScore_add_score(score){
 	this.unreached_power   += score.unreached_power;
 	this.total_accuracy    += score.total_accuracy;
 	this.total_accuracy_sq += score.total_accuracy_sq || (score.total_accuracy * score.total_accuracy);
+	this.total_priority    += score.total_priority;
 	this.total_basic_power += score.total_basic_power;
 	this.total_bonus_power += score.total_bonus_power;
 }
@@ -92,6 +98,7 @@ function SupportFleetScore_sub(ssd, border_power = ssd.border_basic_power){
 	this.unreached_power   -= Math.min(basic - border_basic_power, 0);
 	this.total_accuracy    -= acc;
 	this.total_accuracy_sq -= acc * acc;
+	this.total_priority    -= ssd.get_equipment_priority();
 	this.total_basic_power -= basic;
 	this.total_bonus_power -= ssd.get_bonus_firepower();
 }
@@ -100,6 +107,7 @@ function SupportFleetScore_sub_score(score){
 	this.unreached_power   -= score.unreached_power;
 	this.total_accuracy    -= score.total_accuracy;
 	this.total_accuracy_sq -= score.total_accuracy_sq || (score.total_accuracy * score.total_accuracy);
+	this.total_priority    -= score.total_priority;
 	this.total_basic_power -= score.total_basic_power;
 	this.total_bonus_power -= score.total_bonus_power;
 }
@@ -115,6 +123,7 @@ function SupportFleetScore_compare(b){
 	let c = this.unreached_power - b.unreached_power;
 	if (c == 0) c = this.total_accuracy - b.total_accuracy;
 	if (c == 0) c = b.total_accuracy_sq - this.total_accuracy_sq;
+	if (c == 0) c = this.total_priority - b.total_priority;
 	if (c == 0) c = this.total_basic_power - b.total_basic_power;
 	if (c == 0) c = this.total_bonus_power - b.total_bonus_power;
 	return c;
@@ -125,6 +134,7 @@ function SupportFleetScore_compare2(b){
 	let c = this.unreached_power - b.unreached_power;
 	if (c == 0) c = this.total_accuracy - b.total_accuracy;
 	if (c == 0) c = b.total_accuracy_sq - this.total_accuracy_sq;
+	if (c == 0) c = this.total_priority - b.total_priority;
 	if (c == 0) c = b.total_basic_power - this.total_basic_power;
 	if (c == 0) c = this.total_bonus_power - b.total_bonus_power;
 	return c;
@@ -135,7 +145,8 @@ function SupportFleetScore_compare_annealing(b){
 	let c = (this.unreached_power - b.unreached_power) * 1000;
 	if (c == 0) c = (this.total_accuracy - b.total_accuracy) * 100;
 	if (c == 0) c = (b.total_accuracy_sq - this.total_accuracy_sq) * 0.1;
-	if (c == 0) c = (this.total_basic_power - b.total_basic_power) * 10;
+	if (c == 0) c = (this.total_priority - b.total_priority) * 10;
+	if (c == 0) c = this.total_basic_power - b.total_basic_power;
 	if (c == 0) c = this.total_bonus_power - b.total_bonus_power;
 	return c;
 }
@@ -151,6 +162,7 @@ Object.assign(SupportShipScore.prototype, {
 	unreached_power  : 0,
 	total_accuracy   : 0,
 	total_accuracy_sq: 0, // total_accuracy の2乗になるだけなので、高速化のため常に0とする
+	total_priority   : 0,
 	total_basic_power: 0,
 	total_bonus_power: 0,
 	
@@ -170,6 +182,7 @@ function SupportShipScore(ssd, basic_power){
 function SupportShipScore_clear(){
 	this.unreached_power   = 0;
 	this.total_accuracy    = 0;
+	this.total_priority    = 0;
 	this.total_basic_power = 0;
 	this.total_bonus_power = 0;
 }
@@ -177,6 +190,7 @@ function SupportShipScore_clear(){
 function SupportShipScore_copy_from(src){
 	this.unreached_power   = src.unreached_power  ;
 	this.total_accuracy    = src.total_accuracy   ;
+	this.total_priority    = src.total_priority   ;
 	this.total_basic_power = src.total_basic_power;
 	this.total_bonus_power = src.total_bonus_power;
 }
@@ -187,6 +201,7 @@ function SupportShipScore_add(ssd, basic_power = ssd.border_basic_power, test){
 	
 	this.unreached_power   += Math.min(basic - basic_power, 0);
 	this.total_accuracy    += acc;
+	this.total_priority    += ssd.get_equipment_priority();
 	this.total_basic_power += basic;
 	this.total_bonus_power += ssd.get_bonus_firepower();
 }
@@ -194,6 +209,7 @@ function SupportShipScore_add(ssd, basic_power = ssd.border_basic_power, test){
 function SupportShipScore_compare(b){
 	let c = this.unreached_power - b.unreached_power;
 	if (c == 0) c = this.total_accuracy - b.total_accuracy;
+	if (c == 0) c = this.total_priority - b.total_priority;
 	if (c == 0) c = this.total_basic_power - b.total_basic_power;
 	if (c == 0) c = this.total_bonus_power - b.total_bonus_power;
 	return c;
@@ -202,6 +218,7 @@ function SupportShipScore_compare(b){
 function SupportShipScore_compare2(b){
 	let c = this.unreached_power - b.unreached_power;
 	if (c == 0) c = this.total_accuracy - b.total_accuracy;
+	if (c == 0) c = this.total_priority - b.total_priority;
 	if (c == 0) c = b.total_basic_power - this.total_basic_power;
 	if (c == 0) c = this.total_bonus_power - b.total_bonus_power;
 	return c;

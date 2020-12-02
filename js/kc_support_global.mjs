@@ -89,6 +89,30 @@ export const SORT_CATEGORY_DEF = [
 	"対空機銃",
 ];
 
+
+/* 装備の優先順位定義
+大和電探＞大型電探＞小型電探
+51砲＞大口径主砲
+噴式＞艦攻・艦爆
+副砲＞ほか
+など
+*/
+export const EQUIP_PRIORITY_DEF = [
+	// 上が優先、該当なしは0
+	// 大和電探
+	{value: 4, ids: [142]},
+	// 大型電探
+	{value: 2, cates: ["大型電探"]},
+	// 51砲
+	{value: 2, ids: [128, 281]},
+	// 噴式
+	{value: 1, cates: ["噴式戦闘爆撃機"]},
+	// 副砲
+	{value: 1, cates: ["副砲"]},
+	// 該当なし
+	{value: 0, is_default: true},
+];
+
 // LocalStorage に保存するデータのバージョン
 export const SUPPORT_SAVEDATA_VERSION = 2;
 

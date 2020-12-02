@@ -91,8 +91,16 @@ function SupportFleetData_annealing(iteration_scale = 1){
 	let own_list_normal = own_list.concat();
 	let own_list_cv = own_list.concat();
 	// 先にソート
-	own_list_normal.sort((a, b) => SupportShipData.power_compare(b.id, a.id, false));
-	own_list_cv.sort((a, b) => SupportShipData.power_compare(b.id, a.id, true));
+	own_list_normal.sort((a, b) =>
+		SupportShipData.power_compare(b.id, a.id, false) ||
+		SupportShipData.accuracy_compare(b.id, a.id) ||
+		SupportShipData.priority_compare(b.id, a.id)
+	);
+	own_list_cv.sort((a, b) =>
+		SupportShipData.power_compare(b.id, a.id, true) ||
+		SupportShipData.accuracy_compare(b.id, a.id) ||
+		SupportShipData.priority_compare(b.id, a.id)
+	);
 	
 	// 各艦のslotと、それに付随するデータ
 	// fixed は入れない

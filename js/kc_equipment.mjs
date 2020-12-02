@@ -56,6 +56,8 @@ Object.assign(EquipmentDatabase, {
 	initialized: false,
 	init_jp_def: EquipmentDatabase_init_jp_def,
 	initialize : EquipmentDatabase_initialize,
+	// カスタムプロパティを追加する
+	add_equipment_property: EquipmentDatabase_add_equipment_property,
 	
 	// マルチスレッド用
 	// 通常のオブジェクトは共有できないのでコピーする必要がある
@@ -214,6 +216,30 @@ function EquipmentDatabase_initialize(csv_shiplist, csv_equiplist_raw, csv_equip
 	EquipmentDatabase.equipment_data_map = eqmap;
 	
 	EquipmentDatabase.initialized = true;
+}
+
+// 装備のカスタムプロパティ
+// csv_equiplistに適用
+/*
+definition:
+	[{value: 0, ids:[], cates:[], is_default: false}, ...]
+	先にマッチしたものが優先
+	該当なしは0
+*/
+function EquipmentDatabase_add_equipment_property(name, definition){
+	for (let eq of EquipmentDatabase.csv_equiplist) {
+		let value = 0;
+		for (let def of definition) {
+			if ( (def.ids && def.ids.indexOf(eq.number) >= 0) ||
+				(def.cates && def.cates.indexOf(eq.category) >= 0) ||
+				def.is_default )
+			{
+				value = def.value;
+				break;
+			}
+		}
+		eq[name] = value;
+	}
 }
 
 // postMessage() するデータ
@@ -613,6 +639,8 @@ function EquipmentSlot_is_upper_or_equal(b, cv_shelling){
 	let t_eq = this.equipment_data;
 	let b_eq = b.equipment_data;
 	
+	if (t_eq.priority < b_eq.priority) return false;
+	
 	let t_fpw = t_eq.firepower + this.bonus_firepower;
 	let b_fpw = b_eq.firepower + b.bonus_firepower;
 	
@@ -631,6 +659,8 @@ function EquipmentSlot_is_upper_or_equal(b, cv_shelling){
 function EquipmentSlot_is_upper_or_equal_raw(b, cv_shelling){
 	let t_eq = this.equipment_data;
 	let b_eq = b.equipment_data;
+	
+	if (t_eq.priority < b_eq.priority) return false;
 	
 	let t_fpw = t_eq.firepower;
 	let b_fpw = b_eq.firepower;
