@@ -435,10 +435,43 @@ body {
 
 /* 支援艦隊 */
 #support_form .support_header {
+	position: relative;
+	display: flex;
+	column-gap: 2px;
 	padding: 1px 8px;
 	background-color: #aae1ff;
+}
+#support_form .support_header > .title {
 	font-weight: bold;
 }
+#support_form .support_header > .flex_space {
+	flex-basis: 0;
+	flex-grow: 1;
+}
+#support_form .support_header button {
+	display: block;
+	min-width: 7em;
+	color: #014;
+	background-color: #eef9ff;
+	border: solid 1px #0d5973;
+	border-radius: 4px;
+}
+#support_form .support_header .hint {
+	display: none;
+	padding: 0.2em 0.5em;
+	border: 1px black solid;
+	position: absolute;
+	top: 2em;
+	right: 0em;
+	background: white;
+	font-size: 80%;
+	z-index: 10;
+}
+#support_form .support_header button:hover + .hint {
+	display: block;
+}
+
+
 #support_form h5 {
 	margin: 0em 0em 0em 0.5em;
 }
@@ -649,6 +682,12 @@ body {
 }
 #support_B tbody .eq_dragdrop {
 	background-color: lavender;
+}
+
+/* 支援艦隊 > 出力ダイアログ (.convertを継承) */
+.dialog_container .inside.convert .contents > div.button_div.copy {
+	text-align: right;
+	margin: 0em;
 }
 
 

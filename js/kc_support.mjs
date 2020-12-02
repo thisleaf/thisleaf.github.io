@@ -29,6 +29,9 @@ import {
 	OwnConvertDialog,
 } from "./kc_support_equip.mjs";
 import {
+	OutputDeckDialog,
+} from "./kc_support_output.mjs";
+import {
 	worker_get,
 	worker_release,
 	MultiThreadSearcher,
@@ -129,6 +132,7 @@ function kancolle_support_init(){
 	
 	_click("reset_dialog", ev_click_reset_dialog);
 	_click("convert_dialog", ev_click_convert_dialog);
+	_click("output_deck_dialog", ev_click_output_deck_dialog);
 	
 	_click("header_tab", ev_click_header_tab);
 	
@@ -524,7 +528,7 @@ function ev_click_reset_dialog(){
 	dialog.show();
 }
 
-// データ変換
+// データ変換(装備のインポート)
 function ev_click_convert_dialog(){
 	let dialog = new OwnConvertDialog(own_equipment_form);
 	dialog.create();
@@ -532,6 +536,14 @@ function ev_click_convert_dialog(){
 		if (e.detail == "ok") save_userdata();
 		dialog.dispose();
 	});
+	dialog.show();
+}
+
+// データ変換(支援艦隊出力)
+function ev_click_output_deck_dialog(){
+	let dialog = new OutputDeckDialog(support_fleet_A, support_fleet_B);
+	dialog.create();
+	dialog.addEventListener("exit", e => dialog.dispose());
 	dialog.show();
 }
 

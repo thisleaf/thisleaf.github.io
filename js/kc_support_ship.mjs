@@ -932,6 +932,7 @@ Object.assign(SupportShipData.prototype, {
 	sort_equipment     : SupportShipData_sort_equipment   ,
 	is_upper_equipment : SupportShipData_is_upper_equipment,
 	
+	get_json_deckbuilder: SupportShipData_get_json_deckbuilder,
 	get_json_MT: SupportShipData_get_json_MT,
 	set_json_MT: SupportShipData_set_json_MT,
 	
@@ -1227,6 +1228,56 @@ function SupportShipData_is_upper_equipment(upper, base){
 	}
 	
 	return false;
+}
+
+// デッキビルダー形式
+// IDが定義されていない場合は"0"
+/* {
+	id: '100', lv: 40, luck: -1,
+	items:{ // 装備
+		// id: ID, rf: 改修, mas: 熟練度
+		i1:{id:1, rf: 4, mas:7},
+		i2:{id:3, rf: 0},
+		...,
+		ix:{id:43} // 増設
+	}
+} */
+function SupportShipData_get_json_deckbuilder(){
+	let airplane_cates = [
+		"艦上偵察機", "艦上攻撃機", "艦上爆撃機", "噴式戦闘爆撃機",
+		"水上偵察機", "多用途水上機/水上爆撃機", "水上戦闘機",
+	];
+	
+	let ship = EquipmentDatabase.csv_shiplist.find(d => d.name == this.ship_name);
+	let json = {
+		id: ship?.shipId || "0",
+		// lv: 99,
+		// luck: -1,
+		items: {},
+	};
+	
+	for (let i=0; i<this.allslot_equipment.length; i++) {
+		let item_key;
+		if (this.exslot_available && i == this.allslot_equipment.length - 1) {
+			// 増設
+			item_key = "ix";
+		} else {
+			item_key = "i" + (i + 1);
+		}
+		
+		let slot = this.allslot_equipment[i];
+		if (slot.equipment_id) {
+			json.items[item_key] = {
+				id: slot.equipment_id,
+				rf: slot.improvement,
+			};
+			if (airplane_cates.indexOf(slot.equipment_data.category) >= 0) {
+				json.items[item_key].mas = 7;
+			}
+		}
+	}
+	
+	return json;
 }
 
 // サブスレッドへの転送用
