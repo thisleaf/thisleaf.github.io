@@ -50,7 +50,13 @@ function worker_terminator(){
 // poolにあればそれを利用する
 function worker_get(){
 	if (worker_pool.length > 0) {
-		return worker_pool.pop();
+		let w = worker_pool.pop();
+		// 一応設定を送っておく
+		w.postMessage({
+			type: "settings",
+			settings: Global.Settings,
+		});
+		return w;
 	}
 	
 	// Workerのパスの起点はhtmlファイルっぽいので、絶対URLで指定することにする
@@ -60,6 +66,7 @@ function worker_get(){
 	worker.postMessage({
 		type: "initialize",
 		data: EquipmentDatabase.get_data(),
+		settings: Global.Settings,
 	});
 	
 	return worker;

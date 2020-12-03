@@ -107,8 +107,8 @@ export const EQUIP_PRIORITY_DEF = [
 	{value: 2, ids: [128, 281]},
 	// 噴式
 	{value: 1, cates: ["噴式戦闘爆撃機"]},
-	// 副砲
-	{value: 1, cates: ["副砲"]},
+	// 副砲、中口径主砲
+	{value: 1, cates: ["副砲", "中口径主砲"]},
 	// 該当なし
 	{value: 0, is_default: true},
 ];

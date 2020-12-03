@@ -50,10 +50,12 @@ Object.assign(SupportFleetData.prototype, {
 	get_json_MT      : SupportFleetData_get_json_MT,
 	set_json_MT      : SupportFleetData_set_json_MT,
 	
-	verify            : SupportFleetData_verify,
-	modify_remainings    : SupportFleetData_modify_remainings,
-	countup_equipment_ssd: SupportFleetData_countup_equipment_ssd,
-	countup_equipment    : SupportFleetData_countup_equipment,
+	verify                 : SupportFleetData_verify,
+	modify_remainings      : SupportFleetData_modify_remainings,
+	modify_fixed_equips_ssd: SupportFleetData_modify_fixed_equips_ssd,
+	modify_fixed_equips    : SupportFleetData_modify_fixed_equips,
+	countup_equipment_ssd  : SupportFleetData_countup_equipment_ssd,
+	countup_equipment      : SupportFleetData_countup_equipment,
 	clear_slots_ssd   : SupportFleetData_clear_slots_ssd,
 	clear_slots       : SupportFleetData_clear_slots,
 	swap_slot_ptr     : SupportFleetData_swap_slot_ptr,
@@ -226,6 +228,38 @@ function SupportFleetData_modify_remainings(){
 			
 			own.rem_counts[i] = rem;
 		}
+	}
+}
+
+// 固定に矛盾があっても適当に修正する(ssdのデータ)
+function SupportFleetData_modify_fixed_equips_ssd(ssd){
+	for (let i=0; i<ssd.allslot_equipment.length; i++) {
+		if (!ssd.allslot_fixes[i]) continue;
+		
+		let id = ssd.allslot_equipment[i].equipment_id;
+		let star = ssd.allslot_equipment[i].improvement;
+		let own = this.own_map[id];
+		if (!id || !own || own.rem_counts[star] >= 0) continue;
+		
+		// 改修値の変更を試みる
+		for (let j=own.rem_counts.length-1; j>=0; j--) {
+			if (own.rem_counts[j] > 0) {
+				own.rem_counts[j]--;
+				own.rem_counts[star]++;
+				ssd.allslot_equipment[i].improvement = j;
+				
+				own.fix_counts[j]++;
+				own.fix_counts[star]--;
+				break;
+			}
+		}
+	}
+}
+
+// 全体版
+function SupportFleetData_modify_fixed_equips(){
+	for (let ssd of this.ssd_list) {
+		this.modify_fixed_equips_ssd(ssd);
 	}
 }
 

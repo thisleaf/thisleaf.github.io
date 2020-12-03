@@ -73,6 +73,8 @@ Promise.all([
 	httpload_csv_async("data/kancolle_equipable.csv", true).then(obj => KANCOLLE_EQUIPABLE = obj),
 	httpload_csv_async("data/kancolle_equipbonus.csv", true).then(obj => KANCOLLE_EQUIPBONUS = obj),
 	new Promise( resolve => document.addEventListener("DOMContentLoaded", () => resolve()) ),
+	// ここで一度読み込むことで、スーパーリロードが効くことを期待する
+	fetch(new URL("./kc_support_worker.mjs", import.meta.url).href),
 ])
 .then(kancolle_support_init)
 .catch(result => {
@@ -116,7 +118,7 @@ function kancolle_support_init(){
 	// 損傷率
 	damage_table.create_contents();
 	
-	// 探索ボタン
+	// 探索ボタンなど
 	let _click = (id, func) => {
 		let e = DOM(id);
 		if (e) e.addEventListener("click", func);
@@ -182,6 +184,12 @@ function load_form(prepare){
 	if (prepare) {
 		// 本隊装備数のエラーは大目に見る
 		fleet_data.modify_remainings();
+		// 本隊装備数と所持数の矛盾
+		if (!fleet_data.verify()) {
+			set_search_comment("所持数と本隊装備数に矛盾があります");
+			return null;
+		}
+		
 		// 固定をカウント
 		fleet_data.countup_equipment(false, true);
 		
@@ -199,10 +207,16 @@ function load_form(prepare){
 			fleet_data.countup_equipment(true, false, -1);
 			fleet_data.clear_slots(true, false);
 			
-			// 固定でも矛盾→エラー
+			// 固定でも矛盾→修正を試みる
 			if (!fleet_data.verify()) {
-				set_search_comment("所持数と装備の固定数に矛盾があります");
-				return null;
+				console.log("固定に矛盾あり、修正を試みます");
+				fleet_data.modify_fixed_equips();
+				
+				// 修正不可→エラー
+				if (!fleet_data.verify()) {
+					set_search_comment("所持数と装備の固定数に矛盾があります");
+					return null;
+				}
 			}
 		}
 	}
@@ -394,9 +408,21 @@ function ev_click_fast_optimize(){
 		let a_score = new SupportFleetScorePrior(fleet_data.ssd_list);
 		fleet_data.priority_call(x => {
 			fleet_data.fill();
-			fleet_data.hill_climbling1();
-			fleet_data.single_climbling(false);
-			fleet_data.hill_climbling1();
+			fleet_data.single_climbling(false, true);
+			
+			let score = new SupportFleetScore(fleet_data.ssd_list);
+			for (let i=0; i<10; i++) {
+				// 交互に実行していって、スコアが変わらなくなったら終了
+				if (i % 2 == 0) {
+					fleet_data.hill_climbling1();
+				} else {
+					fleet_data.single_climbling(false, true);
+				}
+				
+				let new_score = new SupportFleetScore(fleet_data.ssd_list);
+				if (new_score.compare(score) <= 0) break;
+				score = new_score;
+			}
 		}, true);
 		let b_score = new SupportFleetScorePrior(fleet_data.ssd_list);
 		let b = new Date;

@@ -3,7 +3,11 @@
 import * as Global from "./kc_support_global.mjs";
 import {EquipmentDatabase} from "./kc_equipment.mjs";
 import {SupportFleetData} from "./kc_support_fleet_data.mjs";
-import {SupportFleetScorePrior} from "./kc_support_score.mjs";
+import {
+	SupportFleetScore,
+	SupportShipScore,
+	SupportFleetScorePrior,
+} from "./kc_support_score.mjs";
 
 // 前回実行時のデータ
 // 引き継いで実行することができる
@@ -21,15 +25,7 @@ self.addEventListener("message", worker_ev_message);
 function worker_ev_message(e){
 	let message = e.data;
 	
-	if (message.type == "initialize") {
-		// データの初期化
-		if (EquipmentDatabase.initialized) {
-			debugger;
-		} else {
-			EquipmentDatabase.set_data(message.data);
-		}
-		
-	} else if (message.type == "search") {
+	if (message.type == "search") {
 		let fleet;
 		let json_MT;
 		
@@ -56,9 +52,19 @@ function worker_ev_message(e){
 			// 高速探索
 			fleet.priority_call(x => {
 				fleet.fill();
-				fleet.hill_climbling1();
-				fleet.single_climbling(false);
-				fleet.hill_climbling1();
+				fleet.single_climbling(false, true);
+				
+				let score = new SupportFleetScore(fleet.ssd_list);
+				for (let i=0; i<10; i++) {
+					if (i % 2 == 0) {
+						fleet.hill_climbling1();
+					} else {
+						fleet.single_climbling(false, true);
+					}
+					let new_score = new SupportFleetScore(fleet.ssd_list);
+					if (new_score.compare(score) <= 0) break;
+					score = new_score;
+				}
 			}, true);
 		}
 		
@@ -72,6 +78,19 @@ function worker_ev_message(e){
 			data       : fleet.get_json_MT(json_MT, false),
 			score_data : new SupportFleetScorePrior(fleet.ssd_list),
 		});
+		
+	} else if (message.type == "initialize") {
+		// データの初期化
+		if (EquipmentDatabase.initialized) {
+			debugger;
+		} else {
+			EquipmentDatabase.set_data(message.data);
+			Object.assign(Global.Settings, message.settings || {});
+		}
+		
+	} else if (message.type == "settings") {
+		// 設定変更
+		Object.assign(Global.Settings, message.settings);
 		
 	} else if (message.type == "close") {
 		self.close();

@@ -18,6 +18,7 @@ class OutputDeckDialog extends DOMDialog {
 	e_textarea;
 	e_deckbuilder_div;
 	e_deckbuilder_hint;
+	e_copy_hint;
 	
 	fleet1;
 	fleet2;
@@ -71,6 +72,9 @@ function OutputDeckDialog_create(){
 		
 		this.e_deckbuilder_div = NODE(ELEMENT("div", "", "option"), [
 			this.e_deckbuilder_hint = ELEMENT("div", "", "option_text"),
+		]),
+		NODE(ELEMENT("div", "", "option"), [
+			this.e_copy_hint = ELEMENT("div", "", "option_text"),
 		]),
 		
 		NODE(ELEMENT("div", "", "button_div"), [
@@ -137,8 +141,9 @@ function OutputDeckDialog_ev_click_copy(e){
 	.then(result => {
 		if (result.state == "granted") {
 			navigator.clipboard.writeText(JSON.stringify(json));
+			this.e_copy_hint.textContent = "コピーしました！";
 		} else {
-			console.log("クリップボードへのコピーに失敗しました");
+			this.e_copy_hint.textContent = "コピーに失敗しました…";
 		}
 	});
 }

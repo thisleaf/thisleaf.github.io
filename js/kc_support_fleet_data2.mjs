@@ -1074,7 +1074,9 @@ function SupportFleetData_single_nosynergy_pre(ssd){
 
 
 // single() を使って山登りする
-function SupportFleetData_single_climbling(seq = false){
+// seq: 上から順番に
+// light_mode: 解が改善された場合でも最初からやりなおさない
+function SupportFleetData_single_climbling(seq = false, light_mode = false){
 	// 上から順番に
 	if (seq) {
 		let stable_count = 0;
@@ -1086,7 +1088,7 @@ function SupportFleetData_single_climbling(seq = false){
 			this.single(ssd);
 			let after_score = new SupportShipScore(ssd);
 			
-			if (before_score.compare(after_score) < 0) {
+			if (before_score.compare(after_score) < 0 && !light_mode) {
 				// 解が改善された
 				stable_count = 0;
 			} else {
@@ -1120,7 +1122,7 @@ function SupportFleetData_single_climbling(seq = false){
 				updated = before_score.compare(after_score) < 0;
 			}
 			
-			if (updated) {
+			if (updated && !light_mode) {
 				// 解が改善されたのでやり直し
 				last_updated_ssd = ssds[i];
 				ssds.sort(_score_less);
