@@ -499,6 +499,22 @@ body {
 	padding: 0px;
 }
 
+
+/* 支援艦隊 > table内select */
+.support_table .parallel       { background-color: #eff;    } /* 1.0 */
+.support_table .head_on        { background-color: #ffb;    } /* 0.8 */
+.support_table .t_disadvantage { background-color: #fdd;    } /* 0.6 */
+.support_table .t_advantage    { background-color: #dfd;    } /* 1.2 */
+
+.support_table .line_ahead     { background-color: #eff;    } /* 1.0 */
+.support_table .double_line    { background-color: #ffb;    } /* 0.8 */
+.support_table .diamond        { background-color: #fed;    } /* 0.7 */
+.support_table .echelon        { background-color: #fff6dd; } /* 0.75 */
+.support_table .line_abreast   { background-color: #fdd;    } /* 0.6 */
+.support_table .vanguard       { background-color: #fcc;    } /* 0.5 */
+.support_table .combined       { background-color: #eff;    } /* 1.0 */
+
+
 /* 支援艦隊 > tableヘッダー */
 .support_table thead .support_type {
 	font-weight: bold;

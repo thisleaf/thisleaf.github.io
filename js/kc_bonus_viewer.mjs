@@ -194,8 +194,8 @@ function BonusViewer_refresh(){
 	
 	let indep_row_gens = row_gens.filter(gen => gen.independent);
 	let synergy_row_gens = row_gens.filter(gen => !gen.independent);
-	let indep_rows = indep_row_gens.map(gen => gen.create_rows()).flat();
-	let synergy_rows = synergy_row_gens.map(gen => gen.create_rows()).flat();
+	let indep_rows = indep_row_gens.flatMap(gen => gen.create_rows());
+	let synergy_rows = synergy_row_gens.flatMap(gen => gen.create_rows());
 	
 	NODE(this.e_indep_tbody, indep_rows);
 	NODE(this.e_synergy_tbody, synergy_rows);

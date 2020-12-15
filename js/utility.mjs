@@ -624,6 +624,29 @@ export function attach_event_target(obj){
 	obj.dispatchEvent       = ev.dispatchEvent      .bind(ev);
 }
 
+export function select_default_if_empty(elem_array){
+	ELEM: for (let e of elem_array) {
+		if (e?.selectedIndex < 0 && e.options.length > 0) {
+			for (let i=0; i<e.options.length; i++) {
+				if (e.options[i].defaultSelected) {
+					e.selectedIndex = i;
+					continue ELEM;
+				}
+			}
+			e.selectedIndex = 0;
+		}
+	}
+}
+
+// optionのクラスをselectに適用する
+export function inherit_option_class(select){
+	for (let op of select.options) {
+		if (op.className) select.classList.remove(op.className);
+	}
+	let op = select.options[select.selectedIndex];
+	if (op?.className) select.classList.add(op.className);
+}
+
 
 // DragdataProvider --------------------------------------------------------------------------------
 // dragdropのデータを仲介

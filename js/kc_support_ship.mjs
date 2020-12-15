@@ -184,13 +184,21 @@ function SupportShip_create(def_priority){
 	
 	// 火力目標
 	this.e_engagement = NODE(ELEMENT("select"),
-		Global.ENGAGEMENT_FORM_DEFINITION.map(d => new Option(d.name, d.support))
+		Global.ENGAGEMENT_FORM_DEFINITION.map(d => {
+			let op = new Option(d.name, d.support);
+			if (d.className) op.className = d.className;
+			return op;
+		})
 	);
 	this.e_engagement.selectedIndex = 1; // 反航戦
 	this.e_engagement.addEventListener("change", _change_target);
 	
 	this.e_formation = NODE(ELEMENT("select"),
-		Global.FORMATION_DEFINITION.map(d => new Option(d.name, d.support))
+		Global.FORMATION_DEFINITION.map(d => {
+			let op = new Option(d.name, d.support);
+			if (d.className) op.className = d.className;
+			return op;
+		})
 	);
 	this.e_formation.selectedIndex = 0; // 単縦陣
 	this.e_formation.addEventListener("change", _change_target);
@@ -544,6 +552,7 @@ function SupportShip_refresh_shipinfo(suppress_refresh = false){
 }
 
 // 目標火力欄：表示火力の更新
+// selectのクラスも設定
 function SupportShip_refresh_displaypower(){
 	let en = Util.formstr_to_float(this.e_engagement.value, 1, 1);
 	let fm = Util.formstr_to_float(this.e_formation.value, 1, 1);
@@ -569,6 +578,9 @@ function SupportShip_refresh_displaypower(){
 	} else {
 		NODE(this.e_displaypower, [TEXT("条件なし")]);
 	}
+	
+	Util.inherit_option_class(this.e_engagement);
+	Util.inherit_option_class(this.e_formation);
 }
 
 // 装備火力等を更新

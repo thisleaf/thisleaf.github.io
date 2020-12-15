@@ -16,16 +16,23 @@ import {
 	SupportShipData,
 } from "./kc_support_ship.mjs";
 import {
+	SupportFleetScore,
+	SupportShipScore,
+	SupportFleetScorePrior,
+} from "./kc_support_score.mjs";
+import {
 	SupportFleetData_fill,
+	SupportFleetData_random_fill,
 	SupportFleetData_hill_climbling1,
 	SupportFleetData_single,
 	SupportFleetData_single_nosynergy,
 	SupportFleetData_single_nosynergy_pre,
 	SupportFleetData_single_climbling,
-	SupportFleetData_annealing_old,
 } from "./kc_support_fleet_data2.mjs";
 import {
 	SupportFleetData_annealing,
+	SupportFleetData_annealing_entire,
+	SupportFleetData_annealing_entire_main,
 } from "./kc_support_fleet_data3.mjs";
 
 export {
@@ -63,23 +70,29 @@ Object.assign(SupportFleetData.prototype, {
 	sort_equipment    : SupportFleetData_sort_equipment,
 	allow_fixed_exslot: SupportFleetData_allow_fixed_exslot,
 	priority_call     : SupportFleetData_priority_call,
+	close_priority_gap: SupportFleetData_close_priority_gap,
+	restore_priority  : SupportFleetData_restore_priority,
+	get_priority_counts: SupportFleetData_get_priority_counts,
 	
 	assert_count     : SupportFleetData_assert_count,
 	get_own_list_text: SupportFleetData_get_own_list_text,
 	get_text_diff    : SupportFleetData_get_text_diff,
 	
+	search           : SupportFleetData_search,
 	
 	// kancolle_support_data2.mjs
 	fill             : SupportFleetData_fill,
+	random_fill      : SupportFleetData_random_fill,
 	hill_climbling1  : SupportFleetData_hill_climbling1,
 	single           : SupportFleetData_single,
 	single_nosynergy : SupportFleetData_single_nosynergy,
 	single_nosynergy_pre: SupportFleetData_single_nosynergy_pre,
 	single_climbling : SupportFleetData_single_climbling,
-	annealing_old    : SupportFleetData_annealing_old,
 	
 	// kancolle_support_data3.mjs
-	annealing        : SupportFleetData_annealing,
+	annealing            : SupportFleetData_annealing,
+	annealing_entire     : SupportFleetData_annealing_entire,
+	annealing_entire_main: SupportFleetData_annealing_entire_main,
 });
 
 
@@ -469,6 +482,38 @@ function SupportFleetData_priority_call(func, single_call){
 }
 
 
+// 優先度の間を埋め、0から始まる連続整数にする
+// 戻り値: もとの優先度の配列、restore_priority() で元に戻す
+function SupportFleetData_close_priority_gap(){
+	let p_all = this.ssd_list.map(ssd => ssd.priority);
+	p_all.sort((a, b) => a - b);
+	// 変換後 -> 変換前
+	let p_inv_map = p_all.filter((p, i) => p != p_all[i - 1]);
+	// 変換
+	let p_map = {};
+	p_inv_map.forEach((p, i) => p_map[p] = i);
+	
+	for (let ssd of this.ssd_list) {
+		ssd.priority = p_map[ssd.priority];
+	}
+	return p_inv_map;
+}
+
+// close_priority_gap() の変更をもとに戻す
+function SupportFleetData_restore_priority(p_inv_map){
+	for (let ssd of this.ssd_list) {
+		ssd.priority = p_inv_map[ssd.priority];
+	}
+}
+
+// array: 優先度 -> その優先度をもつssdの数
+function SupportFleetData_get_priority_counts(){
+	let arr = [];
+	this.ssd_list.forEach(ssd => arr[ssd.priority] = (arr[ssd.priority] || 0) + 1);
+	return arr;
+}
+
+
 // 所持数データと装備数に不一致が出ていないかを確認する
 // デバッグ用
 function SupportFleetData_assert_count(message = "?"){
@@ -544,4 +589,41 @@ function SupportFleetData_get_text_diff(a, b){
 }
 
 
+// 探索関数のまとめ
+function SupportFleetData_search(search_type, param = null){
+	if (search_type == "annealing") {
+		// 優先度ごとに焼きなまし
+		this.priority_call(() => {
+			this.annealing(param?.iteration_scale || 1);
+		}, true);
+		
+	} else if (search_type == "annealing_entire") {
+		// 全体焼きなまし
+		this.annealing_entire(param?.iteration_scale || 1);
+		
+	} else if (search_type == "fast") {
+		// 高速探索
+		this.priority_call(() => {
+			this.fill();
+			this.single_climbling(false, true);
+			
+			let score = new SupportFleetScore(this.ssd_list);
+			for (let i=0; i<10; i++) {
+				// 交互に実行していって、スコアが変わらなくなったら終了
+				if (i % 2 == 0) {
+					this.hill_climbling1();
+				} else {
+					this.single_climbling(false, true);
+				}
+				
+				let new_score = new SupportFleetScore(this.ssd_list);
+				if (new_score.compare(score) <= 0) break;
+				score = new_score;
+			}
+		}, true);
+		
+	} else {
+		debugger;
+	}
+}
 

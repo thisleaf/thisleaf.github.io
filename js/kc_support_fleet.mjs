@@ -104,10 +104,24 @@ function SupportFleet_create_cols(){
 
 function SupportFleet_create_thead(caption){
 	// 一括設定
-	this.e_engagement = NODE(ELEMENT("select"), Global.ENGAGEMENT_FORM_DEFINITION.map(d => new Option(d.name, d.support)));
+	this.e_engagement = NODE(ELEMENT("select"), Global.ENGAGEMENT_FORM_DEFINITION.map(d => {
+		let op = new Option(d.name, d.support);
+		if (d.className) op.className = d.className;
+		return op;
+	}));
 	this.e_engagement.selectedIndex = 1; // 反航戦
-	this.e_formation = NODE(ELEMENT("select"), Global.FORMATION_DEFINITION.map(d => new Option(d.name, d.support)));
+	this.e_engagement.addEventListener("change", e => Util.inherit_option_class(e.currentTarget));
+	Util.inherit_option_class(this.e_engagement);
+	
+	this.e_formation = NODE(ELEMENT("select"), Global.FORMATION_DEFINITION.map(d => {
+		let op = new Option(d.name, d.support);
+		if (d.className) op.className = d.className;
+		return op;
+	}));
 	this.e_formation.selectedIndex = 0; // 単縦陣
+	this.e_formation.addEventListener("change", e => Util.inherit_option_class(e.currentTarget));
+	Util.inherit_option_class(this.e_formation);
+	
 	this.e_targetpower = ELEMENT("input", {type: "number", className: "targetpower"});
 	this.e_targetpower.min = 0;
 	this.e_targetpower.max = 200;

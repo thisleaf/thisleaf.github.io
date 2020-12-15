@@ -7,22 +7,22 @@ export const SUPPORT_MODIFY = -1;
 
 // 交戦形態
 export const ENGAGEMENT_FORM_DEFINITION = [
-	{name: "同航戦" , support: 1.0},
-	{name: "反航戦" , support: 0.8},
-	{name: "T字不利", support: 0.6},
-	{name: "T字有利", support: 1.2},
+	{name: "同航戦" , support: 1.0, className: "parallel"},
+	{name: "反航戦" , support: 0.8, className: "head_on"},
+	{name: "T字不利", support: 0.6, className: "t_disadvantage"},
+	{name: "T字有利", support: 1.2, className: "t_advantage"},
 ];
 
 // 陣形
 export const FORMATION_DEFINITION = [
-	{name: "単縦陣", support: 1.0},
-	{name: "複縦陣", support: 0.8},
-	{name: "輪形陣", support: 0.7},
-	{name: "梯形陣", support: 0.75},
-	{name: "単横陣", support: 0.6},
-	{name: "警戒陣", support: 0.5},
+	{name: "単縦陣", support: 1.0 , className: "line_ahead"},
+	{name: "複縦陣", support: 0.8 , className: "double_line"},
+	{name: "輪形陣", support: 0.7 , className: "diamond"},
+	{name: "梯形陣", support: 0.75, className: "echelon"},
+	{name: "単横陣", support: 0.6 , className: "line_abreast"},
+	{name: "警戒陣", support: 0.5 , className: "vanguard"},
 	// 連合艦隊はどれも同じっぽい？
-	{name: "連合艦隊", support: 1.0},
+	{name: "連合艦隊", support: 1.0, className: "combined"},
 ];
 
 // wiki: 交戦形態補正、攻撃側陣形補正、損傷補正の3つは左側の補正から順に乗算。
@@ -136,6 +136,8 @@ export const DefaultSettings = {
 	CustomThreadCount: navigator.hardwareConcurrency || 1,
 	// 探索後待機状態に移行、時間経過で解放
 	ThreadKeepAlive: true,
+	// 優先度の扱い "separate" | "entire"
+	PriorityOption: "separate",
 	
 	// 焼きなまし
 	// 反復回数倍率*100

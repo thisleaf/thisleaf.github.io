@@ -144,6 +144,7 @@ function kancolle_support_init(){
 	_change("thread_custom", ev_change_settings);
 	_change("thread_input", ev_change_settings);
 	_change("thread_keep_alive", ev_change_settings);
+	_change("priority_option", ev_change_settings);
 	
 	// load localStorage
 	load_userdata();
@@ -280,8 +281,12 @@ function settings_initialize_form(){
 	];
 	let sel_index = 0;
 	for (let i=0; i<percents.length; i++) {
-		e_iter.appendChild(new Option(percents[i] + "%", percents[i]));
-		if (percents[i] == 100) sel_index = i;
+		let opt = new Option(percents[i] + "%", percents[i]);
+		e_iter.appendChild(opt);
+		if (percents[i] == 100) {
+			sel_index = i;
+			opt.defaultSelected = true;
+		}
 	}
 	e_iter.selectedIndex = sel_index;
 	
@@ -305,18 +310,23 @@ function settings_form_to_global(){
 	Global.Settings.ThreadCountMode       = DOM("thread_auto").checked ? "auto" : "custom";
 	Global.Settings.CustomThreadCount     = tc;
 	Global.Settings.ThreadKeepAlive       = DOM("thread_keep_alive").checked;
+	Global.Settings.PriorityOption        = DOM("priority_option").value;
 	Global.Settings.AnnealingIteration100 = iter;
 }
 
 function settings_global_to_form(){
-	DOM("use_mt").checked = Global.Settings.MultiThreading;
 	let th_id = Global.Settings.ThreadCountMode == "auto" ? "thread_auto" : "thread_custom";
+	let e_pri = DOM("priority_option");
+	let e_iter = DOM("iteration_select");
+	
+	DOM("use_mt").checked = Global.Settings.MultiThreading;
 	DOM(th_id).checked = true;
 	DOM("thread_input").value = Global.Settings.CustomThreadCount;
 	DOM("thread_keep_alive").checked = Global.Settings.ThreadKeepAlive;
-	let e_iter = DOM("iteration_select");
+	e_pri.value = Global.Settings.PriorityOption;
 	e_iter.value = Global.Settings.AnnealingIteration100;
-	if (e_iter.selectedIndex < 0) e_iter.value = 100;
+	
+	Util.select_default_if_empty([e_pri, e_iter]);
 }
 
 // 探索のボタン等を設定や実行中かどうかなどで更新
@@ -394,7 +404,7 @@ function ev_click_fast_optimize(){
 		mt_searcher.run().then(res => {
 			fleet_data.set_json_MT(res.data, true);
 			save_form(fleet_data);
-			set_search_comment("高速探索完了　" + mt_searcher.get_solution_info(true, false) + "　" + mt_searcher.get_elapsed_time() + "ms");
+			set_search_comment("高速探索終了　" + mt_searcher.get_solution_info(true, false) + "　" + mt_searcher.get_elapsed_time() + "ms");
 		}).catch(res => {
 		}).finally(() => {
 			mt_searcher = null;
@@ -406,32 +416,20 @@ function ev_click_fast_optimize(){
 	} else {
 		let a = new Date;
 		let a_score = new SupportFleetScorePrior(fleet_data.ssd_list);
-		fleet_data.priority_call(x => {
-			fleet_data.fill();
-			fleet_data.single_climbling(false, true);
-			
-			let score = new SupportFleetScore(fleet_data.ssd_list);
-			for (let i=0; i<10; i++) {
-				// 交互に実行していって、スコアが変わらなくなったら終了
-				if (i % 2 == 0) {
-					fleet_data.hill_climbling1();
-				} else {
-					fleet_data.single_climbling(false, true);
-				}
-				
-				let new_score = new SupportFleetScore(fleet_data.ssd_list);
-				if (new_score.compare(score) <= 0) break;
-				score = new_score;
-			}
-		}, true);
+		fleet_data.search("fast");
 		let b_score = new SupportFleetScorePrior(fleet_data.ssd_list);
 		let b = new Date;
 		
-		save_form(fleet_data);
+		let c = MultiThreadSearcher.compare_score(a_score, b_score, "fast");
+		if (c <= 0) {
+			save_form(fleet_data);
+		} else { // 多分こちらは来ないが念の為
+			b_score = a_score;
+		}
 		
 		let msec = b.getTime() - a.getTime();
-		let diff = MultiThreadSearcher.solution_diff(a_score, b_score, true);
-		set_search_comment("高速探索完了　" + diff + "　" + msec + "ms");
+		let diff = MultiThreadSearcher.get_score_diff(a_score, b_score, "fast", true);
+		set_search_comment("高速探索終了　" + diff + "　" + msec + "ms");
 	}
 }
 
@@ -439,6 +437,8 @@ function ev_click_fast_optimize(){
 function ev_click_random_optimize(){
 	let fleet_data = load_form(true);
 	if (!fleet_data) return;
+	
+	let search_type = Global.Settings.PriorityOption == "entire" ? "annealing_entire" : "annealing";
 	
 	if (Global.Settings.MultiThreading) {
 		// マルチスレッド単発
@@ -448,7 +448,7 @@ function ev_click_random_optimize(){
 		mt_searcher.set_thread_count_by_Global();
 		mt_searcher.set_search_data(fleet_data, {
 			type: "search",
-			search_type: "annealing",
+			search_type: search_type,
 			iteration_scale: Global.Settings.AnnealingIteration100 / 100,
 		}, false);
 		
@@ -457,7 +457,7 @@ function ev_click_random_optimize(){
 		mt_searcher.run().then(res => {
 			fleet_data.set_json_MT(res.data, true);
 			save_form(fleet_data);
-			set_search_comment("ランダム探索完了　" + mt_searcher.get_solution_info(true, false) + "　" + mt_searcher.get_elapsed_time() + "ms");
+			set_search_comment("ランダム探索終了　" + mt_searcher.get_solution_info(true, false) + "　" + mt_searcher.get_elapsed_time() + "ms");
 		}).catch(res => {
 		}).finally(() => {
 			mt_searcher = null;
@@ -470,23 +470,29 @@ function ev_click_random_optimize(){
 		// シングルスレッド
 		let a = new Date;
 		let a_score = new SupportFleetScorePrior(fleet_data.ssd_list);
-		fleet_data.priority_call(x => {
-			fleet_data.annealing(Global.Settings.AnnealingIteration100 / 100);
-			//fleet_data.single_climbling(false);
-		}, true);
+		fleet_data.search(search_type, {
+			iteration_scale: Global.Settings.AnnealingIteration100 / 100,
+		});
 		let b_score = new SupportFleetScorePrior(fleet_data.ssd_list);
 		let b = new Date;
 		
-		save_form(fleet_data);
+		let c = MultiThreadSearcher.compare_score(a_score, b_score, search_type);
+		if (c <= 0) {
+			save_form(fleet_data);
+		} else {
+			b_score = a_score;
+		}
 		
 		let msec = b.getTime() - a.getTime();
-		let diff = MultiThreadSearcher.solution_diff(a_score, b_score, true);
-		set_search_comment("ランダム探索完了　" + diff + "　" + msec + "ms");
+		let diff = MultiThreadSearcher.get_score_diff(a_score, b_score, search_type, true);
+		set_search_comment("ランダム探索終了　" + diff + "　" + msec + "ms");
 	}
 }
 
 // ランダム探索(継続)
 function ev_click_random_optimize_cont(){
+	let search_type = Global.Settings.PriorityOption == "entire" ? "annealing_entire" : "annealing";
+	
 	if (mt_searcher?.running) {
 		// 停止リクエスト
 		mt_searcher.stop();
@@ -501,7 +507,7 @@ function ev_click_random_optimize_cont(){
 		mt_searcher.set_thread_count_by_Global();
 		mt_searcher.set_search_data(fleet_data, {
 			type: "search",
-			search_type: "annealing",
+			search_type: search_type,
 			iteration_scale: Global.Settings.AnnealingIteration100 / 100,
 		}, true);
 		
@@ -597,8 +603,6 @@ function ev_click_test(){
 }
 
 function ev_click_test2(){
-	console.time("test2");
-	
 	if (0) {
 		for (let d of own_equipment_form.data_array) {
 			d.total_counts[0] = 1;
@@ -608,60 +612,17 @@ function ev_click_test2(){
 		own_equipment_form.refresh_tab();
 		return;
 	}
-	
-	if (0) {
-		console.time("test2");
-		
-		let fleet_data = load_form(true);
-		if (!fleet_data) return;
-		
-		fleet_data.assert_count("before check");
-		fleet_data.fill();
-		fleet_data.assert_count("after check");
-		
-		save_form(fleet_data);
-		
-		console.timeEnd("test2");
-	}
-	
-	if (0) {
-		performance_check(f => {
-			let ssds = f.ssd_list;
-			f.ssd_list = ssds.slice(6, 12);
-			f.fill();
-			f.annealing();
-			f.ssd_list = ssds.slice(0, 6).concat(f.ssd_list);
-		}, "annealing half", 100);
-	}
 }
 
 function ev_click_test3(){
-	if (0) {
-		console.time("test3");
-		
-		let fleet_data = load_form(true);
-		if (!fleet_data) return;
-		
-		fleet_data.assert_count("before check");
-		let a = new Date;
-		fleet_data.priority_call(x => {
-			fleet_data.fill();
-			fleet_data.hill_climbling1();
-		}, true);
-		let b = new Date;
-		
-		let msec = b.getTime() - a.getTime();
-		message_bar.show("test3探索完了！ (" + msec + "ms)", 3000);
-		
-		fleet_data.assert_count("after check");
-		
-		console.timeEnd("test3");
-		save_form(fleet_data);
-	}
-	
 	performance_check(f => {
-		f.fill();
-		f.annealing();
+		//f.annealing_entire(1);
+		f.annealing(1);
+/*
+		f.priority_call(x => {
+			f.annealing(1);
+		}, true);
+*/
 	}, "annealing beta", 100);
 }
 
@@ -729,6 +690,7 @@ function settings_get_json(){
 		ThreadCountMode      : Global.Settings.ThreadCountMode,
 		CustomThreadCount    : Global.Settings.CustomThreadCount,
 		ThreadKeepAlive      : Global.Settings.ThreadKeepAlive,
+		PriorityOption       : Global.Settings.PriorityOption,
 		AnnealingIteration100: Global.Settings.AnnealingIteration100,
 	};
 }
@@ -739,6 +701,7 @@ function settings_set_json(json){
 		Global.Settings.ThreadCountMode       = json.ThreadCountMode;
 		Global.Settings.CustomThreadCount     = Util.safe_limit(json.CustomThreadCount, 1, Global.Settings.ThreadMax);
 		Global.Settings.ThreadKeepAlive       = json.ThreadKeepAlive;
+		Global.Settings.PriorityOption        = json.PriorityOption || Global.Settings.PriorityOption;
 		Global.Settings.AnnealingIteration100 = Util.safe_limit( json.AnnealingIteration100,
 			Global.Settings.AnnealingIterationMin100, Global.Settings.AnnealingIterationMax100, Global.DefaultSettings.AnnealingIteration100 );
 	}
@@ -786,7 +749,7 @@ function performance_check(func, name, loop_count, base_time = 1000){
 		let score = new SupportFleetScorePrior(fleet_data.ssd_list);
 		let res = {
 			msec    : b.getTime() - a.getTime(),
-			accuracy: score.total_accuracy,
+			accuracy: score.total_score.total_accuracy,
 			score   : score,
 		};
 		simulate_result.push(res);
@@ -803,17 +766,26 @@ function performance_check(func, name, loop_count, base_time = 1000){
 	function _evaluate(){
 		let msec_sum = 0;
 		let acc_min = 9999, acc_max = 0, acc_sum = 0, acc_sqsum = 0;
-		//let max_score = null;
 		let acc_counts = [];
 		let sim_count = simulate_result.length;
+		let max_score = null;
+		let max_count = 0;
 		
 		for (let result of simulate_result) {
-/*
-			let c = max_score ? max_score.compare(result.score) : -1;
+			let c = -1;
+			let c1 = -1;
+			if (max_score) {
+				c1 = max_score.compare_s1(result.score);
+				c = c1 || max_score.compare_s2(result.score) || max_score.compare_s3(result.score);
+			}
 			if (c < 0) {
 				max_score = result.score;
 			}
-*/
+			if (c1 < 0) {
+				max_count = 1;
+			} else if (c1 == 0) {
+				max_count++;
+			}
 			
 			let acc = result.accuracy;
 			if (acc_min > acc) acc_min = acc;
@@ -826,21 +798,21 @@ function performance_check(func, name, loop_count, base_time = 1000){
 			msec_sum += result.msec;
 		}
 		
-		let max_count = acc_counts[acc_max];
-		let count_12 = max_count + (acc_counts[acc_max - 1] || 0);
+		let count_1 = acc_counts[acc_max];
+		let count_12 = count_1 + (acc_counts[acc_max - 1] || 0);
 		let count_123 = count_12 + (acc_counts[acc_max - 2] || 0);
 		
 		let acc_avg = acc_sum / sim_count;
 		let avg_time = msec_sum / sim_count;
 		let acc_sd = acc_sqsum / sim_count - acc_avg * acc_avg;
-		let perf_score    = 1 - Math.pow(1 - max_count / sim_count, base_time / avg_time);
+		let perf_score    = 1 - Math.pow(1 - count_1   / sim_count, base_time / avg_time);
 		let perf_score12  = 1 - Math.pow(1 - count_12  / sim_count, base_time / avg_time);
 		let perf_score123 = 1 - Math.pow(1 - count_123 / sim_count, base_time / avg_time);
 		
 		console.log("simulate end. (", name, ",", simulate_result.length, ")");
-		console.log("avg time:", avg_time, ", max:", max_count, "/", sim_count, "=", max_count / sim_count);
+		console.log("avg time:", avg_time, ", max:", max_count, "/", sim_count, "=", max_count / sim_count, ", max acc:", max_score?.total_score?.total_accuracy);
 		console.log("accuracy: [", acc_min ,"..", acc_max, "], avg", acc_avg, "sd", acc_sd);
-		console.log("performance score:", acc_max, ",", max_count, ",", perf_score);
+		console.log("1st score:", acc_max, ",", count_1, ",", perf_score);
 		console.log("2nd score: >=", acc_max-1, ",", count_12, ",", perf_score12);
 		console.log("3rd score: >=", acc_max-2, ",", count_123, ",", perf_score123);
 	}

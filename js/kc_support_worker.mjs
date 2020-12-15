@@ -41,32 +41,7 @@ function worker_ev_message(e){
 		}
 		
 		// message.search_type に探索方法
-		if (message.search_type == "annealing") {
-			// 焼きなまし
-			let iteration_scale = message.iteration_scale || 1;
-			fleet.priority_call(x => {
-				fleet.annealing(iteration_scale);
-			}, true);
-			
-		} else if (message.search_type == "fast") {
-			// 高速探索
-			fleet.priority_call(x => {
-				fleet.fill();
-				fleet.single_climbling(false, true);
-				
-				let score = new SupportFleetScore(fleet.ssd_list);
-				for (let i=0; i<10; i++) {
-					if (i % 2 == 0) {
-						fleet.hill_climbling1();
-					} else {
-						fleet.single_climbling(false, true);
-					}
-					let new_score = new SupportFleetScore(fleet.ssd_list);
-					if (new_score.compare(score) <= 0) break;
-					score = new_score;
-				}
-			}, true);
-		}
+		fleet.search(message.search_type, message);
 		
 		previous_fleet = fleet;
 		previous_json_MT = json_MT;

@@ -147,10 +147,13 @@ Object.assign(MultiThreadSearcher.prototype, {
 	
 	// 結果の受信
 	receive_message: MultiThreadSearcher_receive_message,
+	// スコアの比較関数
+	compare_score: MultiThreadSearcher_compare_score,
 });
 
 Object.assign(MultiThreadSearcher, {
-	solution_diff: MultiThreadSearcher_solution_diff,
+	compare_score : MultiThreadSearcher_static_compare_score,
+	get_score_diff: MultiThreadSearcher_static_get_score_diff,
 });
 
 
@@ -326,30 +329,9 @@ function MultiThreadSearcher_get_elapsed_time(){
 }
 
 // 新規解の情報文字列
-// nulstr: 新しい解がないときも出力
-function MultiThreadSearcher_get_solution_info(nulstr = false, use_found_at = true){
-	return MultiThreadSearcher_solution_diff(this.begin_score, this.max_score, nulstr, use_found_at ? this.max_found_at : -1);
-}
-
-// static版
-function MultiThreadSearcher_solution_diff(begin_score, end_score, nulstr = false, found_at = -1){
-	let text = "";
-	if (end_score && begin_score.compare(end_score) < 0) {
-		let c = begin_score.compare_accuracy(end_score);
-		if (c < 0) {
-			text = "改良解発見";
-		} else if (c == 0) {
-			text = "同値解発見";
-		} else {
-			text = "別解発見";
-		}
-		text += "(";
-		if (found_at >= 0) text += found_at + "/";
-		text += "命中" + end_score.total_score.total_accuracy + ")";
-	} else if (nulstr) {
-		text = "新規解なし";
-	}
-	return text;
+// nullstr: 新しい解がないときも出力
+function MultiThreadSearcher_get_solution_info(nullstr = false, use_found_at = true){
+	return MultiThreadSearcher.get_score_diff(this.begin_score, this.max_score, this.search_data.search_type, nullstr, use_found_at ? this.max_found_at : -1);
 }
 
 // 探索結果を受信
@@ -358,7 +340,7 @@ function MultiThreadSearcher_receive_message(message){
 	
 	let score = new SupportFleetScorePrior().set_json(message.score_data);
 	
-	if (!this.max_score || this.max_score.compare(score) < 0) {
+	if (!this.max_score || this.compare_score(this.max_score, score) < 0) {
 		this.max_result = message;
 		this.max_score = score;
 		this.max_result.score = score;
@@ -367,5 +349,49 @@ function MultiThreadSearcher_receive_message(message){
 	
 	// 受信時にイベントを発生させる
 	this.dispatchEvent(new CustomEvent("receive"));
+}
+
+// スコアの比較
+// 探索方法で比較関数が異なる
+function MultiThreadSearcher_compare_score(a, b){
+	return MultiThreadSearcher.compare_score(a, b, this.search_data.search_type);
+}
+
+
+// static版
+function MultiThreadSearcher_static_compare_score(a, b, search_type = ""){
+	let c = 0;
+	if (search_type == "annealing_entire") {
+		c = a.compare_s1(b) || a.compare_s2(b) || a.compare_s3(b);
+	} else {
+		c = a.compare_rigidly(b);
+	}
+	return c;
+}
+
+
+function MultiThreadSearcher_static_get_score_diff(begin_score, end_score, search_type = "", nullstr = false, found_at = -1){
+	let text = "";
+	
+	if (end_score && MultiThreadSearcher.compare_score(begin_score, end_score, search_type) < 0) {
+		let c1 = begin_score.compare_s1(end_score);
+		
+		if (c1 < 0) {
+			text = "改良解発見";
+		} else if (c1 == 0) {
+			text = "同値解発見";
+		} else {
+			text = "別解発見";
+		}
+		text += "(";
+		if (found_at >= 0) text += found_at + "/";
+		text += "命中" + end_score.total_score.total_accuracy + ")";
+		
+	} else if (nullstr) {
+		text = "新規解なし";
+		text += "(命中" + begin_score.total_score.total_accuracy + ")";
+	}
+	
+	return text;
 }
 

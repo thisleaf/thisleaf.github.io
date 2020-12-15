@@ -145,6 +145,11 @@ function OutputDeckDialog_ev_click_copy(e){
 		} else {
 			this.e_copy_hint.textContent = "コピーに失敗しました…";
 		}
+	}, () => {
+		// firefoxなど
+		this.e_textarea.select();
+		document.execCommand("copy");
+		this.e_copy_hint.textContent = "コピーしました";
 	});
 }
 

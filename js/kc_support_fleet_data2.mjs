@@ -19,12 +19,12 @@ import {
 
 export {
 	SupportFleetData_fill,
+	SupportFleetData_random_fill,
 	SupportFleetData_hill_climbling1,
 	SupportFleetData_single,
 	SupportFleetData_single_nosynergy,
 	SupportFleetData_single_nosynergy_pre,
 	SupportFleetData_single_climbling,
-	SupportFleetData_annealing_old,
 };
 
 
@@ -110,6 +110,72 @@ function SupportFleetData_fill(){
 		}
 	}
 }
+
+
+// 空きスロットをランダムに埋める
+// reset: 装備を解除してからランダム選択
+function SupportFleetData_random_fill(reset = false){
+	if (reset) {
+		this.countup_equipment(true, false, -1);
+		this.clear_slots(true, false);
+	}
+	
+	let ssds = this.ssd_list.concat();
+	let owns = this.own_list.filter(x => x.remaining > 0);
+	ssds.forEach(ssd => ssd.calc_bonus());
+	owns.forEach(own => own.generate_rem_stars());
+	
+	for (let safety=0; safety<1000; safety++) {
+		if (ssds.length == 0) break;
+		
+		// 次に装備を追加したい艦
+		// ランダム
+		let min_ssd_index = Math.floor(Math.random() * ssds.length);
+		let min_ssd = ssds[min_ssd_index];
+		
+		// 装備の追加
+		let appended = false;
+		
+		for (let p=0; p<min_ssd.allslot_equipment.length; p++) {
+			if (min_ssd.allslot_fixes[p] || min_ssd.allslot_equipment[p].equipment_data) continue;
+			
+			// 追加するスロットと装備可能情報
+			let slot = min_ssd.allslot_equipment[p];
+			let eqab = min_ssd.allslot_equipables[p];
+			
+			let select_own = null;
+			let count = 0;
+			
+			for (let own of owns) {
+				if (own.remaining <= 0 || !eqab[own.id]) continue;
+				
+				if (Math.random() * (++count) < 1) {
+					select_own = own;
+				}
+			}
+			
+			// 追加
+			if (select_own) {
+				let star = select_own.rem_stars[select_own.remaining - 1];
+				slot.set_equipment(select_own.id, null, star);
+				select_own.rem_counts[star]--;
+				select_own.remaining--;
+				min_ssd.calc_bonus();
+				
+				// 1つ追加したらもう一度艦を選び直す
+				appended = true;
+				break;
+			}
+		}
+		
+		if (!appended) {
+			// 装備可能なものがない
+			// min_ssd を ssds からはずす
+			ssds.splice(min_ssd_index, 1);
+		}
+	}
+}
+
 
 // 山登り法
 // 近傍は入れ換え1回
@@ -1134,333 +1200,4 @@ function SupportFleetData_single_climbling(seq = false, light_mode = false){
 		}
 	}
 }
-
-
-
-// 焼きなまし法による解の探索 (旧式)
-function SupportFleetData_annealing_old(){
-	if (this.ssd_list.length == 0) return;
-	
-	this.fill();
-	
-	let own_map = this.own_map;
-	this.ssd_list.forEach(ssd => ssd.calc_bonus());
-	this.own_list.forEach(own => own.generate_rem_stars());
-	
-	let max_fleet = this.clone();
-	let max_score = new SupportFleetScore(this.ssd_list);
-	
-	let allow_fixed_exslot = this.allow_fixed_exslot();
-	
-	//console.log("begin", max_score);
-	
-	let ssd_list = this.ssd_list;
-	//let own_list = this.own_list.filter(x => x.remaining_max() > 0);
-	let own_list = this.own_list.filter(x => x.get_total_count() - x.get_main_count() > 0);
-	let own_list_normal = own_list.concat();
-	let own_list_cv = own_list.concat();
-	// 先にソート
-	//own_list_normal.sort((a, b) => OwnEquipmentData.power_greater(a, b, false));
-	//own_list_cv.sort((a, b) => OwnEquipmentData.power_greater(a, b, true));
-	own_list_normal.sort((a, b) => SupportShipData.power_compare(b.id, a.id, false));
-	own_list_cv.sort((a, b) => SupportShipData.power_compare(b.id, a.id, true));
-	
-	// 各艦のslotを並べたもの
-	// fixed は入れない
-	let fleet_slots = new Array;
-	let fleet_equipables = new Array;
-	let fleet_ssds = new Array; // スロットに対応するssd
-	let fleet_ssd_indices = new Array;
-	let fleet_slot_own_lists = new Array;
-	let fleet_slot_uppers = new Array;
-	// [ssd_index] に、swap時に選択可能なスロット(他艦スロット)
-	let fleet_swap_slots = new Array;
-	let fleet_swap_equipables = new Array;
-	let fleet_swap_ssds = new Array;
-	let fleet_swap_ssd_indices = new Array;
-	
-	let db_map = EquipmentDatabase.equipment_data_map;
-	
-	for (let p=0; p<ssd_list.length; p++) {
-		{
-			let ssd = ssd_list[p];
-			let list = ssd.cv_shelling ? own_list_cv : own_list_normal;
-			
-			for (let i=0; i<ssd.allslot_equipment.length; i++) {
-				// 増設
-				if (ssd.exslot_available && i == ssd.allslot_equipment.length - 1) {
-					if (allow_fixed_exslot) continue;
-				}
-				
-				if (!ssd.allslot_fixes[i]) {
-					fleet_slots.push(ssd.allslot_equipment[i]);
-					fleet_equipables.push(ssd.allslot_equipables[i]);
-					fleet_ssds.push(ssd);
-					fleet_ssd_indices.push(p);
-					
-					let eqab = ssd.allslot_equipables[i];
-					// このスロットに対応する装備
-					let slot_list = list.filter(x => eqab[x.id]);
-					// 上位互換装備への参照
-					let slot_uppers = new Array;
-					
-					for (let n=0; n<slot_list.length; n++) {
-						let uppers = new Array;
-						let n_eq = db_map[slot_list[n].id];
-						
-						for (let k=0; k<n; k++) {
-							// [k] が [n] の上位なら追加
-							let k_eq = db_map[slot_list[k].id];
-							if (ssd.is_upper_equipment(k_eq, n_eq)) {
-								uppers.push(slot_list[k]);
-							}
-						}
-						slot_uppers[n] = uppers;
-					}
-					
-					fleet_slot_own_lists.push(slot_list);
-					fleet_slot_uppers.push(slot_uppers);
-				}
-			}
-		}
-		
-		// ssd 以外のスロット
-		let slots = new Array;
-		let equipables = new Array;
-		let ssds = new Array;
-		let ssd_indices = new Array;
-		
-		for (let q=0; q<ssd_list.length; q++) {
-			if (p == q) continue;
-			
-			let ssd2 = ssd_list[q];
-			
-			for (let i=0; i<ssd2.allslot_equipment.length; i++) {
-				if (ssd2.exslot_available && i == ssd2.allslot_equipment.length - 1) {
-					if (allow_fixed_exslot) continue;
-				}
-				
-				if (!ssd2.allslot_fixes[i]) {
-					slots.push(ssd2.allslot_equipment[i]);
-					equipables.push(ssd2.allslot_equipables[i]);
-					ssds.push(ssd2);
-					ssd_indices.push(q);
-				}
-			}
-		}
-		
-		fleet_swap_slots[p]       = slots;
-		fleet_swap_equipables[p]  = equipables;
-		fleet_swap_ssds[p]        = ssds;
-		fleet_swap_ssd_indices[p] = ssd_indices;
-	}
-	
-	// 装備可能なスロットがない(全て固定されている)
-	if (fleet_slots.length == 0) return;
-	
-	
-	// 設定など
-	let swap_prob = 0.25;
-	if (ssd_list.length == 1) swap_prob = 0;
-	
-	let retry_count = 0;
-	let retry_max = 1;
-	let loop_count_max = 1000000;
-	let start_temperature = 5000;
-	let end_temperature = 20;
-	let phasechange_count = 400 * ssd_list.length / retry_max;
-	let coefficient = 0.75;
-	
-	let loop_count = 0;
-	let stag_count = 0;
-	let newphase_count = 0;
-	let temperature = start_temperature;
-	let move_count = 0;
-	
-	let current_score = max_score.clone();
-	//let renew_count_array = new Array;
-	
-	for (; loop_count<loop_count_max; loop_count++) {
-		if (stag_count >= 0 && newphase_count >= phasechange_count) {
-			temperature *= coefficient;
-			if (temperature < end_temperature) {
-				if (++retry_count < retry_max) {
-					temperature = start_temperature;
-				} else {
-					break;
-				}
-			}
-			stag_count = 0;
-			newphase_count = 0;
-		}
-		
-		let slot_index = Math.floor(Math.random() * fleet_slots.length);
-		let slot = fleet_slots[slot_index];
-		let eqab = fleet_equipables[slot_index];
-		let ssd = fleet_ssds[slot_index];
-		let ssd_index = fleet_ssd_indices[slot_index];
-		
-		if (Math.random() < swap_prob) {
-			// 他の艦との入れ替え
-			let swap_slots = fleet_swap_slots[ssd_index];
-			let swap_eqabs = fleet_swap_equipables[ssd_index];
-			let swap_ssds = fleet_swap_ssds[ssd_index];
-			
-			let swap_index = -1;
-			let swap_slot = null;
-			let sugg_count = 0;
-			let swap_index2 = -1;
-			let swap_slot2 = null;
-			let sugg_count2 = 0;
-			
-			let ssd_bonus = ssd.equipment_bonus;
-			let slot_eqid = slot.equipment_id;
-			
-			for (let i=0; i<swap_slots.length; i++) {
-				let sugg_slot = swap_slots[i];
-				let sugg_eqab = swap_eqabs[i];
-				let sugg_eqid = sugg_slot.equipment_id;
-				
-				// 入れ替え可能
-				if (sugg_eqid != slot_eqid && eqab[sugg_eqid] && sugg_eqab[slot_eqid]) {
-					// さらにボーナスに関係のある装備だけでやってみる
-					let swap_ssd_bonus = swap_ssds[i].equipment_bonus;
-					if (ssd_bonus.bonus_concerns(sugg_eqid) || swap_ssd_bonus.bonus_concerns(slot_eqid)) {
-						if (Math.random() * (++sugg_count) < 1) {
-							swap_index = i;
-							swap_slot = sugg_slot;
-						}
-					} else if (!swap_slot) {
-						// ボーナスに関係のないスロットへの対応
-						if (Math.random() * (++sugg_count2) < 1) {
-							swap_index2 = i;
-							swap_slot2 = sugg_slot;
-						}
-					}
-				}
-			}
-			
-			if (!swap_slot) {
-				swap_index = swap_index2;
-				swap_slot = swap_slot2;
-			}
-			
-/*
-			// 旧版　一様乱数
-			swap_index = Math.floor(Math.random() * swap_slots.length);
-			swap_slot = swap_slots[swap_index];
-			let swap_eqab = fleet_swap_equipables[ssd_index][swap_index];
-			if (!(eqab[swap_slot.equipment_id] && swap_eqab[slot.equipment_id] && swap_slot.equipment_id != slot.equipment_id)) {
-				swap_slot = null;
-			}
-*/
-			
-			// 入れ替え可能か？
-			if (swap_slot) {
-				// 装備の入れ替え
-				let swap_ssd = swap_ssds[swap_index];
-				let score = current_score.clone();
-				score.sub(ssd);
-				score.sub(swap_ssd);
-				
-				slot.swap_equipment(swap_slot);
-				ssd.calc_bonus();
-				swap_ssd.calc_bonus();
-				
-				score.add(ssd);
-				score.add(swap_ssd);
-				
-				let c = current_score.compare_annealing(score);
-				let move = c < 0 || Math.random() < Math.exp(- c / temperature);
-				
-				if (move) {
-					// 移動
-					current_score = score;
-					
-				} else {
-					// 戻す
-					slot.swap_equipment(swap_slot);
-					ssd.calc_bonus();
-					swap_ssd.calc_bonus();
-				}
-			}
-			
-		} else {
-			// 装備されていないものとの入れ替え
-			let list = fleet_slot_own_lists[slot_index];
-			let swap_own = null;
-			let swap_item_count = 0;
-			let old_id = slot.equipment_id;
-			
-			let list_uppers = fleet_slot_uppers[slot_index];
-			
-			UPPER:
-			for (let i=0; i<list.length; i++) {
-				let own = list[i];
-				if (own.remaining <= 0 || own.id == old_id) continue;
-				
-				// list[i] の完全上位互換が list_uppers[i] (array)
-				let uppers = list_uppers[i];
-				for (let j=0; j<uppers.length; j++) {
-					if (uppers[j].remaining > 0) continue UPPER;
-				}
-				
-				// 1/n の確率で書き換えとすれば、要素数が分からなくてもランダムに抽出できる
-				if (Math.random() * (++swap_item_count) < 1) {
-					swap_own = own;
-				}
-			}
-			
-			if (swap_own) {
-				let old_data = slot.equipment_data;
-				let old_star = slot.improvement;
-				
-				let score = current_score.clone();
-				score.sub(ssd);
-				
-				// 装備をownに
-				let star = swap_own.pop_rem_star();
-				slot.set_equipment(swap_own.id, swap_own.csv_data, star);
-				ssd.calc_bonus();
-				
-				score.add(ssd);
-				
-				let c = current_score.compare_annealing(score);
-				let move = c < 0 || Math.random() < Math.exp(- c / temperature);
-				
-				if (move) {
-					// 移動
-					own_map[old_id].insert_rem_star(old_star);
-					//own_map[old_id].remaining++;
-					//swap_own.remaining--;
-					current_score = score;
-					move_count++;
-					
-				} else {
-					// 戻す
-					swap_own.insert_rem_star(star);
-					slot.set_equipment(old_id, old_data, old_star);
-					ssd.calc_bonus();
-				}
-			}
-		}
-		
-		
-		// check
-		if (max_score.compare(current_score) < 0) {
-			max_fleet = this.clone();
-			max_score = current_score;
-			//renew_count_array.push(loop_count);
-			stag_count = 0;
-		} else {
-			stag_count++;
-		}
-		newphase_count++;
-	}
-	
-	//console.log("end", max_score, /*renew_count_array,*/ loop_count, move_count);
-	
-	this.move_from(max_fleet);
-}
-
 

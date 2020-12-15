@@ -1450,6 +1450,7 @@ function OwnConvertDialog_create(){
 		]),
 	]);
 	
+	this.e_select.value = OwnConvertDialog.select_enum["デッキビルダー"];
 	this.refresh_hint();
 	
 	// event
