@@ -1262,7 +1262,7 @@ function SupportShipData_get_json_deckbuilder(){
 	
 	let ship = EquipmentDatabase.csv_shiplist.find(d => d.name == this.ship_name);
 	let json = {
-		id: ship?.shipId || "0",
+		id: String(ship?.shipId || "0"),
 		// lv: 99,
 		// luck: -1,
 		items: {},

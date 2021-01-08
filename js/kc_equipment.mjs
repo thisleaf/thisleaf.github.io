@@ -138,7 +138,14 @@ function EquipmentDatabase_initialize(csv_shiplist, csv_equiplist_raw, csv_equip
 	
 	EquipmentDatabase.init_jp_def();
 	
+	// 艦リストのソート
+	// 図鑑番号順になる
+	csv_shiplist.sort((a, b) => {
+		return a.numberString < b.numberString ? -1 : a.numberString > b.numberString ? 1 : 0;
+	});
+	
 	for (let i=0; i<csv_shiplist.length; i++) {
+		// 一時ID　これを保存したりしてはならない
 		csv_shiplist[i].temporary_id = i + 1;
 	}
 	
