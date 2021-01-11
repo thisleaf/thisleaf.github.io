@@ -921,6 +921,8 @@ Object.assign(OwnEquipmentForm.prototype, {
 	
 	reset_totals: OwnEquipmentForm_reset_totals,
 	reset_mains : OwnEquipmentForm_reset_mains,
+	reset_mains_category: OwnEquipmentForm_reset_mains_category,
+	reset_counts: OwnEquipmentForm_reset_counts,
 	
 	get_json    : OwnEquipmentForm_get_json,
 	set_json    : OwnEquipmentForm_set_json,
@@ -1135,6 +1137,25 @@ function OwnEquipmentForm_reset_mains(){
 	}
 }
 
+// カテゴリーで分けて本隊装備数をリセット
+// cates: 分けるカテゴリーの配列
+// in_cate: cates で指定したカテゴリーをリセット
+// out_cate: cates で指定したカテゴリー以外をリセット
+function OwnEquipmentForm_reset_mains_category(cates, in_cate, out_cate){
+	for (let d of this.data_array) {
+		let isin = cates.indexOf(d.csv_data.category) >= 0;
+		if ((isin && in_cate) || (!isin && out_cate)) {
+			d.main_counts.fill(0);
+		}
+	}
+}
+
+// main, total をあわせたもの
+function OwnEquipmentForm_reset_counts(main, total){
+	if (main) this.reset_mains();
+	if (total) this.reset_totals();
+}
+
 // 表示オプションも保存
 function OwnEquipmentForm_get_json(old_json = null){
 	let data = new Array;
@@ -1200,24 +1221,26 @@ function OwnEquipmentForm_get_calc_data(){
 }
 
 // データのインポート
+// dataにない装備のリセットをする場合は reset_counts() などを利用
 // data: array<OwnEquipmentData>
 // main: dataのmain_countsをセットする
 // total: dataのtotal_countsをセットする
-// reset_other: dataにない装備のデータを0クリアする
-function OwnEquipmentForm_import_data(data, main, total, reset_other){
-	if (reset_other) {
-		for (let form_own of this.data_array) {
-			if (main) form_own.main_counts.fill(0);
-			if (total) form_own.total_counts.fill(0);
-		}
-	}
-	
+// reset_mode: trueは数を上書き、falseは数を加算
+function OwnEquipmentForm_import_data(data, main, total, reset_mode = false){
 	for (let own of data) {
 		let form_own = this.data_array.find(d => d.id == own.id);
 		if (!form_own) continue;
 		
-		if (main) form_own.main_counts = own.main_counts.concat();
-		if (total) form_own.total_counts = own.total_counts.concat();
+		if (main) {
+			own.main_counts.forEach((v, i) => {
+				form_own.main_counts[i] = reset_mode ? v : v + form_own.main_counts[i];
+			});
+		}
+		if (total) {
+			own.total_counts.forEach((v, i) => {
+				form_own.total_counts[i] = reset_mode ? v : v + form_own.total_counts[i];
+			});
+		}
 	}
 }
 
@@ -1329,14 +1352,17 @@ Object.assign(OwnConvertDialog.prototype = Object.create(DOMDialog.prototype), {
 	e_select  : null,
 	e_textarea: null,
 	e_confirm : null,
+	e_reset_aircraft     : null,
+	e_reset_other        : null,
 	
 	// 艦隊分析用
-	e_fleetanalysis_div : null,
-	e_apiextract_div    : null,
+	e_fleetanalysis_div  : null,
+	e_apiextract_div     : null,
 	
 	// デッキビルダー用
-	e_deckbuilder_div   : null,
-	e_deckbuilder_fleets: null, // 0から始まるarray
+	e_deckbuilder_div    : null,
+	e_deckbuilder_fleets : null, // 0から始まるarray
+	e_deckbuilder_airbase: null,
 	
 	// OwnEquipmentForm
 	own_form: null,
@@ -1429,12 +1455,27 @@ function OwnConvertDialog_create(){
 				this.e_deckbuilder_fleets[3] = ELEMENT("input", {type: "checkbox"}),
 				TEXT("第4"),
 			]),
+			NODE(ELEMENT("label"), [
+				this.e_deckbuilder_airbase = ELEMENT("input", {type: "checkbox", checked: true}),
+				TEXT("基地"),
+			]),
 			NODE(ELEMENT("div", "", "option_text"), [
 				HTML(
 					'<a href="http://kancolle-calc.net/deckbuilder.html" target="_blank">艦隊シミュレーター＆デッキビルダー</a>'
-					+ " さんの形式のデータを、<b>本隊装備データ</b>として読み込みます<br>"
-					+ "既にある本隊装備データは破棄(リセット)されます"
+					+ " さんの形式のデータを、<b>本隊装備データ</b>として読み込みます"
 				),
+			]),
+			
+			NODE(ELEMENT("div", "", "option"), [
+				TEXT("リセットする本隊装備: "),
+				NODE(ELEMENT("label", {title: "艦攻/艦爆/噴式"}), [
+					this.e_reset_aircraft = ELEMENT("input", {type: "checkbox", checked: true}),
+					TEXT("艦載機"),
+				]),
+				NODE(ELEMENT("label"), [
+					this.e_reset_other = ELEMENT("input", {type: "checkbox", checked: true}),
+					TEXT("艦載機以外"),
+				]),
 			]),
 		]),
 		
@@ -1465,6 +1506,7 @@ function OwnConvertDialog_create(){
 	for (let f of this.e_deckbuilder_fleets) {
 		f.addEventListener("change", e => this.reset_confirmation());
 	}
+	this.e_deckbuilder_airbase.addEventListener("change", e => this.reset_confirmation());
 	
 	this.add_dialog_button(ok_btn, "ok");
 	this.add_dialog_button(cancel_btn, "cancel");
@@ -1590,6 +1632,7 @@ function OwnConvertDialog_parse_apiextract_text(text){
 /* デッキビルダー形式
 {
 	version: 4,
+	// 艦隊 f1, f2, f3, f4
 	f1: {
 		s1: {
 			id: '100', lv: 40, luck: -1,
@@ -1603,9 +1646,18 @@ function OwnConvertDialog_parse_apiextract_text(text){
 		},
 		s2:{...}, ...
 	}, ...
+	// 基地 a1, a2, a3
+	a1: {
+		mode: 1,
+		items: { // 装備、艦隊と同じ
+			i1: {id: 403, rf: 0, mas: 2},
+			...
+			i4: {...},
+		},
+	}, ...
 }
 
-load_fleets: int -> bool, どの艦隊を読み込むか(0: 第1, 1: 第2, ...)
+load_fleets: int -> bool, どの艦隊を読み込むか(0: 第1, 1: 第2, ..., 4: 基地1, 5: 基地2, 6: 基地3)
 */
 function OwnConvertDialog_parse_deckbuilder_text(text, load_fleets){
 	let data = new Array;
@@ -1656,6 +1708,33 @@ function OwnConvertDialog_parse_deckbuilder_text(text, load_fleets){
 		}
 	}
 	
+	for (let a=1; a<=4; a++) {
+		let ab = json["a" + a];
+		if (!load_fleets[a + 3] || !ab?.items) continue;
+		
+		for (let i of [1, 2, 3, 4]) {
+			let item = ab.items["i" + i];
+			if (!item) continue;
+			
+			let id = +item.id;
+			let star = +item.rf || 0;
+			
+			if (!id) continue;
+			// 改修値がおかしいのはNG
+			if (!(0 <= star && star <= 10)) return null;
+			
+			let own = data_map[id];
+			if (!own) {
+				own = new OwnEquipmentData();
+				own.id = id;
+				data.push(own);
+				data_map[id] = own;
+			}
+			
+			own.main_counts[star] = Math.min(own.main_counts[star] + 1, 99);
+		}
+	}
+	
 	return data;
 }
 
@@ -1689,10 +1768,12 @@ function OwnConvertDialog_ev_close(e){
 			}
 			
 			// totalをセット
-			this.own_form.import_data(data, false, true, true);
+			this.own_form.reset_totals();
+			this.own_form.import_data(data, false, true);
 			
 		} else if (opt.value == OwnConvertDialog.select_enum["デッキビルダー"]) {
 			let fleets = this.e_deckbuilder_fleets.map(e => e.checked);
+			fleets = fleets.concat(new Array(3).fill(this.e_deckbuilder_airbase.checked));
 			
 			if (!fleets.some(f => f)) {
 				e.preventDefault();
@@ -1716,8 +1797,12 @@ function OwnConvertDialog_ev_close(e){
 				return;
 			}
 			
+			// 艦載機のカテゴリー
+			let cates = ["艦上攻撃機", "艦上爆撃機", "噴式戦闘爆撃機"];
+			
 			// mainをセット
-			this.own_form.import_data(data, true, false, true);
+			this.own_form.reset_mains_category(cates, this.e_reset_aircraft.checked, this.e_reset_other.checked);
+			this.own_form.import_data(data, true, false);
 			
 		} else if (opt.value == OwnConvertDialog.select_enum["API抽出"]) {
 			let data = this.parse_apiextract_text(text);
@@ -1737,7 +1822,8 @@ function OwnConvertDialog_ev_close(e){
 			}
 			
 			// totalをセット
-			this.own_form.import_data(data, false, true, true);
+			this.own_form.reset_totals();
+			this.own_form.import_data(data, false, true);
 			
 		} else {
 			// ん？

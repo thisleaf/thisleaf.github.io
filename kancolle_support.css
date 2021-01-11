@@ -701,9 +701,49 @@ body {
 }
 
 /* 支援艦隊 > 出力ダイアログ (.convertを継承) */
-.dialog_container .inside.convert .contents > div.button_div.copy {
+.dialog_container .inside.convert.output .contents {
+	width: 80vw;
+}
+.dialog_container .inside.convert.output .contents .code_area {
+	width: calc(100% - 10px);
+	height: 15vh;
+}
+.dialog_container .inside.convert.output .contents > div.button_div.copy {
 	text-align: right;
 	margin: 0em;
+}
+.dialog_container .inside.convert.output .contents .f_left {
+	float: left;
+}
+.dialog_container .inside.convert.output .contents .f_right {
+	float: right;
+}
+.dialog_container .inside.convert.output .contents div.column_div {
+	display: inline-block;
+	vertical-align: top;
+	width: 50%;
+}
+.dialog_container .inside.convert.output .contents div.column_div div.tool_div {
+	padding-right: 0.3em;
+}
+.dialog_container .inside.convert.output .contents .outfleet_select {
+	margin-left: 0.5em;
+}
+
+
+.dialog_container .inside.convert.output .contents div.column_div div.tool_div.left {
+	text-align: left;
+}
+.dialog_container .inside.convert.output .contents div.column_div div.tool_div.right {
+	text-align: right;
+}
+.dialog_container .inside.convert.output .contents div.column_div div.tool_div button {
+	font-size: 80%;
+	padding-top: 0;
+	padding-bottom: 0;
+}
+.dialog_container .inside.convert.output .contents div.column_div div.tool_div.right button {
+	margin-right: 0.5em;
 }
 
 

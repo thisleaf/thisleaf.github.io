@@ -161,7 +161,7 @@ function SupportShip_create(def_priority){
 		if (this.equipment_bonus && this.equipment_bonus.bonus_exists(eq.number)) {
 			str += "+";
 		}
-		str += "/" + eq.accuracy + "] " + eq.name;
+		str += "/" + eq.accuracy + "] " + Util.unescape_charref(eq.name);
 		return str;
 	};
 	

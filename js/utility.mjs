@@ -648,6 +648,76 @@ export function inherit_option_class(select){
 }
 
 
+// フォームの値をコピー
+// form: コピーするフォーム
+// try_query: navigator.permissions.query() を試す
+// try_execCommand: document.execCommand("copy") を試す
+// 戻り値: Promise
+export function copy_form_text(form, try_query, try_execCommand){
+	let p;
+	
+	if (try_query) {
+		p = navigator.permissions.query({name: "clipboard-write"}).then(result => {
+			if (result.state == "granted") {
+				navigator.clipboard.writeText(form.value);
+				return result;
+			} else {
+				throw result;
+			}
+		});
+	} else {
+		p = Promise.reject();
+	}
+	
+	return p.catch(() => {
+		// firefoxなどは query() に未対応
+		let granted = false;
+		if (try_execCommand) {
+			form.select();
+			granted = document.execCommand("copy");
+		}
+		return {
+			state: granted ? "granted" : "denied",
+			execCommand: Boolean(try_execCommand),
+		};
+	});
+}
+
+// 貼り付け版
+export function paste_form_text(form, try_query, try_execCommand){
+	let p;
+	
+	if (try_query) {
+		p = navigator.permissions.query({name: "clipboard-read"}).then(result => {
+			// プロンプトが出る場合がある
+			if (result.state == "granted" || result.state == "prompt") {
+				return navigator.clipboard.readText().then(text => {
+					form.value = text;
+					return {state: "granted"};
+				});
+			} else {
+				throw result;
+			}
+		});
+	} else {
+		p = Promise.reject();
+	}
+	
+	return p.catch(() => {
+		// firefoxでも動かない
+		let granted = false;
+		if (try_execCommand) {
+			form.select();
+			granted = document.execCommand("paste");
+		}
+		return {
+			state: granted ? "granted" : "denied",
+			execCommand: Boolean(try_execCommand),
+		};
+	});
+}
+
+
 // DragdataProvider --------------------------------------------------------------------------------
 // dragdropのデータを仲介
 // dragstart でセットして、dragend でクリアする
