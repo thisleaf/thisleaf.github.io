@@ -67,7 +67,7 @@ Object.assign(EquipmentDatabase, {
 
 
 Object.assign(EquipmentDatabase, {
-	eqab_special_def: {
+	type_special_def: {
 		// key を value の配列の要素に置き換える
 		// 系で統一
 		"軽巡系": ["軽巡洋艦", "軽(航空)巡洋艦", "防空巡洋艦", "兵装実験軽巡", "重雷装巡洋艦", "練習巡洋艦"],
@@ -179,7 +179,7 @@ function EquipmentDatabase_initialize(csv_shiplist, csv_equiplist_raw, csv_equip
 	// shipTypes -> shipTypesArray    "高速戦艦"はそのまま
 	// forSupport があるもののみ csv_equipable_support へ追加
 	
-	let sp_def = EquipmentDatabase.eqab_special_def;
+	let sp_def = EquipmentDatabase.type_special_def;
 	let csv_equipable = new Array;
 	let csv_equipable_support = new Array;
 	
@@ -887,7 +887,9 @@ function EquipmentBonusData_set_csv_line(line){
 	let not_names    = names && names.filter(x => /^!/.test(x)).map(x => x.substr(1));
 	let not_substr_names = not_names && not_names.filter(x => /^\[.+\]$/.test(x)).map(x => x.substr(1, x.length - 2));
 	
-	let types  = line.shipTypes && line.shipTypes.split("|");
+	let sp_def = EquipmentDatabase.type_special_def;
+	//let types  = line.shipTypes && line.shipTypes.split("|");
+	let types  = line.shipTypes.split("|").flatMap(x => sp_def[x] || x);
 	let jp_types = types && types.filter(x => /^日本/.test(x)).map(x => x.substr(2));
 	let jp_def = EquipmentDatabase.jp_classes_map;
 	
