@@ -1,0 +1,149 @@
+/* cssでつくる記号やアイコン
+  inline-block要素
+  サイズはフォントサイズに依存する
+  色などはcss変数で指定する
+*/
+
+/* X
+<div class="mark_x"><div></div><div></div></div>
+*/
+.mark_x {
+	--weight: 0.15em;
+	--color: black;
+	
+	display: inline-block;
+	vertical-align: -0.15em;
+	width: 1em;
+	height: 1em;
+}
+.mark_x > :nth-child(-n+2) {
+	position: absolute;
+	display: inline-block;
+	width: 1em;
+	height: var(--weight);
+	background-color: var(--color);
+	border-radius: calc(var(--weight) / 2);
+	transform-origin: center;
+}
+.mark_x > :nth-child(1) {
+	transform: translateY(calc(0.5em - var(--weight) / 2)) rotate(45deg);
+}
+.mark_x > :nth-child(2) {
+	transform: translateY(calc(0.5em - var(--weight) / 2)) rotate(-45deg);
+}
+
+
+/* 丸　○
+<div class="mark_circle"><div></div></div>
+*/
+.mark_circle {
+	--weight: 0.15em;
+	--color: black;
+	--inner-color: transparent;
+	
+	display: inline-block;
+	vertical-align: -0.15em;
+	width: 1em;
+	height: 1em;
+}
+.mark_circle > :first-child {
+	width: calc(0.8em - var(--weight) * 2);
+	height: calc(0.8em - var(--weight) * 2);
+	border-radius: calc(0.8em - var(--weight));
+	border-style: solid;
+	border-width: var(--weight);
+	border-color: var(--color);
+	background-color: var(--inner-color);
+	transform: translate(0.1em, 0.1em);
+}
+
+
+.mark_radial {
+	--length: 0.2em;
+	--weight: 0.1em;
+	--color: black;
+	
+	display: inline-block;
+	vertical-align: -0.15em;
+	width: 1em;
+	height: 1em;
+}
+.mark_radial > :nth-child(-n+8) {
+	position: absolute;
+	width: var(--length);
+	height: var(--weight);
+	background-color: var(--color);
+	border-radius: calc(var(--weight) / 2);
+	transform-origin: center;
+	
+	--move1: translateX(calc(0.4em - var(--length) / 2));
+	--move2: translate(calc(0.5em - var(--length) / 2), calc(0.5em - var(--weight) / 2));
+}
+.mark_radial > :nth-child(1) {
+	transform: var(--move2) rotate(45deg) var(--move1);
+}
+.mark_radial > :nth-child(2) {
+	transform: var(--move2) rotate(90deg) var(--move1);
+}
+.mark_radial > :nth-child(3) {
+	transform: var(--move2) rotate(135deg) var(--move1);
+}
+.mark_radial > :nth-child(4) {
+	transform: var(--move2) rotate(180deg) var(--move1);
+}
+.mark_radial > :nth-child(5) {
+	transform: var(--move2) rotate(225deg) var(--move1);
+}
+.mark_radial > :nth-child(6) {
+	transform: var(--move2) rotate(270deg) var(--move1);
+}
+.mark_radial > :nth-child(7) {
+	transform: var(--move2) rotate(315deg) var(--move1);
+}
+.mark_radial > :nth-child(8) {
+	transform: var(--move2) var(--move1);
+}
+
+
+/* animation の css
+	animation-name: none;
+	animation-duration: 0s;
+	animation-timing-function: ease;
+	animation-delay: 0s;
+	animation-iteration-count: 1;
+	animation-direction: normal;
+	animation-fill-mode: none;
+	animation-play-state: running;
+*/
+@keyframes rotation {
+	from {
+		transform: rotate(0deg);
+	}
+	to {
+		transform: rotate(360deg);
+	}
+}
+
+@keyframes blink {
+	from {
+		opacity: 1;
+	}
+	50% {
+		opacity: 0;
+	}
+	to {
+		opacity: 1;
+	}
+}
+
+.rotate {
+	animation: 1.5s linear infinite rotation;
+}
+.blink {
+	/*animation: 1.5s linear infinite blink;*/
+	
+  animation-name: blink, rotation;
+  animation-duration: 1.5s, 1.5s;
+  animation-timing-function: linear, linear;
+  animation-iteration-count: infinite, infinite;
+}

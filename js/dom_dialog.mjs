@@ -70,6 +70,8 @@ Object.assign(DOMDialog.prototype, {
 	// 表示用変数
 	showing: false,
 	z_base: 0, // z-indexのベース値
+	// 表示終了時に解決されるpromiseへの通知関数
+	promise_resolver: null,
 	
 	// ドラッグ移動用変数
 	moving: false,
@@ -101,9 +103,14 @@ Object.assign(DOMDialog.prototype, {
 	set_size: DOMDialog_set_size,
 	get_max_x: DOMDialog_get_max_x,
 	get_max_y: DOMDialog_get_max_y,
+	get_x: DOMDialog_get_x,
+	get_y: DOMDialog_get_y,
+	set_x: DOMDialog_set_x,
+	set_y: DOMDialog_set_y,
 	
 	move_by: DOMDialog_move_by,
 	move_to: DOMDialog_move_to,
+	move_to_center: DOMDialog_move_to_center,
 	reset_position: DOMDialog_reset_position,
 	
 	// private:
@@ -118,6 +125,11 @@ Object.assign(DOMDialog.prototype, {
 	ev_pointermove_title : DOMDialog_ev_pointermove_title,
 	ev_pointerup_title   : DOMDialog_ev_pointerup_title,
 	ev_resize_window     : DOMDialog_ev_resize_window,
+});
+
+Object.defineProperties(DOMDialog.prototype, {
+	x: {get: DOMDialog_get_x, set: DOMDialog_set_x},
+	y: {get: DOMDialog_get_y, set: DOMDialog_set_y},
 });
 
 
@@ -209,13 +221,25 @@ function DOMDialog_alert(message, title = ""){
 
 
 // DOMDialog member ------------------------------------------------------------
+/**
+ * @constructor
+ * @todo write jsdoc
+ */
 function DOMDialog(){
 	Util.attach_event_target(this);
 }
 
-// ダイアログを作成、まだ表示はしない
-// mode: "modal" でモーダルダイアログ
-//   "modeless" でモードレスダイアログ
+/**
+ * ダイアログを作成、まだ表示はしない<br>
+ * mode: "modal" でモーダルダイアログ
+ *   "modeless" でモードレスダイアログ
+ * @param {("modal"|"modeless")} mode 動作モード
+ * @param {string} [title=""] ダイアログのタイトル
+ * @param {boolean} [movable=false] 移動可能にするかどうか
+ * @return {DOMDialog} this
+ * @method create
+ * @memberof DOMDialog.prototype
+ */
 function DOMDialog_create(mode, title = "", movable = false){
 	if (this.e_inside) debugger;
 	
@@ -230,7 +254,9 @@ function DOMDialog_create(mode, title = "", movable = false){
 	NODE(this.e_inside, [
 		NODE(this.e_bar, [
 			this.e_title,
-			NODE(this.e_close, [TEXT("×")]),
+			NODE(this.e_close, [
+				NODE(ELEMENT("div", "", "mark_x"), [ELEMENT("div"), ELEMENT("div")]),
+			]),
 		]),
 		this.e_contents,
 	]);
@@ -259,6 +285,7 @@ function DOMDialog_create(mode, title = "", movable = false){
 	if (movable) this.e_inside.classList.add("movable");
 	
 	DOMDialog.add_dialog(this);
+	return this;
 }
 
 // button をクリックしたときに、closeイベント(exitイベント)が発生するようになる
@@ -295,6 +322,10 @@ function DOMDialog_set_title(title){
 	this.e_title.textContent = title;
 }
 
+// 表示
+// Promiseを返し、そのPromiseはダイアログが閉じたときに解決される
+// 既に表示されている場合は拒絶のPromise
+// Promiseの性質上、"exit"イベントのあとにPromiseの解決が通知される
 function DOMDialog_show(){
 	if (!this.showing) {
 		this.showing = true;
@@ -302,7 +333,14 @@ function DOMDialog_show(){
 		this.e_inside.classList.remove("hidden");
 		this.move_to_front();
 		
+		let p = new Promise(resolve => {
+			this.promise_resolver = resolve;
+		});
 		this.dispatchEvent(new CustomEvent("show"));
+		return p;
+		
+	} else {
+		return Promise.reject("showing");
 	}
 }
 
@@ -328,6 +366,8 @@ function DOMDialog_hide(reason = "hide", cancelable = true){
 			if (this.e_outside) this.e_outside.classList.add("hidden");
 			this.e_inside.classList.add("hidden");
 			this.dispatchEvent(new CustomEvent("exit", {detail: reason}));
+			this.promise_resolver(reason);
+			this.promise_resolver = null;
 		}
 	}
 }
@@ -359,6 +399,21 @@ function DOMDialog_get_max_x(){
 }
 function DOMDialog_get_max_y(){
 	return document.documentElement.clientHeight - this.e_inside.offsetHeight;
+}
+
+// ダイアログの現在位置
+// x, y のプロパティでもアクセスできる
+function DOMDialog_get_x(){
+	return this.e_inside.offsetLeft;
+}
+function DOMDialog_get_y(){
+	return this.e_inside.offsetTop;
+}
+function DOMDialog_set_x(x){
+	this.move_to(x, this.y);
+}
+function DOMDialog_set_y(y){
+	this.move_to(this.x, y);
 }
 
 // ダイアログの移動(相対)
@@ -393,6 +448,14 @@ function DOMDialog_move_to(x, y, fit = true, retry_scroff = true){
 		// 移動によってスクロールバーが消えた
 		this.move_to(x, y, fit, false);
 	}
+}
+
+// centering
+// false にするとそのまま
+function DOMDialog_move_to_center(move_x = true, move_y = true){
+	let new_x = move_x ? this.get_max_x() / 2 : this.e_inside.offsetLeft;
+	let new_y = move_y ? this.get_max_y() / 2 : this.e_inside.offsetTop;
+	this.move_to(new_x, new_y);
 }
 
 function DOMDialog_reset_position(){

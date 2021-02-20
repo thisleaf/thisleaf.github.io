@@ -1,5 +1,7 @@
-// いろいろなページで使える関数群
-
+/**
+ * @fileoverview いろいろなページで使える関数群
+ * @module Util
+ */
 
 // このファイルで使われるクラス --------------------------------------------------------------------
 // フォームの文字列などの変換結果
@@ -209,6 +211,31 @@ export function strYMDHM(d){
 	return strYMD(d) + " " + int_to_string(d.getHours(), 2) + ":" + int_to_string(d.getMinutes(), 2);
 }
 
+/**
+ * 少し遅らせてからまとめて呼ぶ関数を作成して返す
+ * @param {Function} func callback(count) countはdelayの間に何回呼ばれたか
+ * @param {number} delay msec
+ * @param {boolean} [reset_delay=true] 関数が呼ばれた際に、元の関数を呼ぶまでの時間をリセットするか
+ * @return {Function}
+ */
+export function delayed_caller(func, delay, reset_delay = true){
+	let count = 0;
+	let timer = 0;
+	let call_func = () => {
+		timer = 0;
+		func(count);
+		count = 0;
+	};
+	let onevent = () => {
+		if (count == 0 || reset_delay) {
+			if (timer) clearTimeout(timer);
+			timer = setTimeout(call_func, delay);
+		}
+		count++;
+	};
+	return onevent;
+}
+
 
 // 通信, csv ---------------------------------------------------------------------------------------
 // csvファイルのロード。データはすべて文字列だが、改行は\nに置き換えられる
@@ -307,14 +334,19 @@ export function parse_csv_text(src, use_header){
 }
 
 
-// csv データの lastModified 列をチェック
-// 一番新しい日付を返す
+/**
+ * csv データの lastModified 列をチェック<br>
+ * 一番新しい日付を返す
+ * @param {Array} csv csvデータ
+ * @return {?Date} 日付として解釈できるデータがない場合はnull
+ */
 export function get_csv_last_modified(csv){
 	let lastmod = null;
 	if (csv) {
 		for (let x of csv) {
 			if (x.lastModified) {
 				let d = new Date(x.lastModified);
+				// 不正な値はgetTime()がNaNを返すはず
 				if ( d.getTime() > 0 &&
 					(!lastmod || lastmod.getTime() < d.getTime()) )
 				{
@@ -344,12 +376,34 @@ export function NODE(parent, children){
 	return parent;
 }
 
-// elementの生成
-// ELEMENT(tag, id, className)
-// ELEMENT(tag, {id: id, className: className})
-// など　後者は他のプロパティーへの代入も可能
+
+/**
+ * elementの生成<br>
+ * ELEMENT(tag, id, className)<br>
+ * ELEMENT(tag, {id: id, className: className})<br>
+ * など　後者は他のプロパティーへの代入も可能<br>
+ * tag には css のように ID/class を付与できる: div#id.class.class2
+ * @param {string} tag タグ名#id.class
+ * @param {(string|Object)} [id_or_props] idまたはオブジェクト
+ * @param {string} [className] クラス名 第2引数がオブジェクトの場合無視される
+ */
 export function ELEMENT(tag, id_or_props, className){
-	let e = document.createElement(tag);
+	let id = "";
+	let cname = "";
+	let tag_name = String(tag)
+	.replace(/#([\w\-]+)/, (_mstr, mid) => {
+		id = mid;
+		return "";
+	})
+	.replace(/\.([\w\-]+)/g, (_mstr, mclass) => {
+		if (cname) cname += " ";
+		cname += mclass;
+		return "";
+	});
+
+	let e = document.createElement(tag_name);
+	if (id) e.id = id;
+	if (cname) e.className = cname;
 	
 	if (id_or_props && typeof id_or_props == "object") {
 		// 第2引数はプロパティーを指定するオブジェクト
@@ -360,6 +414,7 @@ export function ELEMENT(tag, id_or_props, className){
 		if (id_or_props) e.id = id_or_props;
 		if (className) e.className = className;
 	}
+	
 	return e;
 }
 

@@ -2,7 +2,7 @@
 
 import {DOM, NODE, TEXT, ELEMENT} from "./utility.mjs";
 import * as Util from "./utility.mjs";
-import {ShipSelector} from "./kc_ship_selector.mjs";
+import {ShipSelector, ShipSelectorDialog} from "./kc_ship_selector.mjs";
 import {
 	EquipmentDatabase,
 	EquipableInfo,
@@ -80,17 +80,14 @@ Object.defineProperties(BonusViewer, {
 
 function BonusViewer_create(container){
 	this.e_container = container;
-	this.ship_selector = new ShipSelector();
+	this.ship_selector = new ShipSelector("popup", new ShipSelectorDialog().create());
 	this.bonus = new EquipmentBonus("", false);
 	this.equipables = new EquipableInfo("", false);
 	
 	NODE(this.e_container, [
 		NODE(ELEMENT("div"), [
-			NODE(ELEMENT("div", "", "selector"), [
-				this.ship_selector.e_chara_select,
-				this.ship_selector.e_class_select,
-				ELEMENT("br"),
-				this.ship_selector.e_ship_select,
+			NODE(ELEMENT("div.selector"), [
+				this.ship_selector.e_shipname_div,
 			]),
 		]),
 		

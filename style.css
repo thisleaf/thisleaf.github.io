@@ -292,6 +292,10 @@ th.center, td.center {
 .dialog_container .inside .bar .close:hover {
 	background-color: #00000055;
 }
+.dialog_container .inside .bar .close > .mark_x {
+	--weight: 0.08em;
+	--color: #003;
+}
 
 /* ダイアログの内容 */
 .dialog_container .inside .contents {
@@ -323,4 +327,152 @@ th.center, td.center {
 .dialog_container .inside.alert .button_div button {
 	/*font-size: 100%;*/
 	width: 4em;
+}
+
+/* 艦娘選択ダイアログ */
+.inside.ship_selector .contents {
+	margin: 0.5em 1em 1em 1em;
+}
+.inside.ship_selector .search_bar > .ship_class {
+	width: 10em;
+	margin-right: 4px;
+}
+.inside.ship_selector .search_bar > .mark_x {
+	vertical-align: middle;
+	opacity: 0.5;
+}
+.inside.ship_selector .search_bar > .mark_x:hover {
+	opacity: 1;
+}
+.inside.ship_selector .search_bar > label.unupgrade {
+	margin-left: 1em;
+}
+.inside.ship_selector .search_bar > .ok {
+	float: right;
+	padding-left: 2em;
+	padding-right: 2em;
+}
+.inside.ship_selector .search_bar > .ok.hide {
+	display: none;
+}
+/* 艦娘リスト */
+.inside.ship_selector .list {
+	position: relative;
+	border: 1px solid gray;
+	width: 75vw;
+	height: 75vh;
+	padding: 2px;
+	overflow: auto;
+	user-select: none;
+}
+.inside.ship_selector .list > .delimiter {
+	position: absolute;
+	right: 0px;
+	font-size: 75%;
+	z-index: 1;
+	display: flex;
+	cursor: default;
+	width: 100%;
+}
+.inside.ship_selector .list > .delimiter .hr {
+	position: relative;
+	flex-grow: 1;
+}
+.inside.ship_selector .list > .delimiter .hr > :first-child {
+	position: absolute;
+	width: 100%;
+	height: 2px;
+	margin: auto;
+	top: 0;
+	bottom: 0;
+	border-top: 1px solid lightgray;
+}
+.inside.ship_selector .list > .delimiter .group_name {
+	margin: 0em 0.5em;
+	flex-grow: 0;
+	color: #444;
+}
+
+.inside.ship_selector .list > .groupheader {
+	position: absolute;
+	right: 0px;
+	margin-right: 0.5em;
+	font-size: 75%;
+	z-index: 1;
+}
+.inside.ship_selector .list > .shipgroup {
+	position: relative;
+	z-index: 2;
+	
+	display: flex;
+	flex-wrap: wrap;
+}
+.inside.ship_selector .list > .shipgroup > .ship {
+	margin: 2px;
+	padding: 3px;
+	border-radius: 8px;
+	flex-basis: 8em;
+	max-width: 8em;
+	flex-shrink: 0;
+	line-height: 1;
+	border: 1px solid black;
+	cursor: pointer;
+	overflow: hidden;
+	
+	display: flex;
+	flex-direction: column;
+}
+.inside.ship_selector .list > .shipgroup > .ship > .name {
+	text-align: center;
+	flex-grow: 1;
+	
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+.inside.ship_selector .list > .shipgroup > .ship > .hint {
+	font-size: 75%;
+	padding: 0em 0.3em;
+	flex-grow: 0;
+	
+	display: flex;
+	justify-content: space-around;
+}
+.inside.ship_selector .list > .shipgroup > .ship.guide {
+	opacity: 0.6;
+}
+.inside.ship_selector .list > .shipgroup > .ship.empty {
+	padding-top: 0.3em;
+	padding-bottom: 0.3em;
+}
+.inside.ship_selector .list > .shipgroup > .ship.selected {
+	filter: drop-shadow(1px 1px 4px #444);
+}
+.inside.ship_selector .list > .shipgroup > .ship.selected > .name {
+	font-weight: bold;
+}
+/* 艦種ごとの色(.ship.XX)については、使う場所で別定義とする */
+.inside.ship_selector .list > .shipgroup > .ship {
+	background-color: #fff;
+}
+.inside.ship_selector .list > .shipgroup > .ship.other {
+	color: #000;
+	border-color: #444;
+}
+.inside.ship_selector .list > .shipgroup > .ship.empty {
+	color: #444;
+	border-color: #888;
+}
+
+/* 艦娘選択フォーム */
+.shipnamediv {
+	cursor: pointer;
+}
+.shipnamediv.empty {
+	color: gray;
+}
+.shipnamediv:hover {
+	color: blue;
+	background-color: #e6f3ff;
+	text-decoration: underline;
 }

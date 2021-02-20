@@ -3,7 +3,7 @@
 import * as Global from "./kc_support_global.mjs";
 import * as Util from "./utility.mjs";
 import {NODE, ELEMENT, TEXT} from "./utility.mjs";
-import {ShipSelector} from "./kc_ship_selector.mjs";
+import {ShipSelector, ShipSelectorDialog} from "./kc_ship_selector.mjs";
 import {
 	EquipmentDatabase,
 	EquipableInfo,
@@ -13,6 +13,7 @@ import {
 	EquipmentBonus,
 } from "./kc_equipment.mjs";
 import * as Damage from "./kc_damage_utility.mjs";
+import {DOMDialog} from "./dom_dialog.mjs";
 
 export {
 	SupportShip,
@@ -42,6 +43,11 @@ Object.assign(SupportShip.prototype, {
 	e_total_accuracy_cell  : null,
 	e_cost_cell            : null,
 	// form ほか
+	e_lvluck          : null, // div
+	e_lv              : null, // div
+	e_lv_number       : null,
+	e_luck            : null, // div
+	e_luck_number     : null,
 	e_exslot_available: null,
 	e_priority        : null,
 	e_engagement      : null,
@@ -68,7 +74,10 @@ Object.assign(SupportShip.prototype, {
 	object_id: "",
 	// 艦名(改造度合いを含む)
 	name  : "",
-	
+	// レベル, 運
+	level : -1,
+	luck  : -1,
+
 	// 弾薬消費割合
 	ammocost_rate: 0.8,
 	// callback
@@ -89,8 +98,14 @@ Object.assign(SupportShip.prototype, {
 	swap_data          : SupportShip_swap_data,
 	is_index_available : SupportShip_is_index_available,
 	get_slot_info      : SupportShip_get_slot_info,
+	get_level_info: SupportShip_get_level_info,
+	set_level     : SupportShip_set_level,
+	get_luck_info : SupportShip_get_luck_info,
+	set_luck      : SupportShip_set_luck,
+	get_raw_accuracy: SupportShip_get_raw_accuracy,
 	
 	refresh_shipinfo    : SupportShip_refresh_shipinfo    ,
+	refresh_lvluck      : SupportShip_refresh_lvluck      ,
 	refresh_displaypower: SupportShip_refresh_displaypower,
 	refresh_equipstatus : SupportShip_refresh_equipstatus ,
 	
@@ -107,6 +122,7 @@ Object.assign(SupportShip.prototype, {
 	
 	// event
 	ev_change_ship     : SupportShip_ev_change_ship     ,
+	ev_click_lvluck    : SupportShip_ev_click_lvluck    ,
 	ev_click_exavail   : SupportShip_ev_click_exavail   ,
 	ev_change_priority : SupportShip_ev_change_priority ,
 	ev_change_target   : SupportShip_ev_change_target   ,
@@ -115,17 +131,26 @@ Object.assign(SupportShip.prototype, {
 
 
 Object.assign(SupportShip, {
+	default_level: 99,
 	// 砲撃支援時、空母系とみなす shipType のリスト
 	// ちなみに速吸は空母系ではない
 	cv_shelling_types: [
 		"軽空母", "正規空母", "装甲空母", "夜間作戦航空母艦", "近代化航空母艦"
 	],
+	selector_dialog: null,
 	
 	get_border_power: SupportShip_static_get_border_power,
 });
 
 
 // SupportShip -------------------------------------------------------------------------------------
+/**
+ * 支援艦隊の一隻
+ * @param {number} number 
+ * @param {string} object_id 
+ * @constructor
+ * @todo write jsdoc
+ */
 function SupportShip(number, object_id){
 	if (!object_id) debugger;
 	
@@ -165,9 +190,28 @@ function SupportShip_create(def_priority){
 		return str;
 	};
 	
+	// 選択ダイアログ
+	let dialog = SupportShip.selector_dialog;
+	if (!dialog) {
+		dialog = new ShipSelectorDialog();
+		dialog.create("", ShipSelectorDialog.support_shipcode_def);
+		SupportShip.selector_dialog = dialog;
+	}
+	
 	// 艦の選択・補強増設
-	this.ship_selector = new ShipSelector;
+	this.ship_selector = new ShipSelector("popup", dialog);
 	this.ship_selector.onchange = name => this.ev_change_ship(name);
+	this.e_lvluck = NODE(ELEMENT("div.lvluck"), [
+		this.e_lv = NODE(ELEMENT("div.lv"), [
+			TEXT("Lv"),
+			this.e_lv_number = ELEMENT("span.lvnum"),
+		]),
+		this.e_luck = NODE(ELEMENT("div.luck"), [
+			TEXT("運"),
+			this.e_luck_number = ELEMENT("span.lucknum"),
+		]),
+	]);
+	this.e_lvluck.addEventListener("click", e => this.ev_click_lvluck(e));
 	this.e_exslot_available = ELEMENT("input", {type: "checkbox"});
 	this.e_exslot_available.addEventListener("change", e => this.ev_click_exavail(e));
 	
@@ -246,16 +290,19 @@ function SupportShip_create_tbody(){
 	this.e_number_cell = ELEMENT("td", {textContent: this.number, rowSpan: 8, className: "number"});
 	
 	let selector_cell = NODE(ELEMENT("td", {colSpan: 2, rowSpan: 2, className: "shipcell"}), [
-		this.ship_selector.e_chara_select,
-		this.ship_selector.e_class_select,
-		ELEMENT("br"),
-		this.ship_selector.e_ship_select,
-		NODE(document.createElement("label"), [
-			this.e_exslot_available,
-			TEXT("補強増設"),
+		NODE(ELEMENT("div"), [
+			this.ship_selector.e_shipname_div,
+			NODE(ELEMENT("div", "", "lvluckex"), [
+				this.e_lvluck,
+				NODE(ELEMENT("div", "", "ex"), [
+					NODE(document.createElement("label"), [
+						this.e_exslot_available,
+						TEXT("増設"),
+					]),
+				])
+			]),
 		]),
 	]);
-	
 	
 	let target_cell = NODE(ELEMENT("td", {colSpan: 1, rowSpan: 2, className: "targetcell"}), [
 		this.e_formation,
@@ -288,7 +335,7 @@ function SupportShip_create_tbody(){
 			ELEMENT("td", "", "eq_fix_cell n_all"),
 			this.e_rawfirepower_eq_cell = NODE(ELEMENT("td", "", "equipmentcell raw n_rl n_b"), [TEXT("素火力")]),
 			this.e_rawfirepower_cell = ELEMENT("td", "", "eq_firepower n_all"),
-			ELEMENT("td", {textContent: "", className: "eq_accuracy n_b n_l"}),
+			this.e_rawaccuracy_cell = ELEMENT("td", {textContent: "", className: "eq_accuracy n_b n_l"}),
 		]),
 		Util.create_row([
 			this.e_dragdrop_cells[0],
@@ -453,12 +500,26 @@ function SupportShip_set_ammocost_rate(new_rate){
 
 function SupportShip_get_fuelcost(){
 	let ship = this.ship_selector.get_ship();
-	return ship ? Math.ceil(+ship.fuel * 0.5) : 0;
+	let cost = 0;
+	if (ship) {
+		cost = Math.ceil(+ship.fuel * 0.5);
+		if (this.get_level_info().married) {
+			cost = Math.max(Math.floor(cost * 0.85), 1);
+		}
+	}
+	return cost;
 }
 
 function SupportShip_get_ammocost(){
 	let ship = this.ship_selector.get_ship();
-	return ship ? Math.ceil(+ship.ammo * this.ammocost_rate) : 0;
+	let cost = 0;
+	if (ship) {
+		cost = Math.ceil(+ship.ammo * this.ammocost_rate);
+		if (this.get_level_info().married) {
+			cost = Math.max(Math.floor(cost * 0.85), 1);
+		}
+	}
+	return cost;
 }
 
 function SupportShip_clear(priority){
@@ -527,6 +588,62 @@ function SupportShip_get_slot_info(index){
 	return data;
 }
 
+// レベル情報
+function SupportShip_get_level_info(){
+	let level = this.level;
+	if (level < 0) level = SupportShip.default_level;
+	return {
+		level     : level,
+		raw_level : this.level,
+		is_default: this.level < 0,
+		married   : level >= 100,
+	};
+}
+function SupportShip_set_level(level){
+	this.level = +level >= 0 ? +level : -1;
+}
+
+// 運の情報
+function SupportShip_get_luck_info(){
+	let ship = this.ship_selector.get_ship();
+	let luck = this.luck;
+	let min_luck = ship?.luckMin ? +ship.luckMin : -1;
+	let max_luck = ship?.luckMax ? +ship.luckMax : -1;
+
+	// 負数はデフォルト値
+	if (luck < 0) luck = min_luck;
+
+	let in_range = luck >= 1;
+
+	if (min_luck > 0) {
+		in_range &&= min_luck <= luck;
+	}
+	if (max_luck > 0) {
+		in_range &&= luck <= max_luck;
+	}
+
+	return {
+		luck    : luck,
+		raw_luck: this.luck,
+		min_luck: min_luck, // 未入力の場合は -1
+		max_luck: max_luck, // 同様
+		in_range: in_range, // 範囲外が確定しているとき false
+		is_default: this.luck < 0, // 初期値の場合 true
+	};
+}
+function SupportShip_set_luck(luck){
+	this.luck = +luck >= 0 ? +luck : -1;
+}
+
+/**
+ * @method get_raw_accurac
+ * @memberof SupportShip.prototype
+ */
+function SupportShip_get_raw_accuracy(){
+	let level = this.get_level_info().level;
+	let luck = this.get_luck_info().luck;
+	return 2 * Math.sqrt(level) + 1.5 * Math.sqrt(luck);
+}
 
 // 艦情報を更新 (フォームから)
 function SupportShip_refresh_shipinfo(suppress_refresh = false){
@@ -546,8 +663,38 @@ function SupportShip_refresh_shipinfo(suppress_refresh = false){
 	this.ex_equipment_select.recreate_options(this.equipable_info.exslot_equipable, null, true);
 	
 	if (!suppress_refresh) {
+		this.refresh_lvluck();
 		this.refresh_displaypower();
 		this.refresh_equipstatus();
+	}
+}
+
+/**
+ * レベル・運の欄(div)を更新
+ * 変更された場合は refresh_equipstatus() の方も呼ぶ必要がある
+ * ヘッダーのほうも変更の必要があるかも
+ * @method refresh_lvluck
+ * @memberof SupportShip.prototype
+ */
+function SupportShip_refresh_lvluck(){
+	if (this.empty()) {
+		this.e_lv_number.textContent = " -";
+		this.e_lv.classList.toggle("inputted", false);
+		this.e_lv.classList.toggle("married", false);
+		this.e_luck_number.textContent = " -";
+		this.e_luck.classList.toggle("inputted", false);
+		this.e_luck.classList.toggle("error", false);
+
+	} else {
+		let lvinfo = this.get_level_info();
+		let luckinfo = this.get_luck_info();
+
+		this.e_lv_number.textContent = lvinfo.level;
+		this.e_lv.classList.toggle("inputted", !lvinfo.is_default);
+		this.e_lv.classList.toggle("married", lvinfo.married);
+		this.e_luck_number.textContent = luckinfo.luck;
+		this.e_luck.classList.toggle("inputted", !luckinfo.is_default);
+		this.e_luck.classList.toggle("error", !luckinfo.in_range);
 	}
 }
 
@@ -598,17 +745,25 @@ function SupportShip_refresh_equipstatus(){
 		} else {
 			this.e_rawfirepower_cell.textContent = ssd.raw_firepower + 5 + Global.SUPPORT_MODIFY;
 		}
-		
+		// TODO: 基礎命中の表示
+		// 混乱防止のため、探索に適用されるまで非表示
+		// let raw_acc = this.get_raw_accuracy();
+		// this.e_rawaccuracy_cell.textContent = Util.float_to_string(raw_acc, 0, -1);
+		// this.e_rawaccuracy_cell.title = "2 * sqrt(Lv) + 1.5 * sqrt(運)\n= " + String(raw_acc);
+		this.e_rawaccuracy_cell.textContent = "";
+
 		ssd.calc_bonus();
 		
 	} else {
 		this.e_rawfirepower_eq_cell.textContent = "素火力";
 		this.e_rawfirepower_cell.textContent = "";
+		this.e_rawaccuracy_cell.textContent = "";
+		this.e_rawaccuracy_cell.title = "";
 	}
 	
 	// 反映
 	for (let i=0; i<ilim; i++) {
-		let enabled = i < slot_count || (ssd.exslot_available && i == ilim - 1);
+		// let enabled = i < slot_count || (ssd.exslot_available && i == ilim - 1);
 		
 		let fpcell = i < 5 ? this.e_slot_firepower_cells[i] : this.e_exslot_firepower_cell;
 		let accell = i < 5 ? this.e_slot_accuracy_cells[i] : this.e_exslot_accuracy_cell;
@@ -639,6 +794,7 @@ function SupportShip_refresh_equipstatus(){
 		accell.textContent = accell_text;
 	}
 	
+	// TODO: 表示される命中合計に基礎命中を適用
 	// 合計
 	let tfp_text = "", tfp_hint = "", tac_text = "";
 	let fpw_good = false, fpw_bad = false;
@@ -717,9 +873,12 @@ function SupportShip_get_data(data){
 	//data.power_modifier = en * fm;
 	data.engagementform_modify = en.value;
 	data.formation_modify = fm.value;
+	data.level = this.get_level_info().level;
+	data.luck = this.get_luck_info().luck;
 	data.border_final_power = tp.value;
 	data.border_basic_power = bp >= 1 ? bp : 1; // 最低1とする(0が攻撃不可を表す)
 	data.raw_firepower = +this.equipable_info.ship.firepowerMax;
+	data.raw_accuracy = this.get_raw_accuracy();
 	data.cv_shelling = this.is_cv_shelling();
 	
 	data.slot_count       = this.equipable_info.get_slot_count();
@@ -795,6 +954,8 @@ function SupportShip_get_json(){
 	
 	return {
 		name             : this.name,
+		level            : this.level,
+		luck             : this.luck,
 		exslot_available : this.e_exslot_available.checked,
 		priority         : this.e_priority.value,
 		engagement       : _text(this.e_engagement),
@@ -829,6 +990,8 @@ function SupportShip_set_json(json){
 	}
 	
 	this.set_name(json.name || "");
+	this.level = json.level >= 0 ? json.level : -1;
+	this.luck = json.luck >= 0 ? json.luck : -1;
 	this.e_exslot_available.checked = json.exslot_available;
 	this.e_priority.value = json.priority;
 	_set_by_text(this.e_engagement, json.engagement);
@@ -852,6 +1015,29 @@ function SupportShip_call_onchange(){
 function SupportShip_ev_change_ship(name){
 	this.set_name(name);
 	this.call_onchange();
+}
+
+function SupportShip_ev_click_lvluck(e){
+	if (this.empty()) return;
+
+	let dialog = new SupportShipLvLuckDialog(this);
+	dialog.create();
+	dialog.show().then(code => {
+		if (code == "ok") {
+			this.set_level(dialog.level);
+			this.set_luck(dialog.luck);
+			this.refresh_lvluck();
+			this.refresh_equipstatus();
+			this.call_onchange();
+		}
+		dialog.dispose();
+	});
+
+	// e_lvluck の右に表示
+	let rect = this.e_lvluck.getBoundingClientRect();
+	let x = rect.right;
+	let y = rect.top - dialog.e_bar.offsetHeight - 1;
+	dialog.move_to(x, y);
 }
 
 function SupportShip_ev_click_exavail(){
@@ -892,6 +1078,186 @@ function SupportShip_static_get_border_power(engagement_form, formation, target_
 }
 
 
+/**
+ * レベルと運の入力ダイアログ
+ * @extends DOMDialog
+ */
+class SupportShipLvLuckDialog extends DOMDialog {
+	sship;
+	e_level;
+	e_level_1;
+	e_level_99;
+	e_level_max;
+	e_luck;
+	e_luck_min;
+	e_luck_max;
+	e_basic_accuracy;
+	e_ok;
+	e_cancel;
+
+	// sshipのデータ
+	level_info;
+	luck_info;
+
+	/**
+	 * @param {SupportShip} [sship]
+	 */
+	constructor(sship = null){
+		super();
+		this.sship = sship;
+	}
+	/**
+	 * DOMの作成
+	 */
+	create(){
+		super.create("modal", "Lv/運", true);
+		this.e_inside.classList.add("lvluck");
+
+		NODE(this.e_contents, [
+			NODE(ELEMENT("div"), [
+				NODE(ELEMENT("span.tag"), [TEXT("Lv")]),
+				this.e_level = ELEMENT("input", {type: "number", min: 0, max: 175}),
+				this.e_level_null= NODE(ELEMENT("span.button"), [TEXT("設定なし")]),
+				this.e_level_1   = NODE(ELEMENT("span.button"), [TEXT("Lv1")]),
+				this.e_level_99  = NODE(ELEMENT("span.button"), [TEXT("Lv99")]),
+				this.e_level_max = NODE(ELEMENT("span.button"), [TEXT("Lv" + 175)]),
+			]),
+			NODE(ELEMENT("div"), [
+				NODE(ELEMENT("span.tag"), [TEXT("運")]),
+				this.e_luck = ELEMENT("input", {type: "number", min: 0, max: 255}),
+				this.e_luck_null= NODE(ELEMENT("span.button"), [TEXT("設定なし")]),
+				this.e_luck_min = NODE(ELEMENT("span.button"), [TEXT("初期")]),
+				this.e_luck_max = NODE(ELEMENT("span.button"), [TEXT("最大")]),
+			]),
+			NODE(ELEMENT("div.text"), [
+				NODE(ELEMENT("span", {title: "2 * sqrt(Lv) + 1.5 * sqrt(運)"}), [
+					TEXT("基礎命中 "),
+					this.e_basic_accuracy = ELEMENT("span"),
+				]),
+				ELEMENT("br"),
+				TEXT("設定なしの場合 Lvは99 運は初期値"),
+			]),
+			NODE(ELEMENT("div.button_div"), [
+				this.e_ok     = NODE(ELEMENT("button.ok"), [TEXT("変更")]),
+				this.e_cancel = NODE(ELEMENT("button.cancel"), [TEXT("キャンセル")]),
+			]),
+		]);
+
+		this.e_level.addEventListener("input", e => this.ev_input(e));
+		this.e_level_null.addEventListener("click", e => this.ev_click_lvbtn(""));
+		this.e_level_1.addEventListener("click", e => this.ev_click_lvbtn("1"));
+		this.e_level_99.addEventListener("click", e => this.ev_click_lvbtn("99"));
+		this.e_level_max.addEventListener("click", e => this.ev_click_lvbtn("175"));
+		this.e_luck.addEventListener("input", e => this.ev_input(e));
+		this.e_luck_null.addEventListener("click", e => this.ev_click_luckbtn(""));
+		this.e_luck_min.addEventListener("click", e => this.ev_click_luckbtn("min"));
+		this.e_luck_max.addEventListener("click", e => this.ev_click_luckbtn("max"));
+		this.add_dialog_button(this.e_ok, "ok");
+		this.add_dialog_button(this.e_cancel, "cancel");
+		this.addEventListener("show", e => this.ev_show(e));
+	}
+	/**
+	 * ダイアログの表示を更新
+	 */
+	refresh_info(){
+		let level = Util.formstr_to_int(this.e_level.value, -1, NaN).value;
+		let luck = Util.formstr_to_int(this.e_luck.value, -1, NaN).value;
+		if (level < 0) level = 99;
+		if (luck < 0 && this.luck_info) luck = this.luck_info.min_luck;
+
+		let text = "-";
+		let hint_text = "";
+		if (level >= 0 && luck >= 0) {
+			let acc = 2 * Math.sqrt(level) + 1.5 * Math.sqrt(luck);
+			text = Util.float_to_string(acc, 3, -1);
+			hint_text = "2 * sqrt(Lv) + 1.5 * sqrt(運)\n= " + String(acc);
+		}
+		this.e_basic_accuracy.textContent = text;
+		this.e_basic_accuracy.title = hint_text;
+
+		let outofrange_level = !(1 <= level && level <= 175);
+		let outofrange_luck = ( this.luck_info
+			&& !(this.luck_info.min_luck <= luck && luck <= this.luck_info.max_luck) );
+		this.e_level.classList.toggle("error", outofrange_level);
+		this.e_luck.classList.toggle("error", outofrange_luck);
+
+		this.e_luck_min.textContent = "初期" + (this.luck_info?.min_luck || "");
+		this.e_luck_max.textContent = "最大" + (this.luck_info?.max_luck || "");
+	}
+	/**
+	 * 入力されたレベル　エラーや空文字は-1
+	 * @return {number}
+	 */
+	get level(){
+		return Util.formstr_to_int(this.e_level?.value, -1, -1).value;
+	}
+	/**
+	 * 入力された運　エラーや空文字は-1
+	 * @return {number}
+	 */
+	get luck(){
+		return Util.formstr_to_int(this.e_luck?.value, -1, -1).value;
+	}
+
+	/**
+	 * showイベント
+	 * sshipからデータを取ってきてセット
+	 * @param {Event} _e 
+	 * @private
+	 */
+	ev_show(_e){
+		this.level_info = this.sship.get_level_info();
+		this.luck_info = this.sship.get_luck_info();
+
+		let rawlv = this.level_info.raw_level;
+		this.e_level.value = rawlv >= 0 ? rawlv : "";
+		this.e_level.placeholder = "99";
+
+		// 範囲外も入力可
+		// this.e_luck.min = this.luck_info.min_luck > 0 ? this.luck_info.min_luck : 0;
+		// this.e_luck.max = this.luck_info.max_luck > 0 ? this.luck_info.max_luck : 255;
+		let rawluc =this.luck_info.raw_luck;
+		this.e_luck.value = rawluc >= 0 ? rawluc : "";
+		this.e_luck.placeholder = this.luck_info.min_luck > 0 ? this.luck_info.min_luck : "";
+
+		this.refresh_info();
+	}
+	/**
+	 * フォーム変更時のイベント
+	 * @param {Event} _e
+	 * @private
+	 */
+	ev_input(_e){
+		this.refresh_info();
+	}
+	/**
+	 * レベルの入力ボタンをクリック
+	 * @param {string} level_str
+	 * @private
+	 */
+	ev_click_lvbtn(level_str){
+		this.e_level.value = level_str;
+		this.refresh_info();
+	}
+	/**
+	 * 運の入力ボタンをクリック
+	 * @param {string} luck_str 設定する文字列だが"min"で初期値、"max"で最大値
+	 * @private
+	 */
+	ev_click_luckbtn(luck_str){
+		let luck = luck_str;
+		if (luck_str == "min") {
+			if (!this.luck_info) return;
+			luck = this.luck_info.min_luck;
+		} else if (luck_str == "max") {
+			if (!this.luck_info) return;
+			luck = this.luck_info.max_luck;
+		}
+		this.e_luck.value = luck;
+		this.refresh_info();
+	}
+};
+
 // SupportShipData ---------------------------------------------------------------------------------
 // SupportShip のデータを計算用に
 Object.assign(SupportShipData.prototype, {
@@ -907,12 +1273,19 @@ Object.assign(SupportShipData.prototype, {
 	engagementform_modify: 1,
 	formation_modify     : 1,
 	
+	// レベル・運
+	// 負数で初期値を表す
+	level: -1,
+	luck : -1,
+
 	// 目標攻撃力
 //	border_display_power: 150, // 表示火力だが、空母系が…
 	border_basic_power: 150, // 基本攻撃力
 	border_final_power: 150, // 最終攻撃力
 	// 素火力
 	raw_firepower: 0,
+	// 基礎命中
+	raw_accuracy : 0,
 	// 空母系(計算式)かどうか
 	cv_shelling  : false,
 	// 空母系で艦載機がなくても攻撃可能として攻撃力を計算するか
@@ -961,7 +1334,9 @@ Object.assign(SupportShipData, {
 	priority_compare    : SupportShipData_priority_compare,
 });
 
-
+/**
+ * @constructor
+ */
 function SupportShipData(){
 }
 
@@ -1077,16 +1452,23 @@ function SupportShipData_get_bonus_torpedo(){
 	return tor;
 }
 
-// 命中値
+/**
+ * 命中値 = floor(基礎命中 + 装備命中)
+ * の予定だが探索の都合で基礎命中の反映はまだ
+ * @method get_accuracy
+ * @memberof SupportShipData.prototype
+ * @todo 基礎命中の反映
+ */ 
 function SupportShipData_get_accuracy(){
 	let acc = 0;
+	// let acc = this.raw_accuracy;
 	for (let i=0; i<this.allslot_equipment.length; i++) {
 		let data = this.allslot_equipment[i].equipment_data;
 		if (data) {
 			acc += data.accuracy;
 		}
 	}
-	return acc;
+	return Math.floor(acc);
 }
 
 // 装備優先度の合計
@@ -1263,8 +1645,8 @@ function SupportShipData_get_json_deckbuilder(){
 	let ship = EquipmentDatabase.csv_shiplist.find(d => d.name == this.ship_name);
 	let json = {
 		id: String(ship?.shipId || "0"),
-		// lv: 99,
-		// luck: -1,
+		lv: this.level >= 0 ? this.level : 99,
+		luck: this.luck >= 0 ? this.luck : -1,
 		items: {},
 	};
 	
@@ -1301,9 +1683,12 @@ function SupportShipData_get_json_MT(){
 		priority             : this.priority             ,
 		engagementform_modify: this.engagementform_modify,
 		formation_modify     : this.formation_modify     ,
+		level: this.level,
+		luck : this.luck,
 		border_basic_power   : this.border_basic_power   ,
 		border_final_power   : this.border_final_power   ,
 		raw_firepower        : this.raw_firepower        ,
+		raw_accuracy         : this.raw_accuracy         ,
 		cv_shelling          : this.cv_shelling          ,
 		cv_force_attackable  : this.cv_force_attackable  ,
 		slot_count           : this.slot_count           ,
@@ -1321,9 +1706,12 @@ function SupportShipData_set_json_MT(json){
 	this.priority             = json.priority             ,
 	this.engagementform_modify= json.engagementform_modify,
 	this.formation_modify     = json.formation_modify     ,
+	this.level = this.level,
+	this.luck  = this.luck,
 	this.border_basic_power   = json.border_basic_power   ,
 	this.border_final_power   = json.border_final_power   ,
 	this.raw_firepower        = json.raw_firepower        ,
+	this.raw_accuracy         = json.raw_accuracy         ,
 	this.cv_shelling          = json.cv_shelling          ,
 	this.cv_force_attackable  = json.cv_force_attackable  ,
 	this.slot_count           = json.slot_count           ,

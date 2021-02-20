@@ -129,7 +129,40 @@ body {
 	font-size: 75%;
 	margin: 0.5em 1em;
 }
-
+#explanation div.recent_update {
+	float: right;
+	width: 30%;
+}
+#explanation div.recent_update > h5 {
+	position: absolute;
+	padding: 0em 0.8em;
+	margin: 0em;
+}
+#explanation div.recent_update > .header_bar {
+	height: 0.55em;
+	background-color: #cfe3ff;
+}
+#explanation div.recent_update > .update {
+	font-size: 80%;
+	max-height: 40vh;
+	overflow: auto;
+}
+#explanation div.recent_update > .update #csv_update {
+	padding-top: 1px;
+	text-align: right;
+	line-height: 1.3;
+	min-height: 0.75em;
+}
+#explanation div.recent_update > .update .date {
+	margin-left: 0em;
+}
+#explanation div.recent_update > .update .text {
+	margin-left: 0.5em;
+	border-left: 1px solid #bbb;
+}
+#explanation div.recent_update > .update .text p {
+	padding-left: 0.5em;
+}
 
 /* 所持装備 */
 #own_equipment {
@@ -409,8 +442,6 @@ body {
 .dialog_container .inside.convert .contents {
 	padding: 0em 0.5em;
 }
-.dialog_container .inside.convert .contents .data_type {
-}
 .dialog_container .inside.convert .contents .code_area {
 	width: 70vw;
 	height: 20vh;
@@ -489,6 +520,33 @@ body {
 	margin-left: 1.2em;
 }
 
+/* 支援艦隊 > 艦娘ダイアログ色定義 */
+.inside.ship_selector .list > .shipgroup > .ship.dd {
+	color: #060;
+	border-color: #484;
+}
+.inside.ship_selector .list > .shipgroup > .ship.bb {
+	color: #00c;
+	border-color: #44c;
+}
+.inside.ship_selector .list > .shipgroup > .ship.bbv {
+	color: #60c;
+	border-color: #84c;
+}
+.inside.ship_selector .list > .shipgroup > .ship.cv {
+	color: #d00;
+	border-color: #d44;
+}
+.inside.ship_selector .list > .shipgroup > .ship.ca {
+	color: #008;
+	border-color: #338;
+}
+.inside.ship_selector .list > .shipgroup > .ship.cav {
+	color: #508;
+	border-color: #638;
+}
+
+
 /* 支援艦隊 > table */
 .support_table {
 	font-size: 80%;
@@ -554,13 +612,41 @@ body {
 	text-align: center;
 	cursor: default;
 }
-.support_table .character
-, .support_table .shipclass
-, .support_table .shipselect
-{
-	margin: 1px;
-	width: 180px;
+.support_table .shipcell > div {
+	display: flex;
 }
+.support_table .shipcell .shipnamediv {
+	flex-basis: 12em;
+	flex-grow: 6;
+	font-size: 14pt;
+	padding: 2px 0.4em;
+	display: flex;
+	align-items: center;
+}
+.support_table .shipcell .lvluckex {
+	flex-basis: 8em;
+	flex-grow: 4;
+	display: flex;
+	flex-direction: column;
+}
+.support_table .shipcell .lvluckex > .lvluck {
+	color: black;
+	cursor: pointer;
+	padding: 3px 0px 1px 0px;
+	display: flex;
+	justify-content: space-evenly;
+}
+.support_table .shipcell .lvluckex > .lvluck:hover {
+	background-color:#dfe8ff;
+}
+.support_table .shipcell .lvluckex > .lvluck { color: gray; }
+.support_table .shipcell .lvluckex > .lvluck > .inputted { color: blue; }
+.support_table .shipcell .lvluckex > .lvluck > .married { color: deeppink; }
+.support_table .shipcell .lvluckex > .lvluck > .error { color: red; }
+.support_table .shipcell .lvluckex > .ex {
+	text-align: center;
+}
+
 .support_table th.priority {
 	width: 80px;
 }
@@ -700,6 +786,56 @@ body {
 	background-color: lavender;
 }
 
+/* 支援艦隊 > Lv/運入力ダイアログ */
+.dialog_container .inside.lvluck .contents {
+	padding: 0.5em;
+	user-select: none;
+}
+.dialog_container .inside.lvluck .tag {
+	display: inline-block;
+	min-width: 2.5em;
+	text-align: center;
+}
+.dialog_container .inside.lvluck input[type="number"] {
+	width: 4em;
+	text-align: right;
+	margin-right: 0.5em;
+}
+.dialog_container .inside.lvluck .button {
+	display: inline-block;
+	margin: 0px 0.2em;
+	padding: 0px 0.5em;
+	text-align: center;
+	cursor: pointer;
+	font-size: 80%;
+	border: 1px solid #aaa;
+	border-radius: 8px;
+}
+.dialog_container .inside.lvluck .button:hover {
+	background-color: #efefef;
+	border-color: #ddd;
+}
+.dialog_container .inside.lvluck .button_div {
+	margin: 0.2em 0em 0em 0em;
+	text-align: center;
+}
+.dialog_container .inside.lvluck .button_div > button {
+	padding-top: 0em;
+	padding-bottom: 0em;
+}
+.dialog_container .inside.lvluck .button_div > button.ok {
+	padding-left: 1em;
+	padding-right: 1em;
+	margin-right: 1em;
+}
+.dialog_container .inside.lvluck .text {
+	font-size: 80%;
+	text-align: center;
+}
+.dialog_container .inside.lvluck input.error {
+	color: red;
+}
+
 /* 支援艦隊 > 出力ダイアログ (.convertを継承) */
 .dialog_container .inside.convert.output .contents {
 	width: 80vw;
@@ -796,6 +932,30 @@ body {
 {
 	width: 180px;
 }
+#bonus_viewer div.selector > div.shipnamediv {
+	position: relative;
+	min-width: 30%;
+	width: -moz-fit-content;
+	width: fit-content;
+	border: 1px solid lightgray;
+	padding: 3px 6px 2px 6px;
+}
+#bonus_viewer div.selector > div.shipnamediv::after {
+	content: '';
+	position: absolute;
+	top: 0;
+	right: 0.5em;
+	bottom: 0;
+	width: 0;
+	height: 0;
+	margin: auto;
+	border-width: 0.4em 0.25em 0.00em 0.25em;
+	border-style: solid;
+	border-color: #bbb transparent;
+}
+#bonus_viewer div.selector > div.shipnamediv:hover::after {
+	border-color: #8181c7 transparent;
+}
 
 #bonus_viewer .bonus_viewer_table {
 	width: calc(100% - 2em);
@@ -810,9 +970,7 @@ body {
 	border: 1px solid gray;
 	white-space: nowrap;
 }
-#bonus_viewer .bonus_viewer_table .indep_name {
-	/*width: 51%;*/
-}
+/* #bonus_viewer .bonus_viewer_table .indep_name { width: 51%; } */
 #bonus_viewer .bonus_viewer_table .synergy_name {
 	width: 17%;
 }
