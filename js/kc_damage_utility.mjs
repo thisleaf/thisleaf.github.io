@@ -1,4 +1,7 @@
-// ダメージの計算関係
+/**
+ * @fileoverview ダメージ等の計算関係
+ * @module Damage
+ */
 
 // 順番も利用する
 export const DAMAGE_KEYS = [
@@ -382,13 +385,37 @@ function DamageDistribution_get_display_probs(probs = new Object, cumlative = nu
 
 
 // キャップ ----------------------------------------------------------------------------------------
-// 攻撃力キャップ
+/**
+ * 攻撃力キャップをかける　整数化はしない
+ * @param {number} x キャップ前値
+ * @param {number} cap キャップ
+ */
 export function sqrtcap(x, cap){
 	return x > cap ? cap + Math.sqrt(x - cap) : x;
 }
-
-// 上の逆関数
+/**
+ * sqrtcap() の逆関数
+ * @param {number} y キャップ後値
+ * @param {number} cap キャップ
+ */
 export function inv_sqrtcap(y, cap){
 	return y > cap ? (y - cap) * (y - cap) + cap : y;
 }
-
+/**
+ * 回避キャップをかける<br>
+ * キャップ前値 = 陣形補正 * {素回避値 + 装備回避値 + sqrt(2 * 運)}
+ * @param {number} x キャップ前値(整数でなくてもよい)
+ * @return {number} 整数
+ */
+export function evadecap(x){
+	return Math.floor(evadecap_raw(x));
+}
+/**
+ * 回避キャップをかけるが整数化しない
+ * @param {number} x キャップ前値(整数でなくてもよい)
+ * @return {number}
+ */
+export function evadecap_raw(x){
+	let e = Math.floor(x);
+	return e >= 65 ? 55 + 2 * Math.sqrt(e - 65) : e >= 40 ? 40 + 3 * Math.sqrt(e - 40) : x;
+}

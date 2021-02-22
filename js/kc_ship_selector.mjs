@@ -1000,14 +1000,19 @@ class DEShip {
 };
 
 
-// ShipSelectorDialog ------------------------------------------------------------------------------
-// popup mode の選択ダイアログ
+/**
+ * ShipSelector の popup mode の選択ダイアログ<br>
+ * public オプションを表示中に変更してはいけない
+ * @extends DOMDialog
+ */
 class ShipSelectorDialog extends DOMDialog {
 	// property
 	e_class_select;
 	e_query;
 	e_clear_x;
 	e_unupgrade;
+	e_hidden_groups_label;
+	e_hidden_groups;
 	e_ok;
 	e_list_div;
 	
@@ -1018,18 +1023,45 @@ class ShipSelectorDialog extends DOMDialog {
 	de_emptyship;
 	de_selected_ships;
 	
-	// 艦種別に付与するクラス名の定義
-	shipcode_def;
-	// 現在選択中の艦名
-	// null: なにも選択されていない
-	// "": "選択なし" を選択
+	/**
+	 * 艦種別に付与するクラス名の定義
+	 * @type {?Object.<string, string>}
+	 * @private
+	 */
+	shipcode_def = null;
+	/**
+	 * デフォルト非表示の艦種リスト
+	 * @type {?Array.<string>}
+	 * @private
+	 */
+	hidden_groups = null;
+	/**
+	 * 現在選択中の艦名
+	 * null: なにも選択されていない
+	 * "": "選択なし" を選択
+	 * @type {?string}
+	 * @private
+	 */
 	selected_shipname = null;
 	
-	// public オプション
-	// 選択なしを表示
+	/**
+	 * "選択なし"を表示する
+	 * @type {boolean}
+	 * @public
+	 */
 	show_empty_button = true;
-	// 選択したら閉じるモード
+	/**
+	 * 選択したら閉じるモード
+	 * @type {boolean}
+	 * @public
+	 */
 	autoclose_mode = false;
+	/**
+	 * 表示時に選択中の艦がある場合、その位置まで自動でスクロールする
+	 * @type {boolean}
+	 * @public
+	 */
+	autoscroll = false;
 };
 
 Object.defineProperties(ShipSelectorDialog.prototype, {
@@ -1052,6 +1084,10 @@ Object.defineProperties(ShipSelectorDialog.prototype, {
 
 Object.defineProperties(ShipSelectorDialog, {
 	shipcode_other: {value: "other"},
+	/**
+	 * @type {Object.<string, string>}
+	 * @memberof ShipSelectorDialog
+	 */
 	support_shipcode_def: {value: {
 		"駆逐艦"          : "dd" ,
 		"陽字号駆逐艦"    : "dd" ,
@@ -1066,23 +1102,44 @@ Object.defineProperties(ShipSelectorDialog, {
 		"重巡洋艦"        : "ca" ,
 		"航空巡洋艦"      : "cav",
 	}},
+	/**
+	 * @type {Array.<string>}
+	 * @memberof ShipSelectorDialog
+	 */
+	support_hidden_groups: {value: [
+		"軽巡洋艦",
+		"重雷装巡洋艦",
+		"練習巡洋艦",
+		"海防艦",
+		"潜水艦",
+		"水上機母艦",
+		"補給艦",
+		"潜水母艦",
+		"揚陸艦",
+		"工作艦",
+	]},
 });
 
 
-/* DOMの生成
-className: .inside に付与するクラス
-shipClassList: 艦ボタンに付与する艦種別クラスのリスト。小文字
-  これを指定してかつ要素にない場合は"other"
-  nullの場合はクラスを付与しない
-*/
-function ShipSelectorDialog_create(className = "", shipcode_def = null){
+/**
+ * DOMの生成
+ * @param {string} [insideClassName=""] .inside に付与するクラス
+ * @param {Object.<string, string>} [shipcode_def=null] 艦ボタンに付与する艦種別クラスの定義<br>
+ *     艦種 -> クラス名 のmap<br>
+ *     これを指定してかつ要素にない場合は"other"、nullの場合はクラスを付与しない
+ * @param {Array.<string>} [hidden_groups=null] デフォルト非表示にする艦種の配列(置換後)
+ * @return {ShipSelectorDialog} this
+ * @method ShipSelectorDialog#create
+ */
+function ShipSelectorDialog_create(insideClassName = "", shipcode_def = null, hidden_groups = null){
 	DOMDialog.prototype.create.call(this, "modal", "艦娘の選択", true);
 	
 	this.e_inside.classList.add("ship_selector");
-	if (className) {
-		this.e_inside.classList.add(className);
+	if (insideClassName) {
+		this.e_inside.classList.add(insideClassName);
 	}
 	this.shipcode_def = shipcode_def;
+	this.hidden_groups = hidden_groups;
 	
 	NODE(this.e_contents, [
 		NODE(ELEMENT("div", "", "search_bar"), [
@@ -1092,17 +1149,28 @@ function ShipSelectorDialog_create(className = "", shipcode_def = null){
 			this.e_clear_x      = NODE(ELEMENT("div", "", "mark_x"), [ELEMENT("div"), ELEMENT("div")]),
 			NODE(ELEMENT("label", {className: "unupgrade", title: "艦種が変わるものはチェックなしでも表示"}), [
 				this.e_unupgrade = ELEMENT("input", {type: "checkbox"}),
-				TEXT("未改造を表示"),
+				TEXT("未改造"),
+			]),
+			this.e_hidden_groups_label = NODE(ELEMENT("label.hidden_groups"), [
+				this.e_hidden_groups = ELEMENT("input", {type: "checkbox"}),
+				TEXT("その他の艦種"),
 			]),
 			this.e_ok           = NODE(ELEMENT("button", "", "ok"), [TEXT("OK")]),
 		]),
 		
 		this.e_list_div = ELEMENT("div", "", "list"),
 	]);
-	
+
 	this.create_list();
 	this.recreate_class_select();
 	
+	if (hidden_groups) {
+		this.e_hidden_groups.addEventListener("change", e => this.refresh_list());
+	} else {
+		// デフォルト非表示がない場合は表示しない
+		this.e_hidden_groups.parentNode.style.display = "none";
+	}
+
 	this.add_dialog_button(this.e_ok, "ok");
 	this.e_class_select.addEventListener("change", e => this.refresh_list());
 	this.e_query.addEventListener("input", Util.delayed_caller(() => this.refresh_list(), 200));
@@ -1114,8 +1182,12 @@ function ShipSelectorDialog_create(className = "", shipcode_def = null){
 	return this;
 }
 
-// list のアイテムは予め作っておく
-// グループごとに表示したいので、同じ艦名のアイテムが存在
+/**
+ * list のアイテムは予め作っておく
+ * グループごとに表示したいので、同じ艦名のアイテムが存在
+ * @method ShipSelectorDialog#create_list
+ * @private
+ */
 function ShipSelectorDialog_create_list(){
 	let onclick = (e, de_ship) => {
 		this.ev_click_ship(de_ship);
@@ -1190,6 +1262,10 @@ function ShipSelectorDialog_create_list(){
 	this.set_selected_name(this.get_selected_name(), true);
 }
 
+/**
+ * 表示を更新
+ * @method ShipSelectorDialog#refresh_list
+ */
 function ShipSelectorDialog_refresh_list(){
 	this.e_ok.classList.toggle("hide", this.autoclose_mode);
 	
@@ -1208,6 +1284,7 @@ function ShipSelectorDialog_refresh_list(){
 	
 	for (let group of ShipSelector.shipgroup_data) {
 		if (limit_ship_class && group.group_name != limit_ship_class) continue;
+		if (!this.e_hidden_groups?.checked && this.hidden_groups?.includes(group.group_name)) continue;
 		
 		let de_group = this.de_typegroups[group.group_name];
 		
@@ -1299,10 +1376,14 @@ function ShipSelectorDialog_scroll_to_selected_ship(){
 	}
 }
 
+/**
+ * @method ShipSelectorDialog#ev_show
+ * @private
+ */
 function ShipSelectorDialog_ev_show(){
 	this.refresh_list();
 	this.move_to_center();
-	this.scroll_to_selected_ship();
+	if (this.autoscroll) this.scroll_to_selected_ship();
 }
 
 function ShipSelectorDialog_ev_keydown_query(e){

@@ -144,7 +144,7 @@ body {
 }
 #explanation div.recent_update > .update {
 	font-size: 80%;
-	max-height: 40vh;
+	height: 20em;
 	overflow: auto;
 }
 #explanation div.recent_update > .update #csv_update {

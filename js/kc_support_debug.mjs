@@ -1,6 +1,7 @@
 // デバッグ用のコード
 // こちらのファイルに分離しておく
 
+// TODO: DEBUG_MODE release時にはfalseに
 const DEBUG_MODE = false;
 
 

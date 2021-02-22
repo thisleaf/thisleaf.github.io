@@ -338,14 +338,15 @@ th.center, td.center {
 	margin-right: 4px;
 }
 .inside.ship_selector .search_bar > .mark_x {
+	margin-right: 0.3em;
 	vertical-align: middle;
 	opacity: 0.5;
 }
 .inside.ship_selector .search_bar > .mark_x:hover {
 	opacity: 1;
 }
-.inside.ship_selector .search_bar > label.unupgrade {
-	margin-left: 1em;
+.inside.ship_selector .search_bar > label {
+	margin-left: 0.5em;
 }
 .inside.ship_selector .search_bar > .ok {
 	float: right;

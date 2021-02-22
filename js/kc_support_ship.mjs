@@ -194,7 +194,8 @@ function SupportShip_create(def_priority){
 	let dialog = SupportShip.selector_dialog;
 	if (!dialog) {
 		dialog = new ShipSelectorDialog();
-		dialog.create("", ShipSelectorDialog.support_shipcode_def);
+		dialog.create("", ShipSelectorDialog.support_shipcode_def, ShipSelectorDialog.support_hidden_groups);
+		dialog.e_hidden_groups_label.title = "軽巡ほか";
 		SupportShip.selector_dialog = dialog;
 	}
 	

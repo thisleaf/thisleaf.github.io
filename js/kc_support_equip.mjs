@@ -1468,7 +1468,7 @@ function OwnConvertDialog_create(){
 			
 			NODE(ELEMENT("div", "", "option"), [
 				TEXT("リセットする本隊装備: "),
-				NODE(ELEMENT("label", {title: "艦攻/艦爆/噴式"}), [
+				NODE(ELEMENT("label", {title: "艦攻/艦爆/噴式/艦偵/水爆"}), [
 					this.e_reset_aircraft = ELEMENT("input", {type: "checkbox", checked: true}),
 					TEXT("艦載機"),
 				]),
@@ -1798,7 +1798,10 @@ function OwnConvertDialog_ev_close(e){
 			}
 			
 			// 艦載機のカテゴリー
-			let cates = ["艦上攻撃機", "艦上爆撃機", "噴式戦闘爆撃機"];
+			let cates = [
+				"艦上偵察機", "艦上攻撃機", "艦上爆撃機", "噴式戦闘爆撃機",
+				"水上偵察機", "多用途水上機/水上爆撃機", "水上戦闘機",
+			];
 			
 			// mainをセット
 			this.own_form.reset_mains_category(cates, this.e_reset_aircraft.checked, this.e_reset_other.checked);
