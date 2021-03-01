@@ -322,17 +322,17 @@ export const LOS_EQUIPBONUS = [
 		ship_names: [
 			"神州丸", "神州丸改",
 		],
-		LoS: 2, accumulation: "不明", effect: "不明",
+		LoS: 2, accumulation: "不明", effect: "艦娘索敵値に加算",
 	}, {
 		equipment_id: 408,
 		ship_names: [
 			"あきつ丸", "あきつ丸改",
 		],
-		LoS: 1, accumulation: "不明", effect: "不明",
+		LoS: 1, accumulation: "不明", effect: "艦娘索敵値に加算",
 	}, {
 		equipment_id: 408,
 		ship_types: ["駆逐艦"],
-		LoS: 1, accumulation: "不明", effect: "不明",
+		LoS: 1, accumulation: "不明", effect: "艦娘索敵値に加算",
 		text: "(装備可能な艦のみ)",
 	}
 ];

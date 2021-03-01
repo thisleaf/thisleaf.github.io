@@ -7,7 +7,7 @@
  * 攻撃力キャップ(支援艦隊)
  * @type {number}
  */ 
-export const SUPPORT_POWER_CAP = 150;
+export const SUPPORT_POWER_CAP = 170;
 /**
  * 砲撃支援補正
  * @type {number}
