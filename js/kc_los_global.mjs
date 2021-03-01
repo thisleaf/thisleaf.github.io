@@ -82,7 +82,7 @@ export const DIRECT_INPUT_ID = -1;
 
 // 装備ボーナス
 // 条件に当てはまるものはすべて合算
-export const LOS_EQUIPBONUS_LASTMOD = "2020/08/02";
+export const LOS_EQUIPBONUS_LASTMOD = "2021/03/01";
 
 export const LOS_EQUIPBONUS = [
 	{	// Late 298B
@@ -316,6 +316,24 @@ export const LOS_EQUIPBONUS = [
 			"Richelieu", "Richelieu改",
 		],
 		LoS: 3, accumulation: "不明", effect: "艦娘索敵値に加算",
+
+	}, { // 装甲艇(AB艇)
+		equipment_id: 408,
+		ship_names: [
+			"神州丸", "神州丸改",
+		],
+		LoS: 2, accumulation: "不明", effect: "不明",
+	}, {
+		equipment_id: 408,
+		ship_names: [
+			"あきつ丸", "あきつ丸改",
+		],
+		LoS: 1, accumulation: "不明", effect: "不明",
+	}, {
+		equipment_id: 408,
+		ship_types: ["駆逐艦"],
+		LoS: 1, accumulation: "不明", effect: "不明",
+		text: "(装備可能な艦のみ)",
 	}
 ];
 

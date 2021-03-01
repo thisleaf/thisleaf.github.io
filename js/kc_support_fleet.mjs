@@ -20,6 +20,7 @@ Object.assign(SupportFleet.prototype, {
 	e_formation       : null,
 	e_targetpower     : null,
 	e_batchset        : null,
+	e_batchset2       : null,
 	e_accuracy_cell   : null,
 	
 	// D&Dで使用される識別名
@@ -126,8 +127,10 @@ function SupportFleet_create_thead(caption){
 	this.e_targetpower.min = 0;
 	this.e_targetpower.max = 200;
 	//this.e_targetpower.value = Global.SUPPORT_POWER_CAP + 1;
-	this.e_batchset = ELEMENT("button", {textContent: "一括設定", className: "batchset"});
-	this.e_batchset.addEventListener("click", e => this.ev_click_batchset(e));
+	this.e_batchset = ELEMENT("button", {textContent: "駆逐のみ", className: "batchset"});
+	this.e_batchset2 = ELEMENT("button", {textContent: "駆逐以外", className: "batchset"});
+	this.e_batchset.addEventListener("click", e => this.ev_click_batchset(e, true, false));
+	this.e_batchset2.addEventListener("click", e => this.ev_click_batchset(e, false, true));
 	
 	let thead = NODE(ELEMENT("thead"), [
 		NODE(ELEMENT("tr"), [
@@ -142,6 +145,7 @@ function SupportFleet_create_thead(caption){
 				NODE(ELEMENT("span", {className: "postcap", title: "空にするとキャップ後は設定しない"}), [TEXT(" キャップ後")]),
 				this.e_targetpower,
 				this.e_batchset,
+				this.e_batchset2,
 			]),
 			this.e_accuracy_cell = ELEMENT("td", {className: "total_accuracy", title: "命中合計"}),
 		]),
@@ -374,12 +378,14 @@ function SupportFleet_call_onchange(){
 	if (this.onchange) this.onchange.call(null);
 }
 
-function SupportFleet_ev_click_batchset(){
+function SupportFleet_ev_click_batchset(_e, dd, not_dd){
 	let tp = Util.formstr_to_float(this.e_targetpower.value, -1, -1);
 	
 	if (!tp.error) {
 		for (let sup of this.support_ships) {
-			sup.set_target(this.e_engagement.selectedIndex, this.e_formation.selectedIndex, tp.value);
+			if ((dd && sup.is_dd()) || (not_dd && !sup.is_dd())) {
+				sup.set_target(this.e_engagement.selectedIndex, this.e_formation.selectedIndex, tp.value);
+			}
 		}
 		this.call_onchange();
 	}

@@ -597,6 +597,7 @@ body {
 .support_table thead .batchset {
 	font-size: 90%;
 	margin-left: 6px;
+	padding: 0em 0.5em;
 }
 .support_table thead .total_accuracy {
 	font-weight: bold;

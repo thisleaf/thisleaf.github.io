@@ -90,6 +90,7 @@ Object.assign(SupportShip.prototype, {
 	set_equipment_count: SupportShip_set_equipment_count,
 	empty              : SupportShip_empty,
 	is_cv_shelling     : SupportShip_is_cv_shelling,
+	is_dd              : SupportShip_is_dd,
 	set_target         : SupportShip_set_target,
 	set_ammocost_rate  : SupportShip_set_ammocost_rate,
 	get_fuelcost       : SupportShip_get_fuelcost,
@@ -136,6 +137,9 @@ Object.assign(SupportShip, {
 	// ちなみに速吸は空母系ではない
 	cv_shelling_types: [
 		"軽空母", "正規空母", "装甲空母", "夜間作戦航空母艦", "近代化航空母艦"
+	],
+	dd_types: [
+		"駆逐艦", "陽字号駆逐艦"
 	],
 	selector_dialog: null,
 	
@@ -479,6 +483,17 @@ function SupportShip_is_cv_shelling(){
 	return ( this.equipable_info &&
 		this.equipable_info.ship &&
 		SupportShip.cv_shelling_types.indexOf(this.equipable_info.ship.shipType) >= 0 );
+}
+
+/**
+ * 駆逐艦かどうか
+ * @return {boolean} 駆逐ならtrue
+ * @method SupportShip.prototype.is_dd
+ */
+function SupportShip_is_dd(){
+	return ( this.equipable_info &&
+		this.equipable_info.ship &&
+		SupportShip.dd_types.indexOf(this.equipable_info.ship.shipType) >= 0);
 }
 
 function SupportShip_set_target(en_index, fm_index, targetpower){
