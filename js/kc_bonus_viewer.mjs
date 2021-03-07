@@ -361,7 +361,7 @@ function BonusRowGenerator_create_rows(){
 		return data ? Util.unescape_charref(data.name) : "";
 	};
 	let equip_name_list = (ids, def_text) => {
-		if (def_text == "水上電探" || def_text == "対空電探") {
+		if (def_text == "水上電探" || def_text == "対空電探" || def_text == "対空機銃") {
 			return def_text;
 		}
 		if (ids) {

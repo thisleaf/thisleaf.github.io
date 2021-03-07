@@ -1132,11 +1132,11 @@ class SupportShipLvLuckDialog extends DOMDialog {
 		NODE(this.e_contents, [
 			NODE(ELEMENT("div"), [
 				NODE(ELEMENT("span.tag"), [TEXT("Lv")]),
-				this.e_level = ELEMENT("input", {type: "number", min: 0, max: 175}),
+				this.e_level = ELEMENT("input", {type: "number", min: 0, max: Global.MAX_SHIP_LEVEL}),
 				this.e_level_null= NODE(ELEMENT("span.button"), [TEXT("設定なし")]),
 				this.e_level_1   = NODE(ELEMENT("span.button"), [TEXT("Lv1")]),
 				this.e_level_99  = NODE(ELEMENT("span.button"), [TEXT("Lv99")]),
-				this.e_level_max = NODE(ELEMENT("span.button"), [TEXT("Lv" + 175)]),
+				this.e_level_max = NODE(ELEMENT("span.button"), [TEXT("Lv" + Global.MAX_SHIP_LEVEL)]),
 			]),
 			NODE(ELEMENT("div"), [
 				NODE(ELEMENT("span.tag"), [TEXT("運")]),
@@ -1163,7 +1163,7 @@ class SupportShipLvLuckDialog extends DOMDialog {
 		this.e_level_null.addEventListener("click", e => this.ev_click_lvbtn(""));
 		this.e_level_1.addEventListener("click", e => this.ev_click_lvbtn("1"));
 		this.e_level_99.addEventListener("click", e => this.ev_click_lvbtn("99"));
-		this.e_level_max.addEventListener("click", e => this.ev_click_lvbtn("175"));
+		this.e_level_max.addEventListener("click", e => this.ev_click_lvbtn(String(Global.MAX_SHIP_LEVEL)));
 		this.e_luck.addEventListener("input", e => this.ev_input(e));
 		this.e_luck_null.addEventListener("click", e => this.ev_click_luckbtn(""));
 		this.e_luck_min.addEventListener("click", e => this.ev_click_luckbtn("min"));
@@ -1191,7 +1191,7 @@ class SupportShipLvLuckDialog extends DOMDialog {
 		this.e_basic_accuracy.textContent = text;
 		this.e_basic_accuracy.title = hint_text;
 
-		let outofrange_level = !(1 <= level && level <= 175);
+		let outofrange_level = !(1 <= level && level <= Global.MAX_SHIP_LEVEL);
 		let outofrange_luck = ( this.luck_info
 			&& !(this.luck_info.min_luck <= luck && luck <= this.luck_info.max_luck) );
 		this.e_level.classList.toggle("error", outofrange_level);

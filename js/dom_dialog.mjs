@@ -125,6 +125,7 @@ Object.assign(DOMDialog.prototype, {
 	ev_pointermove_title : DOMDialog_ev_pointermove_title,
 	ev_pointerup_title   : DOMDialog_ev_pointerup_title,
 	ev_resize_window     : DOMDialog_ev_resize_window,
+	ev_document_keydown  : DOMDialog_ev_document_keydown,
 });
 
 Object.defineProperties(DOMDialog.prototype, {
@@ -153,6 +154,12 @@ function DOMDialog_initialize(container){
 		// ウィンドウのリサイズ時、移動可能ダイアログがはみ出す可能性がある
 		for (let d of DOMDialog.dialogs) {
 			d.ev_resize_window(e);
+		}
+	});
+	document.addEventListener("keydown", e => {
+		// keydownイベント
+		for (let d of DOMDialog.dialogs) {
+			d.ev_document_keydown(e);
 		}
 	});
 	
@@ -532,3 +539,11 @@ function DOMDialog_ev_resize_window(e){
 	}
 }
 
+/**
+ * documentのkeydownイベント 必要ならばoverride
+ * @param {KeyboardEvent} _e 
+ * @method DOMDialog#ev_document_keydown
+ * @protected
+ */
+function DOMDialog_ev_document_keydown(_e){
+}

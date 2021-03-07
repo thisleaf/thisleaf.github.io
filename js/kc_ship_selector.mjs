@@ -1077,6 +1077,7 @@ Object.defineProperties(ShipSelectorDialog.prototype, {
 	
 	ev_show              : {value: ShipSelectorDialog_ev_show},
 	ev_keydown_query     : {value: ShipSelectorDialog_ev_keydown_query},
+	ev_document_keydown  : {value: ShipSelectorDialog_ev_document_keydown},
 	ev_click_x           : {value: ShipSelectorDialog_ev_click_x},
 	ev_click_ship        : {value: ShipSelectorDialog_ev_click_ship},
 	ev_dblclick_ship     : {value: ShipSelectorDialog_ev_dblclick_ship},
@@ -1392,6 +1393,25 @@ function ShipSelectorDialog_ev_keydown_query(e){
 		if (this.e_query.value != "") {
 			this.e_query.value = "";
 			this.refresh_list();
+		}
+	}
+}
+
+/**
+ * documentのkeydown
+ * @param {KeyboardEvent} e
+ * @method ShipSelectorDialog#ev_document_keydown
+ * @protected
+ */
+function ShipSelectorDialog_ev_document_keydown(e){
+	if (this.showing) {
+		// 検索窓にフォーカスを移す
+		// Ctrl+F or 入力中でないF
+		if (e.key == "f" && !e.shiftKey && !e.altKey) {
+			if (e.ctrlKey || (document.activeElement != this.e_query)) {
+				this.e_query.select();
+				e.preventDefault();
+			}
 		}
 	}
 }

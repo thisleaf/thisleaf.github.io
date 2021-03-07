@@ -82,7 +82,7 @@ export const DIRECT_INPUT_ID = -1;
 
 // 装備ボーナス
 // 条件に当てはまるものはすべて合算
-export const LOS_EQUIPBONUS_LASTMOD = "2021/03/01";
+export const LOS_EQUIPBONUS_LASTMOD = "2021/03/07";
 
 export const LOS_EQUIPBONUS = [
 	{	// Late 298B
@@ -334,6 +334,21 @@ export const LOS_EQUIPBONUS = [
 		ship_types: ["駆逐艦"],
 		LoS: 1, accumulation: "不明", effect: "艦娘索敵値に加算",
 		text: "(装備可能な艦のみ)",
+
+	}, { // 紫雲
+		equipment_id: 118,
+		ship_names: [
+			"大淀", "大淀改"
+		],
+		LoS: i => i < 10 ? 2 : 3, accumulation: "可", effect: "不明",
+
+	}, { // Ar196改
+		equipment_id: 115,
+		ship_names: [
+			"Bismarck", "Bismarck改", "Bismarck zwei", "Bismarck drei",
+			"Prinz Eugen", "Prinz Eugen改",
+		],
+		LoS: 2, accumulation: "可", effect: "不明",
 	}
 ];
 

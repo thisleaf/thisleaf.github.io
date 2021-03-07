@@ -798,7 +798,7 @@ function EquipmentBonusData_set_csv_line(line){
 	
 	// SharedArrayBuffer/ArrayBufferを使用する
 	const array_buffer_mode = true;
-	const use_shared_buffer = true;
+	const use_shared_buffer = false; // 規制強化につき。
 	// 一時IDを使ってメモリーを節約する
 	const shipid_mode = true;
 	// 旧式の個数判定用オブジェクトを作る
