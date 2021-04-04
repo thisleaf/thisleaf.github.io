@@ -28,8 +28,8 @@ const SHIP_GROUPING_DEF = [
 	{viewname: "軽空母"},
 	
 	{viewname: "重巡洋艦"},
-	{viewname: "航空巡洋艦"},
-	{viewname: "軽巡洋艦", keys: ["軽巡洋艦", "軽(航空)巡洋艦", "防空巡洋艦", "兵装実験軽巡"]},
+	{viewname: "航空巡洋艦", keys: ["航空巡洋艦", "改装航空巡洋艦", "特殊改装航空巡洋艦"]},
+	{viewname: "軽巡洋艦", keys: ["軽巡洋艦", "軽(航空)巡洋艦", "防空巡洋艦", "兵装実験軽巡", "重改装軽巡洋艦"]},
 	{viewname: "重雷装巡洋艦"},
 	{viewname: "練習巡洋艦"},
 
@@ -1101,7 +1101,9 @@ Object.defineProperties(ShipSelectorDialog, {
 		"装甲空母"        : "cv" ,
 		"軽空母"          : "cv" ,
 		"重巡洋艦"        : "ca" ,
-		"航空巡洋艦"      : "cav",
+		"航空巡洋艦"        : "cav",
+		"改装航空巡洋艦"    : "cav",
+		"特殊改装航空巡洋艦": "cav",
 	}},
 	/**
 	 * @type {Array.<string>}

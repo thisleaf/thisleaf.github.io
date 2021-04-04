@@ -147,6 +147,9 @@ table {
 #bonus_info .assist_weapon {
 	color: blue;
 }
+#bonus_info .nameinfo {
+	max-width: 7em;
+}
 /* > 色 */
 #fleet_table th.shiplos_color {
 	background-color: lavender;

@@ -82,7 +82,7 @@ export const DIRECT_INPUT_ID = -1;
 
 // 装備ボーナス
 // 条件に当てはまるものはすべて合算
-export const LOS_EQUIPBONUS_LASTMOD = "2021/03/07";
+export const LOS_EQUIPBONUS_LASTMOD = "2021/04/04";
 
 export const LOS_EQUIPBONUS = [
 	{	// Late 298B
@@ -94,36 +94,32 @@ export const LOS_EQUIPBONUS = [
 			"神威", "神威改", "神威改母",
 		],
 		LoS: 2, accumulation: "可", effect: "艦娘索敵値に加算",
-		
-	}, { // 彩雲
-		equipment_id: 54,
+
+	}, { // 艦上偵察機共通
+		viewname: "艦偵共通",
+		equipment_id_list: [54, 151, 273, 61],
 		ship_types: ["正規空母", "装甲空母", "軽空母", "夜間作戦航空母艦", "近代化航空母艦"],
+		ship_names: ["伊勢改二", "日向改二"],
 		ignore_ship_names: ["春日丸", "大鷹", "大鷹改", "神鷹", "神鷹改"],
-		LoS: i => (i == 0 ? 0 : i == 2 ? 1 : null), accumulation: "不可", effect: "艦娘索敵値に加算",
-		
-	}, { // 試製景雲
-		equipment_id: 151,
-		ship_types: ["装甲空母"],
-		LoS: i => Math.floor((i + 2) / 4), accumulation: "不可", effect: "艦娘索敵値に加算",
-		text: "数値は暫定",
+		LoS: i => Math.floor((i + 2) / 4),
+		accumulation: "不可",
+		effect: "艦娘索敵値に加算",
 		
 	}, { // 二式艦偵
 		equipment_id: 61,
-		ship_types: ["正規空母", "装甲空母", "軽空母", "夜間作戦航空母艦", "近代化航空母艦"],
-		ship_names: ["伊勢改二", "日向改二"],
-		LoS: i => Math.floor((i + 2) / 4), accumulation: "不可", effect: "艦娘索敵値に加算",
-	}, {
-		equipment_id: 61,
 		ship_names: ["瑞鳳改二乙", "鈴谷航改二", "熊野航改二"],
 		LoS: i => (i >= 1 ? 1 : 0), accumulation: "不可", effect: "艦娘索敵値に加算",
+		text: "共通も加算",
 	}, {
 		equipment_id: 61,
 		ship_names: ["飛龍", "飛龍改", "飛龍改二"],
 		LoS: i => (i >= 1 ? 2 : 0), accumulation: "不可", effect: "艦娘索敵値に加算",
+		text: "共通も加算",
 	}, {
 		equipment_id: 61,
 		ship_names: ["蒼龍", "蒼龍改", "蒼龍改二"],
 		LoS: i => (i >= 8 ? 4 : i >= 1 ? 3 : 0), accumulation: "不可", effect: "艦娘索敵値に加算",
+		text: "共通も加算",
 		
 	}, {
 		// SG レーダー(初期型)
@@ -152,8 +148,32 @@ export const LOS_EQUIPBONUS = [
 		ship_names: [
 			"丹陽", "雪風改二",
 		],
-		LoS: 3, accumulation: "不可", effect: "索敵スコアには影響しない？",
+		LoS: 3, accumulation: "不可", effect: "索敵スコアには影響しない",
 		
+	}, {
+		// 21号対空電探
+		equipment_id: 30,
+		ship_names: [
+			"最上改二", "最上改二特",
+			"秋月", "秋月改",
+			"照月", "照月改",
+			"涼月", "涼月改",
+			"初月", "初月改",
+		],
+		LoS: 2, accumulation: "不可", effect: "不明",
+
+	}, {
+		// 21号対空電探改二
+		equipment_id: 410,
+		ship_names: [
+			"最上改二", "最上改二特",
+			"秋月", "秋月改",
+			"照月", "照月改",
+			"涼月", "涼月改",
+			"初月", "初月改",
+		],
+		LoS: 2, accumulation: "不可", effect: "不明",
+
 	}, {
 		// SKレーダー
 		equipment_id: 278,
@@ -206,8 +226,8 @@ export const LOS_EQUIPBONUS = [
 	}, {
 		equipment_id: 129,
 		jp_ship_types: [
-			"軽巡洋艦", "実験軽巡洋艦", "練習巡洋艦", "重雷装巡洋艦",
-			"重巡洋艦", "航空巡洋艦",
+			"軽巡洋艦", "実験軽巡洋艦", "重改装軽巡洋艦", "練習巡洋艦", "重雷装巡洋艦",
+			"重巡洋艦", "航空巡洋艦", "改装航空巡洋艦", "特殊改装航空巡洋艦",
 		],
 		LoS: 3, accumulation: "可", effect: "艦娘索敵値に加算",
 		

@@ -361,8 +361,8 @@ export function get_csv_last_modified(csv){
 
 // DOM関係 -----------------------------------------------------------------------------------------
 // jQuery には $ ってやつがあるらしいね？
-export function DOM(id){
-	return document.getElementById(id);
+export function DOM(selector){
+	return /^[\w\-]+$/.test(selector) ? document.getElementById(selector) : document.querySelector(selector);
 }
 
 // DOMの構成用

@@ -383,8 +383,10 @@ function BonusRowGenerator_create_rows(){
 			if (this.grouping) {
 				let text = equip_name_list(this.main_ids, "");
 				current_cells.push(ELEMENT("td", {className: "synergy_name", innerText: text}));
-				current_cells.push(ELEMENT("td", "", "synergy_name"));
-				current_cells.push(ELEMENT("td", "", "synergy_name"));
+				let sub1_text = equip_name_list(this.sub1_ids, this.bonus_data.line.subEquipCategories);
+				let sub2_text = equip_name_list(this.sub2_ids, this.bonus_data.line.subEquipCategories2);
+				current_cells.push( ELEMENT("td", {className: "synergy_name", innerText: sub1_text}) );
+				current_cells.push( ELEMENT("td", {className: "synergy_name", innerText: sub2_text}) );
 				
 			} else {
 				let sub1_text = equip_name_list(this.sub1_ids, this.bonus_data.line.subEquipCategories);

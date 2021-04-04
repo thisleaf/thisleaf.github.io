@@ -157,6 +157,15 @@ const romaji_def = {
 // 動的に初期化
 const consonant_regexp_texts = {};
 
+// 半角カナから全角かなへの変換定義
+// 0xff61 - 0xff9f
+const basic_hankaku_def = "。「」、・をぁぃぅぇぉゃゅょっーあいうえおかきくけこさしすせそたちつてとなにぬねのはひふへほまみむめもやゆよらりるれろわん゛゜";
+// 濁点・半濁点の変換定義
+const daku_def_keys = "うかきくけこさしすせそたちつてとはひふへほ";
+const daku_def_vals = "ゔがぎぐげござじずぜぞだぢづでどばびぶべぼ";
+const handaku_def_keys = "はひふへほ";
+const handaku_def_vals = "ぱぴぷぺぽ";
+
 initialize();
 
 
@@ -212,7 +221,7 @@ function initialize(){
 /**
  * 探索のために文字列を標準化 基本的に外部で呼ぶ必要はない<br>
  * カタカナはひらがなに、全角英数などは半角に、大文字は小文字に、スペース等は半角スペースに<br>
- * 半角カナ未対応
+ * 半角カナも対応
  * @param {string} str normalizeする文字列
  * @return {string}
  * @memberof RomajiSearch
@@ -225,6 +234,22 @@ function normalize(str){
 	// 0x30a1:"ァ" から 0x30f6:"ヶ" が対応するカタカナ　この後ろにも一応4文字ある "ヷヸヹヺ"
 	str = str.replace(/[\u30a1-\u30f6]/g, c => String.fromCodePoint(c.codePointAt(0) + (0x3041 - 0x30A1)));
 	
+	// 半角カナ -> ひらがな
+	// 半角カナの場合、全角に連続的に対応しているわけではない
+	// 変換できない場合があるが、半角濁点 -> 全角濁点など全角になるものとする
+	// まず全角に変換
+	str = str.replace(/[\uff61-\uff9f]/g, c => basic_hankaku_def[c.codePointAt(0) - 0xff61]);
+	// 結合できる濁点・半濁点を結合
+	str = str.replace(/(.)([゛゜])/g, (x, c, d) => {
+		if (d == "゛") {
+			let i = daku_def_keys.indexOf(c);
+			return i >= 0 ? daku_def_vals[i] : x;
+		} else {
+			let i = handaku_def_keys.indexOf(c);
+			return i >= 0 ? handaku_def_vals[i] : x;
+		}
+	});
+
 	// 全角英数 -> 半角英数
 	// 0xff01:"！", 0xff5e:"～" が連続
 	// 0x21:"!", 0x7e: "~"

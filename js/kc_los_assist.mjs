@@ -61,8 +61,8 @@ const ASSIST_GROUPING_DEF = [
 	{viewname: "軽空母"},
 	
 	{viewname: "重巡洋艦"},
-	{viewname: "航空巡洋艦"},
-	{viewname: "軽巡洋艦", keys: ["軽巡洋艦", "軽(航空)巡洋艦", "防空巡洋艦", "兵装実験軽巡"]},
+	{viewname: "航空巡洋艦", keys: ["航空巡洋艦", "改装航空巡洋艦", "特殊改装航空巡洋艦"]},
+	{viewname: "軽巡洋艦", keys: ["軽巡洋艦", "軽(航空)巡洋艦", "防空巡洋艦", "兵装実験軽巡", "重改装軽巡洋艦"]},
 	{viewname: "重雷装巡洋艦"},
 	{viewname: "練習巡洋艦"},
 
@@ -663,6 +663,8 @@ function refresh_bonus_info(){
 	function _show_total(a, b){
 		return (
 			   a.info.equipment_id == b.info.equipment_id
+			&& a.viewname == b.viewname
+			&& equal_array(a.equipment_id_list, b.equipment_id_list)
 			&& a.info.accumulation == b.info.accumulation
 			&& a.info.effect == b.info.effect
 			&& a.params
@@ -671,6 +673,14 @@ function refresh_bonus_info(){
 			&& b.params.indexOf(null) < 0
 		);
 	}
+	function equal_array(a, b){
+		if (!a && !b) return true;
+		if (!a || !b || a.length != b.length) return false;
+		for (let i=0; i<a.length; i++) {
+			if (a[i] != b[i]) return false;
+		}
+		return true;
+	}
 	
 	// 表示
 	let cell = DOM("bonus_info");
@@ -678,17 +688,36 @@ function refresh_bonus_info(){
 	
 	if (bonus_list.length >= 1) {
 		for (let b of bonus_list) {
-			// 装備
-			let eq = csv_equiplist.find(x => +x.number == b.info.equipment_id);
-			if (!eq) {
-				console.log("装備IDが不正", b.info.equipment_id);
-				continue;
+			let div;
+
+			// 装備名
+			if (b.info.equipment_id_list) {
+				let options = b.info.equipment_id_list.map(id => {
+					let eq = csv_equiplist.find(x => +x.number == id);
+					if (!eq) {
+						console.log("装備IDが不正", b.info.equipment_id);
+						return null;
+					}
+					return new Option(eq.name);
+				});
+				let name = b.info.viewname ? unescape_charref(b.info.viewname) + " " : "";
+				div = NODE(ELEMENT("div"), [
+					NODE(ELEMENT("span.assist_weapon"), [TEXT(unescape_charref(name))]),
+					NODE(ELEMENT("select.nameinfo"), options),
+					TEXT(": "),
+				]);
+
+			} else {
+				let eq = csv_equiplist.find(x => +x.number == b.info.equipment_id);
+				if (!eq) {
+					console.log("装備IDが不正", b.info.equipment_id);
+					continue;
+				}
+				div = NODE(ELEMENT("div"), [
+					NODE(ELEMENT("span.assist_weapon"), [TEXT(unescape_charref(eq.name))]),
+					TEXT(": "),
+				]);
 			}
-			
-			let div = NODE(document.createElement("div"), [
-				NODE(ELEMENT("span", "", "assist_weapon"), [TEXT(unescape_charref(eq.name))]),
-				TEXT(": "),
-			]);
 			
 			if (b.params && b.params.some(x => x !== b.params[0])) {
 				// selectを作って表示する
