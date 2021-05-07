@@ -53,7 +53,7 @@ function SASlotData(ssd, ssd_index, slot_index){
 	this.ssd = ssd;
 	this.ssd_index = ssd_index;
 	this.csv_ship = EquipmentDatabase.csv_shiplist.find(line => line.name == ssd.ship_name);
-	this.group_id = SASlotData_get_group_id(this.csv_ship.shipType);
+	this.group_id = SASlotData_get_group_id(this.csv_ship.shipTypeI || this.csv_ship.shipType);
 	this.priority = ssd.priority;
 	this.slot_index = slot_index;
 	this.slot = ssd.allslot_equipment[slot_index];

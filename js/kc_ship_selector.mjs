@@ -22,7 +22,7 @@ export {
 // この表示順になる、ここにないものは最後尾
 // keys に配列を指定すると viewname に置き換える
 const SHIP_GROUPING_DEF = [
-	{viewname: "戦艦"},
+	{viewname: "戦艦", keys: ["戦艦", "巡洋戦艦"]},
 	{viewname: "航空戦艦", keys: ["航空戦艦", "改装航空戦艦"]},
 	{viewname: "正規空母", keys: ["正規空母", "装甲空母", "夜間作戦航空母艦", "近代化航空母艦"]},
 	{viewname: "軽空母"},
@@ -41,7 +41,7 @@ const SHIP_GROUPING_DEF = [
 	{viewname: "駆逐艦 (初春型)"},
 	{viewname: "駆逐艦 (白露型)", keys: ["駆逐艦 (白露型)", "駆逐艦 (改白露型)"]},
 	{viewname: "駆逐艦 (朝潮型)"},
-	{viewname: "駆逐艦 (陽炎型)", keys: ["駆逐艦 (改陽炎型)", "陽字号駆逐艦"]},
+	{viewname: "駆逐艦 (陽炎型)", keys: ["駆逐艦 (改陽炎型)", "駆逐艦 (改装陽炎型)", "陽字号駆逐艦"]},
 	{viewname: "駆逐艦 (夕雲型)"},
 	{viewname: "駆逐艦 (秋月型)"},
 	{viewname: "駆逐艦 (島風型)"},
@@ -485,7 +485,7 @@ function ShipSelector__initialize(shiplist, arg_grouping_def, arg_default_select
 	function _get_shipgroup_name(ship){
 		if (!ship) return "";
 		
-		let key = ship.shipType;
+		let key = ship.shipTypeI || ship.shipType;
 		
 		if (key == "駆逐艦") {
 			// 駆逐艦は数が多いので型で分類
@@ -984,7 +984,7 @@ class DEShip {
 	}
 	add_shipcode(shipcode_def){
 		if (shipcode_def) {
-			let code = shipcode_def[this.ship.shipType];
+			let code = shipcode_def[this.ship.shipTypeI || this.ship.shipType];
 			if (!code) {
 				code = ShipSelectorDialog.shipcode_other;
 			}
@@ -1091,19 +1091,20 @@ Object.defineProperties(ShipSelectorDialog, {
 	 */
 	support_shipcode_def: {value: {
 		"駆逐艦"          : "dd" ,
-		"陽字号駆逐艦"    : "dd" ,
+		// "陽字号駆逐艦"    : "dd" ,
 		"戦艦"            : "bb" ,
+		"巡洋戦艦"        : "bb" ,
 		"航空戦艦"        : "bbv",
 		"改装航空戦艦"    : "bbv",
 		"正規空母"        : "cv" ,
-		"夜間作戦航空母艦": "cv" ,
-		"近代化航空母艦"  : "cv" ,
+		// "夜間作戦航空母艦": "cv" ,
+		// "近代化航空母艦"  : "cv" ,
 		"装甲空母"        : "cv" ,
 		"軽空母"          : "cv" ,
 		"重巡洋艦"        : "ca" ,
-		"航空巡洋艦"        : "cav",
-		"改装航空巡洋艦"    : "cav",
-		"特殊改装航空巡洋艦": "cav",
+		"航空巡洋艦"      : "cav",
+		// "改装航空巡洋艦"    : "cav",
+		// "特殊改装航空巡洋艦": "cav",
 	}},
 	/**
 	 * @type {Array.<string>}

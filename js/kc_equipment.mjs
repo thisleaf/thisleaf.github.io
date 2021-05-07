@@ -70,11 +70,13 @@ Object.assign(EquipmentDatabase, {
 	type_special_def: {
 		// key を value の配列の要素に置き換える
 		// 系で統一
+		// shipTypeI を使用するように仕様変更
 		"軽巡系": ["軽巡洋艦", "軽(航空)巡洋艦", "防空巡洋艦", "兵装実験軽巡", "重改装軽巡洋艦", "重雷装巡洋艦", "練習巡洋艦"],
 		"重巡系": ["重巡洋艦", "航空巡洋艦", "改装航空巡洋艦", "特殊改装航空巡洋艦"],
 		"空母系": ["軽空母", "正規空母", "装甲空母", "夜間作戦航空母艦", "近代化航空母艦"],
 		"潜水系": ["潜水艦", "潜水空母"],
 		"航空戦艦系": ["航空戦艦", "改装航空戦艦"],
+		"高速戦艦": ["巡洋戦艦"],
 	},
 	
 	// 日本艦
@@ -176,7 +178,7 @@ function EquipmentDatabase_initialize(csv_shiplist, csv_equiplist_raw, csv_equip
 	
 	// csv_equipable
 	// 色々文字列で保有しているが、ひとまず次のものだけ配列変換
-	// shipTypes -> shipTypesArray    "高速戦艦"はそのまま
+	// shipTypes -> shipTypesArray    "高速戦艦" は "巡洋戦艦" に
 	// forSupport があるもののみ csv_equipable_support へ追加
 	
 	let sp_def = EquipmentDatabase.type_special_def;
@@ -315,7 +317,7 @@ function EquipableInfo_set_name(name){
 }
 
 function EquipableInfo_get_slot_count(){
-	return !this.ship ? -1 : this.ship.slot ? +this.ship.slot : this.ship.shipType == "駆逐艦" ? 3 : 4;
+	return !this.ship ? -1 : this.ship.slot ? +this.ship.slot : (this.ship.shipTypeI || this.ship.shipType) == "駆逐艦" ? 3 : 4;
 }
 
 // 装備可能かどうかを示すオブジェクトの生成
@@ -343,14 +345,17 @@ function EquipableInfo_generate_equipables(){
 			}
 			if (d.shipTypes && !matched) {
 				let types = d.shipTypesArray;
-				matched = types.indexOf(this.ship.shipType) >= 0;
+				let st = this.ship.shipTypeI || this.ship.shipType;
+				matched = types.indexOf(st) >= 0;
 				
-				if (!matched && this.ship.shipType == "戦艦" && this.ship.speed == "高速" && types.indexOf("高速戦艦") >= 0) {
-					matched = true;
-				}
-				if (!matched && this.ship.shipType == "陽字号駆逐艦" && types.indexOf("駆逐艦") >= 0) {
-					matched = true;
-				}
+				// matched = types.indexOf(this.ship.shipType) >= 0;
+				
+				// if (!matched && this.ship.shipType == "戦艦" && this.ship.speed == "高速" && types.indexOf("高速戦艦") >= 0) {
+				// 	matched = true;
+				// }
+				// if (!matched && this.ship.shipType == "陽字号駆逐艦" && types.indexOf("駆逐艦") >= 0) {
+				// 	matched = true;
+				// }
 			}
 			
 			if (!matched) continue;
@@ -904,20 +909,21 @@ function EquipmentBonusData_set_csv_line(line){
 	}
 	
 	// 丹陽の対応
-	if (types && types.indexOf("駆逐艦") >= 0) types.push("陽字号駆逐艦");
-	if (jp_types && jp_types.indexOf("駆逐艦") >= 0) jp_types.push("陽字号駆逐艦");
+	// if (types && types.indexOf("駆逐艦") >= 0) types.push("陽字号駆逐艦");
+	// if (jp_types && jp_types.indexOf("駆逐艦") >= 0) jp_types.push("陽字号駆逐艦");
 	
 	let all_ship = names && names.indexOf("*") >= 0;
 	
 	for (let ship of EquipmentDatabase.csv_shiplist) {
+		let st = ship.shipTypeI || ship.shipType;
 		let hit = (
 			all_ship ||
 			(names && names.indexOf(ship.name) >= 0) ||
 			(substr_names && substr_names.findIndex(ss => ship.name.indexOf(ss) >= 0) >= 0) ||
 			(cnames && cnames.indexOf(ship.className) >= 0) ||
-			(jp_types && jp_def[ship.className] && jp_types.indexOf(ship.shipType) >= 0) ||
+			(jp_types && jp_def[ship.className] && jp_types.indexOf(st) >= 0) ||
 			(kaini_cnames && /改二$/.test(ship.name) && kaini_cnames.indexOf(ship.className) >= 0) ||
-			(types && types.indexOf(ship.shipType) >= 0)
+			(types && types.indexOf(st) >= 0)
 		);
 		if (hit) {
 			// not

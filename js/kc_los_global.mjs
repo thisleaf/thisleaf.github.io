@@ -82,7 +82,7 @@ export const DIRECT_INPUT_ID = -1;
 
 // 装備ボーナス
 // 条件に当てはまるものはすべて合算
-export const LOS_EQUIPBONUS_LASTMOD = "2021/04/04";
+export const LOS_EQUIPBONUS_LASTMOD = "2021/05/07";
 
 export const LOS_EQUIPBONUS = [
 	{	// Late 298B
@@ -160,7 +160,7 @@ export const LOS_EQUIPBONUS = [
 			"涼月", "涼月改",
 			"初月", "初月改",
 		],
-		LoS: 2, accumulation: "不可", effect: "不明",
+		LoS: 2, accumulation: "不可", effect: "艦娘索敵値に加算",
 
 	}, {
 		// 21号対空電探改二
@@ -172,7 +172,7 @@ export const LOS_EQUIPBONUS = [
 			"涼月", "涼月改",
 			"初月", "初月改",
 		],
-		LoS: 2, accumulation: "不可", effect: "不明",
+		LoS: 2, accumulation: "不可", effect: "艦娘索敵値に加算",
 
 	}, {
 		// SKレーダー
@@ -231,6 +231,19 @@ export const LOS_EQUIPBONUS = [
 		],
 		LoS: 3, accumulation: "可", effect: "艦娘索敵値に加算",
 		
+	}, { // 水雷戦隊 熟練見張員
+		equipment_id: 412,
+		jp_ship_types: [
+			"駆逐艦", "重巡洋艦", "航空巡洋艦",
+		],
+		LoS: 1, accumulation: "不明", effect: "艦娘索敵値に加算",
+	}, {
+		equipment_id: 412,
+		jp_ship_types: [
+			"軽巡洋艦", "練習巡洋艦", "重雷装巡洋艦",
+		],
+		LoS: 3, accumulation: "不明", effect: "艦娘索敵値に加算",
+		
 	}, { // Swordfish(水上機型)
 		equipment_id: 367,
 		ship_names: [
@@ -268,20 +281,20 @@ export const LOS_EQUIPBONUS = [
 			"Gotland", "Gotland改",
 			"Commandant Teste", "Commandant Teste改",
 		],
-		LoS: 3, accumulation: "不明", effect: "影響不明",
+		LoS: 3, accumulation: "不明", effect: "艦娘索敵値に加算",
 	}, {
 		equipment_id: 369,
 		ship_names: [
 			"Gotland andra",
 		],
-		LoS: 5, accumulation: "不明", effect: "影響不明",
+		LoS: 5, accumulation: "不明", effect: "艦娘索敵値に加算",
 	}, {
 		equipment_id: 369,
 		ship_names: [
 			"瑞穂", "瑞穂改",
 			"神威", "神威改", "神威改母",
 		],
-		LoS: 2, accumulation: "不明", effect: "影響不明",
+		LoS: 2, accumulation: "不明", effect: "艦娘索敵値に加算",
 		
 	}, { // Swordfish Mk.II改(水偵型)
 		equipment_id: 370,
@@ -337,6 +350,15 @@ export const LOS_EQUIPBONUS = [
 		],
 		LoS: 3, accumulation: "不明", effect: "艦娘索敵値に加算",
 
+	}, { // SOC Seagull
+		equipment_id: 414,
+		ship_classes: ["Northampton級", "St. Louis級", "Atlanta級"],
+		LoS: [2,,,,3,,,,3,,3], accumulation: "不可", effect: "艦娘索敵値に加算",
+	}, {
+		equipment_id: 414,
+		ship_classes: ["Colorado級", "North Carolina級", "South Dakota級", "Iowa級"],
+		LoS: 1, accumulation: "不可", effect: "艦娘索敵値に加算",
+
 	}, { // 装甲艇(AB艇)
 		equipment_id: 408,
 		ship_names: [
@@ -360,7 +382,7 @@ export const LOS_EQUIPBONUS = [
 		ship_names: [
 			"大淀", "大淀改"
 		],
-		LoS: i => i < 10 ? 2 : 3, accumulation: "可", effect: "不明",
+		LoS: i => i < 10 ? 2 : 3, accumulation: "可", effect: "艦娘索敵値に加算",
 
 	}, { // Ar196改
 		equipment_id: 115,

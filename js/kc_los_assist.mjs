@@ -55,7 +55,7 @@ export {
 // この表示順になる、ここにないものは最後尾
 // keys に配列を指定すると viewname に置き換える
 const ASSIST_GROUPING_DEF = [
-	{viewname: "戦艦"},
+	{viewname: "戦艦", keys: ["戦艦", "巡洋戦艦"]},
 	{viewname: "航空戦艦", keys: ["航空戦艦", "改装航空戦艦"]},
 	{viewname: "正規空母", keys: ["正規空母", "装甲空母", "夜間作戦航空母艦", "近代化航空母艦"]},
 	{viewname: "軽空母"},
@@ -74,7 +74,7 @@ const ASSIST_GROUPING_DEF = [
 	{viewname: "駆逐艦 (初春型)"},
 	{viewname: "駆逐艦 (白露型)", keys: ["駆逐艦 (白露型)", "駆逐艦 (改白露型)"]},
 	{viewname: "駆逐艦 (朝潮型)"},
-	{viewname: "駆逐艦 (陽炎型)", keys: ["駆逐艦 (改陽炎型)", "陽字号駆逐艦"]},
+	{viewname: "駆逐艦 (陽炎型)", keys: ["駆逐艦 (改陽炎型)", "陽字号駆逐艦", "駆逐艦 (改装陽炎型)"]},
 	{viewname: "駆逐艦 (夕雲型)"},
 	{viewname: "駆逐艦 (秋月型)"},
 	{viewname: "駆逐艦 (島風型)"},
@@ -374,7 +374,7 @@ function init_assist(arg_csv_shiplist, arg_csv_equiplist){
 
 // 艦から
 function get_shipgroup_name(ship){
-	let key = ship.shipType;
+	let key = ship.shipTypeI || ship.shipType;
 	
 	if (key == "駆逐艦") {
 		// 駆逐艦は数が多いので型で分類
@@ -603,6 +603,7 @@ function refresh_bonus_info(){
 	let jp_def = EquipmentDatabase.init_jp_def();
 	
 	// shipType
+	let st = select_ship.shipTypeI || select_ship.shipType;
 	
 	let bonus_list = new Array;
 	
@@ -615,10 +616,13 @@ function refresh_bonus_info(){
 		if (info.ship_names && info.ship_names.indexOf(select_name) >= 0) {
 			effect = true;
 		}
-		if (info.ship_types && info.ship_types.indexOf(select_ship.shipType) >= 0) {
+		if (info.ship_types && info.ship_types.indexOf(st) >= 0) {
 			effect = true;
 		}
-		if (info.jp_ship_types && jp_def[select_ship.className] && info.jp_ship_types.indexOf(select_ship.shipType) >= 0) {
+		if (info.jp_ship_types && jp_def[select_ship.className] && info.jp_ship_types.indexOf(st) >= 0) {
+			effect = true;
+		}
+		if (info.ship_classes && info.ship_classes.includes(select_ship.className)) {
 			effect = true;
 		}
 		if (!effect) continue;
@@ -630,7 +634,13 @@ function refresh_bonus_info(){
 			let params = new Array(11);
 			if (typeof info.LoS == "number") {
 				params.fill(info.LoS);
-			} else {
+			} else if (info.LoS instanceof Array) {
+				params.fill(null);
+				let lim = Math.min(info.LoS.length, params.length);
+				for (let i=0; i<lim; i++) {
+					if (typeof info.LoS[i] == "number") params[i] = info.LoS[i];
+				}
+			} else if (info.LoS instanceof Function) {
 				for (let i=0; i<=10; i++) {
 					params[i] = info.LoS(i);
 				}

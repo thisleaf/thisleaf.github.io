@@ -194,11 +194,11 @@ function SupportFleet_get_support_type(){
 		{key: "空母系"     , types: ["正規空母", "装甲空母", "軽空母", "夜間作戦航空母艦", "近代化航空母艦"]},
 		{key: "航空支援系A", types: ["水上機母艦", "揚陸艦"]},
 		{key: "航空支援系B", types: ["航空戦艦", "改装航空戦艦", "航空巡洋艦", "改装航空巡洋艦", "特殊改装航空巡洋艦", "補給艦"]},
-		{key: "砲撃支援系" , types: ["戦艦", "重巡洋艦"]},
+		{key: "砲撃支援系" , types: ["戦艦", "巡洋戦艦", "重巡洋艦"]},
 		{key: "軽空母"     , types: ["軽空母"]},
 		{key: "対潜支援系" , types: ["軽空母", "水上機母艦", "補給艦", "揚陸艦", "軽巡洋艦", "軽(航空)巡洋艦", "防空巡洋艦", "重改装軽巡洋艦"]}, // 海防艦は別扱い
 		{key: "海防艦"     , types: ["海防艦"]},
-		{key: "戦艦系"     , types: ["戦艦", "航空戦艦", "改装航空戦艦"]},
+		{key: "戦艦系"     , types: ["戦艦", "巡洋戦艦", "航空戦艦", "改装航空戦艦"]},
 		{key: "重巡系"     , types: ["重巡洋艦", "航空巡洋艦", "改装航空巡洋艦", "特殊改装航空巡洋艦"]},
 	];
 	
@@ -214,8 +214,9 @@ function SupportFleet_get_support_type(){
 		
 		if (sup.get_data(ssd)) {
 			let ship = sup.ship_selector.get_ship();
+			let st = ship.shipTypeI || ship.shipType;
 			for (let d of def) {
-				if (d.types.indexOf(ship.shipType) >= 0) {
+				if (d.types.indexOf(st) >= 0) {
 					count[d.key]++;
 				}
 			}
@@ -275,8 +276,9 @@ function SupportFleet_get_ammocost_rate(){
 		
 		if (sup.get_data(ssd)) {
 			let ship = sup.ship_selector.get_ship();
+			let st = ship.shipTypeI || ship.shipType;
 			for (let d of def) {
-				if (d.types.indexOf(ship.shipType) >= 0) {
+				if (d.types.indexOf(st) >= 0) {
 					count[d.key]++;
 				}
 			}

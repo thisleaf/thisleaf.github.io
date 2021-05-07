@@ -482,7 +482,7 @@ function SupportShip_empty(){
 function SupportShip_is_cv_shelling(){
 	return ( this.equipable_info &&
 		this.equipable_info.ship &&
-		SupportShip.cv_shelling_types.indexOf(this.equipable_info.ship.shipType) >= 0 );
+		SupportShip.cv_shelling_types.indexOf(this.equipable_info.ship.shipTypeI || this.equipable_info.ship.shipType) >= 0 );
 }
 
 /**
@@ -493,7 +493,7 @@ function SupportShip_is_cv_shelling(){
 function SupportShip_is_dd(){
 	return ( this.equipable_info &&
 		this.equipable_info.ship &&
-		SupportShip.dd_types.indexOf(this.equipable_info.ship.shipType) >= 0);
+		SupportShip.dd_types.indexOf(this.equipable_info.ship.shipTypeI || this.equipable_info.ship.shipType) >= 0);
 }
 
 function SupportShip_set_target(en_index, fm_index, targetpower){
