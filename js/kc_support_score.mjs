@@ -21,10 +21,10 @@ Object.assign(SupportFleetScore.prototype, {
 	//total_final_power: 0,
 	// 命中二乗和(艦ごと)
 	total_accuracy_sq: 0,
-	// 装備優先度
-	total_priority: 0,
 	// 基本攻撃力合計
 	total_basic_power: 0,
+	// 装備優先度
+	total_priority: 0,
 	// ボーナスで増えた火力
 	total_bonus_power: 0,
 	
@@ -126,8 +126,8 @@ function SupportFleetScore_compare(b){
 	let c = this.unreached_power - b.unreached_power;
 	if (c == 0) c = this.total_accuracy - b.total_accuracy;
 	if (c == 0) c = b.total_accuracy_sq - this.total_accuracy_sq;
-	if (c == 0) c = this.total_priority - b.total_priority;
 	if (c == 0) c = this.total_basic_power - b.total_basic_power;
+	if (c == 0) c = this.total_priority - b.total_priority;
 	if (c == 0) c = this.total_bonus_power - b.total_bonus_power;
 	return c;
 }
@@ -157,8 +157,8 @@ function SupportFleetScore_compare_annealing(b){
 	let c = (this.unreached_power - b.unreached_power) * 1000;
 	if (c == 0) c = (this.total_accuracy - b.total_accuracy) * 50;
 	if (c == 0) c = (b.total_accuracy_sq - this.total_accuracy_sq) * 0.01;
-	if (c == 0) c = (this.total_priority - b.total_priority);
 	if (c == 0) c = (this.total_basic_power - b.total_basic_power) * 0.1;
+	if (c == 0) c = (this.total_priority - b.total_priority);
 	if (c == 0) c = (this.total_bonus_power - b.total_bonus_power) * 0.1;
 	return c;
 }
@@ -220,8 +220,8 @@ function SupportShipScore_add(ssd, basic_power = ssd.border_basic_power, test){
 function SupportShipScore_compare(b){
 	let c = this.unreached_power - b.unreached_power;
 	if (c == 0) c = this.total_accuracy - b.total_accuracy;
-	if (c == 0) c = this.total_priority - b.total_priority;
 	if (c == 0) c = this.total_basic_power - b.total_basic_power;
+	if (c == 0) c = this.total_priority - b.total_priority;
 	if (c == 0) c = this.total_bonus_power - b.total_bonus_power;
 	return c;
 }

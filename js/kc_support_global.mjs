@@ -73,7 +73,7 @@ export const SUPPORT_EQUIPLIST_DEF = [
 	{viewname: "艦攻", category: "艦上攻撃機", airplane: true},
 	{viewname: "艦偵", category: "艦上偵察機", airplane: true},
 	{viewname: "瑞雲", category: "多用途水上機/水上爆撃機", airplane: true},
-	{viewname: "機銃/見張員", cates: ["対空機銃", "水上艦要員"], ignore_zero_param: true},
+	{viewname: "機銃ほか", cates: ["対空機銃", "水上艦要員", "司令部施設"], ignore_zero_param: true},
 //	{category: "航空要員"},
 ];
 
@@ -120,6 +120,7 @@ export const SORT_CATEGORY_DEF = [
 	"大型電探",
 	"小型電探",
 	"水上艦要員",
+	"司令部施設",
 	"対空機銃",
 ];
 
@@ -144,6 +145,12 @@ export const EQUIP_PRIORITY_DEF = [
 	{value: 1, cates: ["噴式戦闘爆撃機"]},
 	// 副砲、中口径主砲
 	{value: 1, cates: ["副砲", "中口径主砲"]},
+	// 熟練見張員
+	// {value: 1, ids: [129]},
+	// 水雷戦隊 熟練見張員
+	{value: -0.5, ids: [412]},
+	// 精鋭水雷戦隊 司令部
+	{value: -1, ids: [413]},
 	// 該当なし
 	{value: 0, is_default: true},
 ];
