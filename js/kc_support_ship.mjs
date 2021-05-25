@@ -104,6 +104,7 @@ Object.assign(SupportShip.prototype, {
 	get_luck_info : SupportShip_get_luck_info,
 	set_luck      : SupportShip_set_luck,
 	get_raw_accuracy: SupportShip_get_raw_accuracy,
+	get_formation_value: SupportShip_get_formation_value,
 	
 	refresh_shipinfo    : SupportShip_refresh_shipinfo    ,
 	refresh_lvluck      : SupportShip_refresh_lvluck      ,
@@ -244,7 +245,7 @@ function SupportShip_create(def_priority){
 	
 	this.e_formation = NODE(ELEMENT("select"),
 		Global.FORMATION_DEFINITION.map(d => {
-			let op = new Option(d.name, d.support);
+			let op = new Option(d.viewname || d.name, d.name);
 			if (d.className) op.className = d.className;
 			return op;
 		})
@@ -661,6 +662,15 @@ function SupportShip_get_raw_accuracy(){
 	return 2 * Math.sqrt(level) + 1.5 * Math.sqrt(luck);
 }
 
+/**
+ * @method SupportShip#get_formation_value
+ */
+function SupportShip_get_formation_value(){
+	let name = this.e_formation.value;
+	let d = Global.FORMATION_DEFINITION.find(def => def.name == name);
+	return d ? d.support : 1;
+}
+
 // 艦情報を更新 (フォームから)
 function SupportShip_refresh_shipinfo(suppress_refresh = false){
 	let name = this.ship_selector.get_shipname();
@@ -714,14 +724,17 @@ function SupportShip_refresh_lvluck(){
 	}
 }
 
-// 目標火力欄：表示火力の更新
-// selectのクラスも設定
+/**
+ * 目標火力欄：表示火力の更新
+ * selectのクラスも設定
+ * @method SupportShip#refresh_displaypower
+ */
 function SupportShip_refresh_displaypower(){
 	let en = Util.formstr_to_float(this.e_engagement.value, 1, 1);
-	let fm = Util.formstr_to_float(this.e_formation.value, 1, 1);
+	let fm = this.get_formation_value();
 	let tp = Util.formstr_to_float(this.e_targetpower.value, 0, 0);
 	
-	let bp = SupportShip.get_border_power(en.value, fm.value, tp.value);
+	let bp = SupportShip.get_border_power(en.value, fm, tp.value);
 	let dp = bp - (5 + Global.SUPPORT_MODIFY);
 	
 	Util.remove_children(this.e_displaypower);
@@ -867,6 +880,9 @@ function SupportShip_refresh_equipstatus(){
 }
 
 
+/**
+ * @method SupportShip#get_data
+ */
 function SupportShip_get_data(data){
 	//data.support_ship = this;
 	data.ship_object_id = this.object_id;
@@ -880,15 +896,15 @@ function SupportShip_get_data(data){
 	
 	let pr = Util.formstr_to_int(this.e_priority.value, 12, 12);
 	let en = Util.formstr_to_float(this.e_engagement.value, 1, 1);
-	let fm = Util.formstr_to_float(this.e_formation.value, 1, 1);
+	let fm = this.get_formation_value();
 	let tp = Util.formstr_to_float(this.e_targetpower.value, 0, 0);
 	
-	let bp = SupportShip.get_border_power(en.value, fm.value, tp.value);
+	let bp = SupportShip.get_border_power(en.value, fm, tp.value);
 	
 	data.priority = pr.value;
 	//data.power_modifier = en * fm;
 	data.engagementform_modify = en.value;
-	data.formation_modify = fm.value;
+	data.formation_modify = fm;
 	data.level = this.get_level_info().level;
 	data.luck = this.get_luck_info().luck;
 	data.border_final_power = tp.value;
@@ -975,7 +991,7 @@ function SupportShip_get_json(){
 		exslot_available : this.e_exslot_available.checked,
 		priority         : this.e_priority.value,
 		engagement       : _text(this.e_engagement),
-		formation        : _text(this.e_formation),
+		formation        : this.e_formation.value,
 		targetpower      : this.e_targetpower.value,
 		slot_fixes       : this.e_slot_fixes.map(e => e.checked),
 		exslot_fix       : this.e_exslot_fix.checked,
@@ -1011,7 +1027,7 @@ function SupportShip_set_json(json){
 	this.e_exslot_available.checked = json.exslot_available;
 	this.e_priority.value = json.priority;
 	_set_by_text(this.e_engagement, json.engagement);
-	_set_by_text(this.e_formation, json.formation);
+	this.e_formation.value = json.formation;
 	this.e_targetpower.value = json.targetpower;
 	_foreach2(this.e_slot_fixes, json.slot_fixes, (e, b) => e.checked = b);
 	this.e_exslot_fix.checked = json.exslot_fix;

@@ -591,6 +591,9 @@ body {
 .support_table thead .target > * {
 	vertical-align: middle;
 }
+.support_table thead .target > select {
+	max-width: 6em;
+}
 .support_table thead .target > span.postcap {
 	vertical-align: text-bottom;
 }
@@ -656,6 +659,9 @@ body {
 }
 .support_table .targetcell {
 	padding: 1px;
+}
+.support_table .targetcell > select {
+	max-width: 6em;
 }
 .support_table .targetpower {
 	width: 42px;

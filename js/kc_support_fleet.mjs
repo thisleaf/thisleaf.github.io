@@ -115,7 +115,7 @@ function SupportFleet_create_thead(caption){
 	Util.inherit_option_class(this.e_engagement);
 	
 	this.e_formation = NODE(ELEMENT("select"), Global.FORMATION_DEFINITION.map(d => {
-		let op = new Option(d.name, d.support);
+		let op = new Option(d.viewname || d.name, d.name);
 		if (d.className) op.className = d.className;
 		return op;
 	}));

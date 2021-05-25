@@ -35,12 +35,12 @@ export const ENGAGEMENT_FORM_DEFINITION = [
  * @type {Array.<{name:string, support:number, className:string}>}
  */
 export const FORMATION_DEFINITION = [
-	{name: "単縦陣", support: 1.0 , className: "line_ahead"},
-	{name: "複縦陣", support: 0.8 , className: "double_line"},
-	{name: "輪形陣", support: 0.7 , className: "diamond"},
-	{name: "梯形陣", support: 0.75, className: "echelon"},
-	{name: "単横陣", support: 0.6 , className: "line_abreast"},
-	{name: "警戒陣", support: 0.5 , className: "vanguard"},
+	{viewname: "単縦陣 (vs通常)", name: "単縦陣", support: 1.0 , className: "line_ahead"},
+	{viewname: "複縦陣 (vs通常)", name: "複縦陣", support: 0.8 , className: "double_line"},
+	{viewname: "輪形陣 (vs通常)", name: "輪形陣", support: 0.7 , className: "diamond"},
+	{viewname: "梯形陣 (vs通常)", name: "梯形陣", support: 0.75, className: "echelon"},
+	{viewname: "単横陣 (vs通常)", name: "単横陣", support: 0.6 , className: "line_abreast"},
+	{viewname: "警戒陣 (vs通常)", name: "警戒陣", support: 0.5 , className: "vanguard"},
 	// 連合艦隊はどれも同じっぽい？
 	{name: "連合艦隊", support: 1.0, className: "combined"},
 ];
