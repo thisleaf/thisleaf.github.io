@@ -123,21 +123,28 @@ table {
 	background-color: lightsteelblue;
 }
 
-#chara_name {
-	margin-left: 2px;
-	margin-right: 2px;
-	width: 180px;
+#assist_ship_cell > div.shipnamediv {
+	position: relative;
+	border: 1px solid lightgray;
+	padding: 3px 6px 2px 6px;
 }
-#chara_restriction {
-	margin-left: 2px;
-	margin-right: 2px;
-	width: 180px;
+#assist_ship_cell > div.shipnamediv:hover::after {
+	border-color: #8181c7 transparent;
 }
-#ship_select {
-	margin-left: 2px;
-	margin-right: 2px;
-	width: 180px;
+#assist_ship_cell > div.shipnamediv::after {
+	content: '';
+	position: absolute;
+	top: 0;
+	right: 0.5em;
+	bottom: 0;
+	width: 0;
+	height: 0;
+	margin: auto;
+	border-width: 0.4em 0.25em 0.00em 0.25em;
+	border-style: solid;
+	border-color: #bbb transparent;
 }
+
 #bonus_info {
 	text-align: left;
 	vertical-align: top;

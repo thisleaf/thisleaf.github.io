@@ -82,7 +82,7 @@ export const DIRECT_INPUT_ID = -1;
 
 // 装備ボーナス
 // 条件に当てはまるものはすべて合算
-export const LOS_EQUIPBONUS_LASTMOD = "2021/05/07";
+export const LOS_EQUIPBONUS_LASTMOD = "2021/05/30";
 
 export const LOS_EQUIPBONUS = [
 	{	// Late 298B
@@ -252,7 +252,7 @@ export const LOS_EQUIPBONUS = [
 			"瑞穂", "瑞穂改",
 			"神威", "神威改", "神威改母",
 		],
-		LoS: 1, accumulation: "不明", effect: "艦娘索敵値に加算",
+		LoS: 1, accumulation: "可", effect: "艦娘索敵値に加算",
 		
 	}, { // Swordfish Mk.III改(水上機型)
 		equipment_id: 368,

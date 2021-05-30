@@ -248,7 +248,7 @@ function DOMDialog(){
  * @memberof DOMDialog.prototype
  */
 function DOMDialog_create(mode, title = "", movable = false){
-	if (this.e_inside) debugger;
+	if (this.e_inside || !DOMDialog.initialized) debugger;
 	
 	let container = DOMDialog.dialog_container;
 	

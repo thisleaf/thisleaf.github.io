@@ -23,6 +23,7 @@ const SHIPTYPE_TP_DEFINITION = [
 	{id: 104, name: "重巡洋艦"    , tp_s: 0},
 	{id: 105, name: "重雷装巡洋艦", tp_s: 0},
 	{id: 106, name: "海防艦"      , tp_s: 0},
+	{id: 107, name: "潜水艦"      , tp_s: 0},
 ];
 
 const EQUIPMENT_TP_DEFINITION = [

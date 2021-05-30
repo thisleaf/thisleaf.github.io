@@ -477,6 +477,11 @@ function EquipmentRow_copy_from(eq, norestrict){
 	this.e_category.value    = eq.e_category.value;
 	this.e_improvement.value = eq.e_improvement.value;
 	this.e_los.value         = eq.e_los.value;
+	
+	if (!norestrict) {
+		this.refresh_score1();
+		this.set_impr_class();
+	}
 }
 
 function EquipmentRow_swap(eq){
@@ -502,6 +507,9 @@ function EquipmentRow_set_json_object(obj){
 			this.restrict_category(null, true, DIRECT_INPUT_ID);
 			this.e_category.value = obj.category;
 			this.e_los.value = obj.los;
+			// ひとまず制限せず
+			// let rest = +obj.category != 0 ? [obj.category] : null;
+			// this.restrict_category(rest, true, DIRECT_INPUT_ID);
 		}
 		
 		this.e_improvement.value = obj.improvement;
@@ -733,6 +741,7 @@ function init_equip_table(){
 	// 増やす・減らす・クリア
 	DOM("increase_rows").addEventListener("click", ev_click_increase_rows);
 	DOM("decrease_rows").addEventListener("click", ev_click_decrease_rows);
+	DOM("tidy_rows").addEventListener("click", ev_click_tidy_rows);
 	DOM("clear_equiplist").addEventListener("click", ev_click_clear_equiplist);
 	// ゴミ箱
 	DOM("equip_drag_remove").addEventListener("dragover", ev_equip_remove_dragover);
@@ -1015,6 +1024,12 @@ function ev_click_decrease_rows(e){
 	save_losdata();
 }
 
+function ev_click_tidy_rows(e){
+	tidy_equiprows();
+	refresh_savebutton_state();
+	save_losdata();
+}
+
 function ev_click_clear_equiplist(e){
 	for (let i=0; i<equipment_rows_show_count; i++) {
 		equipment_rows[i].clear_form(true);
@@ -1097,6 +1112,20 @@ function change_equiprow_count(new_count){
 	return true;
 }
 
+// 空欄をつめる
+function tidy_equiprows(){
+	ILOOP:
+	for (let i=0; i<equipment_rows_show_count; i++) {
+		if (!equipment_rows[i].empty()) continue;
+
+		for (let j=i+1; j<equipment_rows_show_count; j++) {
+			if (!equipment_rows[j].empty()) {
+				equipment_rows[i].swap(equipment_rows[j]);
+				continue ILOOP;
+			}
+		}
+	}
+}
 
 // 司令部補正
 // エラー時は負数
@@ -1142,8 +1171,9 @@ function refresh_score(){
 		if (x.value > 0) {
 			ship_count++;
 			let sq = Math.sqrt(x.value);
-			fleet_score += sq;
-			e.title = `${sq}\n= sqrt(${x.value})`;
+			fleet_score += sq - 2;
+			// e.title = `${sq}\n= sqrt(${x.value})`;
+			e.title = `${sq-2}\n= sqrt(${x.value}) - 2`;
 		} else if (x.value < 0) {
 			ship_error++;
 			e.title = "";
@@ -1189,7 +1219,8 @@ function refresh_score(){
 	noerror = noerror && ship_count >= 1;
 	
 	for (let c=1; c<=4; c++) {
-		let score = equip_score * c + fleet_score - HQ_modify + ship_count_score;
+		// let score = equip_score * c + sq_score - HQ_modify + ship_count_score;
+		let score = fleet_score + equip_score * c - HQ_modify + 12;
 		if (combined) {
 			// 12 - 司令部補正 だけ変わる
 			score += 12 - HQ_modify;

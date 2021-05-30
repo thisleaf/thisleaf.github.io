@@ -8,6 +8,7 @@
 <link rel="icon" type="image/png" href="./icon-192x192.png">
 <link rel="apple-touch-icon" type="image/png" href="./apple-touch-icon-180x180.png">
 <link rel="stylesheet" type="text/css" href="style.css">
+<link rel="stylesheet" type="text/css" href="marks.css">
 <link rel="stylesheet" type="text/css" href="kancolle_los.css">
 
 <!-- スクリプトの読み込み -->
@@ -42,9 +43,9 @@
 
 <!-- おしらせ -->
 <div class="notice limited_notice" data-end-date="2020/07/05">
-連合艦隊用のオプションを追加しました
 </div>
 
+<div class="dialog_container"></div>
 <div id="message_bar"></div>
 
 <!-- 保存・読み込み -->
@@ -102,7 +103,7 @@
 		<th colspan="5">メモ</th>
 	</tr><tr>
 		<td id="memo_cell" colspan="5">
-			<textarea id="memo"></textarea>
+			<textarea id="memo" placeholder="ここにメモを残せます"></textarea>
 		</td>
 	</tr>
 </tbody>
@@ -119,23 +120,17 @@
 </thead>
 <tbody>
 	<tr>
-		<td width="24">1</td>
-		<td width="60"><input id="ship_los_1" type="number" min="0" tabindex="1"></td>
-		<td width="24">7</td>
-		<td width="60"><input id="ship_los_7" type="number" min="0" tabindex="7"></td>
-		<td width="2" class="n_all"></td>
-		<th width="110" rowspan="2">艦</th>
-		<td colspan="2" class="left">
-			<select id="chara_name"></select><select id="chara_restriction"></select>
-		</td>
+		<td>1</td>
+		<td><input id="ship_los_1" type="number" min="0" tabindex="1"></td>
+		<td>7</td>
+		<td><input id="ship_los_7" type="number" min="0" tabindex="7"></td>
+		<td class="n_all"></td>
+		<td id="assist_ship_cell" colspan="2" rowspan="2" class="left"></td>
+		<td colspan="2" rowspan="2">Lv <input id="ship_level" type="number" min="1" max="175" value="99"></td>
 	</tr><tr>
 		<td>2</td><td><input id="ship_los_2" type="number" class="ship_los" min="0" tabindex="2"></td>
 		<td>8</td><td><input id="ship_los_8" type="number" class="ship_los" min="0" tabindex="8"></td>
 		<td class="n_all"></td>
-		<td class="left">
-			<select id="ship_select"></select>
-		</td>
-		<td width="120">Lv <input id="ship_level" type="number" min="1" max="175" value="99"></td>
 	</tr><tr>
 		<td>3</td><td><input id="ship_los_3" type="number" class="ship_los" min="0" tabindex="3"></td>
 		<td>9</td><td><input id="ship_los_9" type="number" class="ship_los" min="0" tabindex="9"></td>
@@ -143,12 +138,15 @@
 		<th>装備ボーナス</th>
 		<td colspan="2">艦娘索敵値+<input id="equip_bonus" type="number" min="0" value="0"></td>
 	</tr><tr>
-		<td>4</td><td><input id="ship_los_4" type="number" class="ship_los" min="0" tabindex="4"></td>
-		<td>10</td><td><input id="ship_los_10" type="number" class="ship_los" min="0" tabindex="10"></td>
-		<td class="n_all"></td>
-		<th>艦娘索敵値</th>
-		<td id="assist_los"></td>
-		<td><button id="append_assist_los" title="空いている枠に追加します">追加</button></td>
+		<!-- width row -->
+		<td width="24">4</td>
+		<td width="60"><input id="ship_los_4" type="number" class="ship_los" min="0" tabindex="4"></td>
+		<td width="24">10</td>
+		<td width="60"><input id="ship_los_10" type="number" class="ship_los" min="0" tabindex="10"></td>
+		<td width="2" class="n_all"></td>
+		<th width="110">艦娘索敵値</th>
+		<td width="250" id="assist_los"></td>
+		<td width="90"><button id="append_assist_los" title="空いている枠に追加します">追加</button></td>
 	</tr><tr>
 		<td>5</td><td><input id="ship_los_5" type="number" class="ship_los" min="0" tabindex="5"></td>
 		<td>11</td><td><input id="ship_los_11" type="number" class="ship_los" min="0" tabindex="11"></td>
@@ -159,7 +157,7 @@
 		<td>12</td><td><input id="ship_los_12" type="number" class="ship_los" min="0" tabindex="12"></td>
 		<td class="n_all"></td>
 	</tr><tr>
-		<th colspan="2" class="shiplos_color" title="平方根の和">スコア</th>
+		<th id="fleet_score_th" colspan="2" class="shiplos_color" title="平方根-2の和\nこの値 + 12 = 平方根の和 + 隻数補正">スコア</th>
 		<td id="fleet_score" colspan="2"></td>
 		<td class="n_all"></td>
 	</tr><tr>
@@ -190,7 +188,7 @@
 <tfoot>
 	<tr>
 		<td></td>
-		<td colspan="3" class="left"><button id="increase_rows">ふやす</button> <button id="decrease_rows">へらす</button></td>
+		<td colspan="3" class="left"><button id="increase_rows">ふやす</button> <button id="decrease_rows">へらす</button> <button id="tidy_rows">つめる</button></td>
 		<th>合計</th>
 		<td id="equip_score"></td>
 	</tr><tr>
