@@ -1144,25 +1144,27 @@ function EquipmentBonus_set_name(name){
 	}
 }
 
-// こちらの関数群では改修値によるソートは行わない
-// 改修値が影響し、かつ本数制限がある場合には呼び出し元で大きいものからソートしておく
+// 装備ボーナスを計算
+// 改修値の順番もソートしておかなくてよい
 function EquipmentBonus_get_bonus(slot_array, synergy_only = false){
+	// 改修値の大きいものを1本目などとする
 	for (let i=0; i<slot_array.length; i++) {
-		slot_array[i].same_index = 1;
-	}
-	for (let i=0; i<slot_array.length; i++) {
-		let c = slot_array[i].same_index;
-		if (c == 1) {
-			let id = slot_array[i].equipment_id;
-			if (id != 0) {
-				for (let j=i+1; j<slot_array.length; j++) {
-					if (slot_array[j].equipment_id == id) {
-						slot_array[j].same_index = ++c;
-					}
+		let c = 1;
+		let id = slot_array[i].equipment_id;
+		let star = slot_array[i].improvement;
+		for (let j=0; j<i; j++) {
+			if (slot_array[j].equipment_id == id) {
+				if (slot_array[j].improvement < star) {
+					// [j]のほうが改修値が小さい→nthは大きい
+					slot_array[j].same_index++;
+				} else {
+					c++;
 				}
 			}
 		}
+		slot_array[i].same_index = c;
 	}
+
 	
 	for (let i=0; i<slot_array.length; i++) {
 		let slot = slot_array[i];
@@ -1180,8 +1182,14 @@ function EquipmentBonus_get_bonus(slot_array, synergy_only = false){
 				// しょうがないので毎回カウントする
 				let group = data.equipment_id_map;
 				count = 1;
-				for (let p=0; p<i; p++) {
-					if (group[ slot_array[p].equipment_id ]) count++;
+				for (let p=0; p<slot_array.length; p++) {
+					if (p != i && group[ slot_array[p].equipment_id ]) {
+						if ( p < i ?  slot_array[p].improvement >= slot.improvement :
+							/* p > i */ slot_array[p].improvement >  slot.improvement )
+						{
+							count++;
+						}
+					}
 				}
 			} else {
 				count = slot.same_index;

@@ -327,8 +327,10 @@ function ShipSelector__initialize(shiplist, arg_grouping_def, arg_default_select
 	let name_to_ship = new Object;
 	// 艦名→改造元の配列(コンバートなど、複数ある場合がある)
 	let name_to_prevships = new Object;
+	// 改造にコンバート指定がついている場合は追加しない
+	let name_to_prevships_nc = new Object;
 	
-	let upgrade_reg = /^(.+)\((?:Lv)?(\d+)\)$/i;
+	let upgrade_reg = /^(.+)\((?:Lv)?(\d+)(?:,(\w+))?\)$/i;
 	
 	for (let ship of shiplist) {
 		// 条件を満たさない艦は無視する
@@ -338,16 +340,25 @@ function ShipSelector__initialize(shiplist, arg_grouping_def, arg_default_select
 		name_to_ship[ship.name] = ship;
 		
 		// 改造可能
-		if (ship.upgrade && upgrade_reg.test(ship.upgrade)) {
-			let name = RegExp.$1;
-			let level = RegExp.$2;
+		let m = ship.upgrade && upgrade_reg.exec(ship.upgrade);
+		if (m) {
+			let name = m[1];
+			let level = m[2];
+			// 特殊なフラグ
+			// c: コンバートで元に戻すことを明示的に指定
+			//    最初の改造度に戻す場合に必要
+			let spflags = m[3]?.toLowerCase() ?? "";
 			
 			// 新しく追加したプロパティは _ で始まるものとする
 			ship._upgrade_level = +level;
 			
-			let arr = name_to_prevships[name] || new Array;
+			let arr = name_to_prevships[name] || (name_to_prevships[name] = []);
 			arr.push(ship);
-			name_to_prevships[name] = arr;
+
+			if (!spflags.includes("c")) {
+				let arr2 = name_to_prevships_nc[name] || (name_to_prevships_nc[name] = []);
+				arr2.push(ship);
+			}
 		}
 	}
 	
@@ -366,7 +377,7 @@ function ShipSelector__initialize(shiplist, arg_grouping_def, arg_default_select
 	for (let ship of shiplist) {
 		if (ship_checker && !ship_checker(ship)) continue;
 		
-		if (!name_to_prevships[ship.name]) {
+		if (!name_to_prevships_nc[ship.name]) {
 			// ship には改造元がない = オリジナル
 			let chara = new Character(ship);
 			name_to_character[ship.name] = chara;
@@ -472,6 +483,7 @@ function ShipSelector__initialize(shiplist, arg_grouping_def, arg_default_select
 		classname_replacer    : classname_replacer    ,
 		name_to_ship          : name_to_ship          ,
 		name_to_prevships     : name_to_prevships     ,
+		name_to_prevships_nc  : name_to_prevships_nc  ,
 		name_to_converts      : name_to_converts      ,
 		name_to_character     : name_to_character     ,
 		character_data        : character_data        ,
@@ -480,7 +492,7 @@ function ShipSelector__initialize(shiplist, arg_grouping_def, arg_default_select
 		initialized           : true                  ,
 		get_shipgroup_name    : _get_shipgroup_name   ,
 	});
-	
+
 	// 艦からグループ名(艦型)
 	function _get_shipgroup_name(ship){
 		if (!ship) return "";

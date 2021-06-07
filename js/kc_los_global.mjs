@@ -82,7 +82,7 @@ export const DIRECT_INPUT_ID = -1;
 
 // 装備ボーナス
 // 条件に当てはまるものはすべて合算
-export const LOS_EQUIPBONUS_LASTMOD = "2021/05/30";
+export const LOS_EQUIPBONUS_LASTMOD = "2021/06/07";
 
 export const LOS_EQUIPBONUS = [
 	{	// Late 298B
@@ -124,20 +124,11 @@ export const LOS_EQUIPBONUS = [
 	}, {
 		// SG レーダー(初期型)
 		equipment_id: 315,
-		ship_names: [
-			"Fletcher", "Fletcher改", "Fletcher改 Mod.2", "Fletcher Mk.II",
-			"Johnston", "Johnston改",
-			"Samuel B.Roberts", "Samuel B.Roberts改",
-			"Colorado", "Colorado改",
-			"South Dakota", "South Dakota改",
-			"Iowa", "Iowa改",
-			"Saratoga", "Saratoga改", "Saratoga Mk.II", "Saratoga Mk.II Mod.2",
-			"Hornet", "Hornet改",
-			"Intrepid", "Intrepid改",
-			"Gambier Bay", "Gambier Bay改",
-			"Houston", "Houston改",
-			"Helena", "Helena改",
-			"Atlanta", "Atlanta改",
+		ship_classes: [
+			"Fletcher級", "John C.Butler級",
+			"Colorado級", "North Carolina級", "South Dakota級", "Iowa級",
+			"Lexington級", "Yorktown級", "Essex級", "Casablanca級",
+			"Northampton級", "Brooklyn級", "St. Louis級", "Atlanta級",
 		],
 		LoS: 4, accumulation: "可", effect: "索敵スコアには影響しない",
 		// 沖波改二: 索敵ボーナスなし
@@ -177,17 +168,10 @@ export const LOS_EQUIPBONUS = [
 	}, {
 		// SKレーダー
 		equipment_id: 278,
-		ship_names: [
-			"Colorado", "Colorado改",
-			"South Dakota", "South Dakota改",
-			"Iowa", "Iowa改",
-			"Saratoga", "Saratoga改", "Saratoga Mk.II", "Saratoga Mk.II Mod.2",
-			"Hornet", "Hornet改",
-			"Intrepid", "Intrepid改",
-			"Gambier Bay", "Gambier Bay改",
-			"Houston", "Houston改",
-			"Helena", "Helena改",
-			"Atlanta", "Atlanta改",
+		ship_classes: [
+			"Colorado級", "North Carolina級", "South Dakota級", "Iowa級",
+			"Lexington級", "Yorktown級", "Essex級", "Casablanca級",
+			"Northampton級", "Brooklyn級", "St. Louis級", "Atlanta級",
 		],
 		LoS: 1, accumulation: "不可", effect: "艦娘索敵値に加算",
 		// Warspite, Nelson, Ark Royal, Perth: 索敵ボーナスなし
@@ -195,26 +179,17 @@ export const LOS_EQUIPBONUS = [
 	}, {
 		// SK+SGレーダー
 		equipment_id: 279,
-		ship_names: [
-			"Colorado", "Colorado改",
-			"South Dakota", "South Dakota改",
-			"Iowa", "Iowa改",
-			"Saratoga", "Saratoga改", "Saratoga Mk.II", "Saratoga Mk.II Mod.2",
-			"Hornet", "Hornet改",
-			"Intrepid", "Intrepid改",
-			"Gambier Bay", "Gambier Bay改",
-			"Houston", "Houston改",
-			"Helena", "Helena改",
-			"Atlanta", "Atlanta改",
+		ship_classes: [
+			"Colorado級", "North Carolina級", "South Dakota級", "Iowa級",
+			"Lexington級", "Yorktown級", "Essex級", "Casablanca級",
+			"Northampton級", "Brooklyn級", "St. Louis級", "Atlanta級",
 		],
 		LoS: 2, accumulation: "不可", effect: "艦娘索敵値に加算",
 	}, {
 		// SK+SGレーダー
 		equipment_id: 279,
-		ship_names: [
-			"Warspite", "Warspite改",
-			"Nelson", "Nelson改",
-			"Ark Royal", "Ark Royal改",
+		ship_classes: [
+			"Queen Elizabeth級", "Nelson級", "Ark Royal級", "Town級",
 		],
 		LoS: 1, accumulation: "不可", effect: "艦娘索敵値に加算",
 		// Perth: 索敵ボーナスなし
@@ -236,13 +211,13 @@ export const LOS_EQUIPBONUS = [
 		jp_ship_types: [
 			"駆逐艦", "重巡洋艦", "航空巡洋艦",
 		],
-		LoS: 1, accumulation: "不明", effect: "艦娘索敵値に加算",
+		LoS: 1, accumulation: "可", effect: "艦娘索敵値に加算",
 	}, {
 		equipment_id: 412,
 		jp_ship_types: [
 			"軽巡洋艦", "練習巡洋艦", "重雷装巡洋艦",
 		],
-		LoS: 3, accumulation: "不明", effect: "艦娘索敵値に加算",
+		LoS_mul: [3, 3+1], effect: "艦娘索敵値に加算",
 		
 	}, { // Swordfish(水上機型)
 		equipment_id: 367,
@@ -352,12 +327,20 @@ export const LOS_EQUIPBONUS = [
 
 	}, { // SOC Seagull
 		equipment_id: 414,
-		ship_classes: ["Northampton級", "St. Louis級", "Atlanta級"],
+		ship_classes: ["Northampton級", "Brooklyn級", "St. Louis級", "Atlanta級"],
 		LoS: [2,,,,3,,,,3,,3], accumulation: "不可", effect: "艦娘索敵値に加算",
 	}, {
 		equipment_id: 414,
 		ship_classes: ["Colorado級", "North Carolina級", "South Dakota級", "Iowa級"],
 		LoS: 1, accumulation: "不可", effect: "艦娘索敵値に加算",
+
+	}, { // SO3C Seamew改
+		equipment_id: 415,
+		ship_classes: [
+			"Northampton級", "Brooklyn級", "St. Louis級", "Atlanta級",
+			"Colorado級", "North Carolina級", "South Dakota級", "Iowa級",
+		],
+		LoS: 1, accumulation: "不明", effect: "不明",
 
 	}, { // 装甲艇(AB艇)
 		equipment_id: 408,
@@ -391,6 +374,11 @@ export const LOS_EQUIPBONUS = [
 			"Prinz Eugen", "Prinz Eugen改",
 		],
 		LoS: 2, accumulation: "可", effect: "不明",
+
+	}, { // OS2U
+		equipment_id: 171,
+		ship_classes: ["Colorado級", "North Carolina級", "South Dakota級", "Iowa級"],
+		LoS: i => Math.floor((i + 7) / 5), accumulation: "不可", effect: "艦娘索敵値に加算",
 	}
 ];
 
