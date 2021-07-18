@@ -12,7 +12,7 @@ const FURNITURE_COIN_M = 400;
 const FURNITURE_COIN_L = 700;
 
 // 家具コイン上限
-const FURNITURE_COIN_CAP = 200000;
+const FURNITURE_COIN_CAP = 350000;
 
 
 function kancolle_fcoin_init(){
