@@ -73,8 +73,7 @@ export const SUPPORT_EQUIPLIST_DEF = [
 	{viewname: "艦攻", category: "艦上攻撃機", airplane: true},
 	{viewname: "艦偵", category: "艦上偵察機", airplane: true},
 	{viewname: "瑞雲", category: "多用途水上機/水上爆撃機", airplane: true},
-	{viewname: "機銃ほか", cates: ["対空機銃", "水上艦要員", "司令部施設"], ignore_zero_param: true},
-//	{category: "航空要員"},
+	{viewname: "機銃ほか", cates: ["対空機銃", "対艦強化弾", "水上艦要員", "司令部施設", "航空要員"], ignore_zero_param: true},
 ];
 
 /**
