@@ -1358,6 +1358,8 @@ Object.assign(OwnConvertDialog.prototype = Object.create(DOMDialog.prototype), {
 	// 艦隊分析用
 	e_fleetanalysis_div  : null,
 	e_apiextract_div     : null,
+	// 制空権シミュレータ
+	e_airsimulator_div   : null,
 	
 	// デッキビルダー用
 	e_deckbuilder_div    : null,
@@ -1385,10 +1387,14 @@ Object.assign(OwnConvertDialog, {
 		"艦隊分析": 1,
 		"デッキビルダー": 2,
 		"API抽出": 3,
+		"制空権シミュレータ": 4,
 	},
 });
 
-
+/**
+ * @constructor
+ * @param form_object
+ */
 function OwnConvertDialog(form_object){
 	DOMDialog.call(this);
 	this.own_form = form_object;
@@ -1405,8 +1411,9 @@ function OwnConvertDialog_create(){
 	NODE(this.e_contents, [
 		NODE(ELEMENT("div"), [
 			this.e_select = NODE(ELEMENT("select", "", "data_type"), [
-				new Option("艦隊分析 (装備＞JSON)", OwnConvertDialog.select_enum["艦隊分析"]),
+				// new Option("艦隊分析 (装備＞JSON)", OwnConvertDialog.select_enum["艦隊分析"]),
 				new Option("艦隊分析 (装備＞装備反映)", OwnConvertDialog.select_enum["API抽出"]),
+				new Option("制空権シミュレータ", OwnConvertDialog.select_enum["制空権シミュレータ"]),
 				new Option("デッキビルダー", OwnConvertDialog.select_enum["デッキビルダー"]),
 			]),
 		]),
@@ -1431,8 +1438,21 @@ function OwnConvertDialog_create(){
 			NODE(ELEMENT("div", "", "option_text"), [
 				HTML(
 					'<a href="https://kancolle-fleetanalysis.firebaseapp.com/#/" target="_blank">艦隊分析</a>'
-					+ " さんに取り込む際のJSONデータを、<b>所持装備データ</b>として読み込みます<br>"
+					+ " さん(公開終了)に取り込む際のJSONデータを、<b>所持装備データ</b>として読み込みます<br>"
 					+ "装備＞装備反映にある手順で取得したデータを入力してください<br>"
+					+ '[{"api_slotitem_id":378,"api_level":0}, ... ] の形式のデータです<br>'
+					+ "既にある所持装備データは破棄(リセット)されます"
+				),
+			]),
+		]),
+		
+		this.e_airsimulator_div = NODE(ELEMENT("div", "", "option"), [
+			NODE(ELEMENT("div", "", "option_text"), [
+				HTML(
+					'<a href="https://noro6.github.io/kcTools/" target="_blank">制空権シミュレータ</a>'
+					+ " さんで扱われる装備のJSONデータを、<b>所持装備データ</b>として読み込みます<br>"
+					+ "装備＞反映にある手順で取得したデータ、または共有タブから出力されるデータを入力してください<br>"
+					+ '[{"id":378,"lv":0}, ... ] の形式のデータです<br>'
 					+ "既にある所持装備データは破棄(リセット)されます"
 				),
 			]),
@@ -1525,6 +1545,7 @@ function OwnConvertDialog_refresh_hint(){
 	
 	_disp(this.e_fleetanalysis_div, opt.value == OwnConvertDialog.select_enum["艦隊分析"]);
 	_disp(this.e_apiextract_div   , opt.value == OwnConvertDialog.select_enum["API抽出"]);
+	_disp(this.e_airsimulator_div , opt.value == OwnConvertDialog.select_enum["制空権シミュレータ"]);
 	_disp(this.e_deckbuilder_div  , opt.value == OwnConvertDialog.select_enum["デッキビルダー"]);
 }
 
@@ -1589,8 +1610,10 @@ function OwnConvertDialog_parse_fleetanalysis_text(text){
 	{"api_slotitem_id":378,"api_level":0},
 	...
 ]
+
+id_property, lv_prop を指定することによりプロパティ名を変更可能
 */
-function OwnConvertDialog_parse_apiextract_text(text){
+function OwnConvertDialog_parse_apiextract_text(text, id_prop = "api_slotitem_id", lv_prop = "api_level"){
 	let data = new Array;
 	
 	// 空データ
@@ -1610,8 +1633,8 @@ function OwnConvertDialog_parse_apiextract_text(text){
 	for (let i=0; i<json.length; i++) {
 		if (!json[i]) continue;
 		
-		let id = +json[i].api_slotitem_id;
-		let star = +json[i].api_level;
+		let id = +json[i][id_prop];
+		let star = +json[i][lv_prop];
 		
 		// ここがおかしいのは不可とする
 		if (!id || !(0 <= star && star <= 10)) return null;
@@ -1807,8 +1830,13 @@ function OwnConvertDialog_ev_close(e){
 			this.own_form.reset_mains_category(cates, this.e_reset_aircraft.checked, this.e_reset_other.checked);
 			this.own_form.import_data(data, true, false);
 			
-		} else if (opt.value == OwnConvertDialog.select_enum["API抽出"]) {
-			let data = this.parse_apiextract_text(text);
+		} else if ( opt.value == OwnConvertDialog.select_enum["API抽出"] ||
+			opt.value == OwnConvertDialog.select_enum["制空権シミュレータ"] )
+		{
+			let sim = opt.value == OwnConvertDialog.select_enum["制空権シミュレータ"];
+			let id_prop = sim ? "id" : "api_slotitem_id";
+			let lv_prop = sim ? "lv" : "api_level";
+			let data = this.parse_apiextract_text(text, id_prop, lv_prop);
 			
 			if (!data) {
 				e.preventDefault();
@@ -1830,6 +1858,7 @@ function OwnConvertDialog_ev_close(e){
 			
 		} else {
 			// ん？
+			debugger;
 		}
 		
 		this.own_form.refresh_tab();
