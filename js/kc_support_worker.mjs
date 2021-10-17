@@ -51,7 +51,7 @@ function worker_ev_message(e){
 			search_type: message.search_type,
 			id         : message.id || null,
 			data       : fleet.get_json_MT(json_MT, false),
-			score_data : new SupportFleetScorePrior(fleet.ssd_list),
+			score_data : new SupportFleetScorePrior(fleet.ssd_list, 0, SupportFleetScore.MODE_VENEMY_DAMAGE),
 		});
 		
 	} else if (message.type == "initialize") {
@@ -64,8 +64,13 @@ function worker_ev_message(e){
 		}
 		
 	} else if (message.type == "settings") {
-		// 設定変更
-		Object.assign(Global.Settings, message.settings);
+		// 設定変更、ユーザーデータ
+		if (message.settings) {
+			Object.assign(Global.Settings, message.settings);
+		}
+		if (message.userdata) {
+			EquipmentDatabase.set_data(message.userdata);
+		}
 		
 	} else if (message.type == "close") {
 		self.close();

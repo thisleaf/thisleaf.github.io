@@ -18,20 +18,25 @@ export const SUPPORT_POWER_CAP = 170;
  * @type {number}
  */ 
 export const SUPPORT_MODIFY = -1;
+/**
+ * 命中定数
+ */
+export const SUPPORT_HIT_CONSTANT = 64;
 
 /**
  * 交戦形態
- * @type {Array.<{name:string, support:number, className:string}>}
+ * @type {Array.<{name:string, support:number, className:string, keys:Array}>}
  */
 export const ENGAGEMENT_FORM_DEFINITION = [
-	{name: "同航戦" , support: 1.0, className: "parallel"},
-	{name: "反航戦" , support: 0.8, className: "head_on"},
-	{name: "T字不利", support: 0.6, className: "t_disadvantage"},
-	{name: "T字有利", support: 1.2, className: "t_advantage"},
+	{id: 1, name: "同航戦" , support: 1.0, className: "parallel"      , keys: ["同航戦" ]},
+	{id: 2, name: "反航戦" , support: 0.8, className: "head_on"       , keys: ["反航戦" ]},
+	{id: 3, name: "T字不利", support: 0.6, className: "t_disadvantage", keys: ["T字不利"]},
+	{id: 4, name: "T字有利", support: 1.2, className: "t_advantage"   , keys: ["T字有利"]},
 ];
 
 /**
  * 陣形
+ * 古い定義
  * @type {Array.<{name:string, support:number, className:string}>}
  */
 export const FORMATION_DEFINITION = [
@@ -46,6 +51,65 @@ export const FORMATION_DEFINITION = [
 ];
 
 // wiki: 交戦形態補正、攻撃側陣形補正、損傷補正の3つは左側の補正から順に乗算。
+
+/**
+ * 陣形定義その2
+ * atk: 攻撃側陣形として利用可能
+ * def: 防御側陣形として利用可能
+ * power: 攻撃力の修正(precap)
+ * accuracy: 攻撃側基本陣形補正(命中項)
+ * evasion: 防御側陣形補正(回避項)
+ * keys: 旧仕様の区別用ID
+ */
+export const FORMATION_DEFINITION_EX = [
+	{id: 1 , name: "単縦陣", atk: true , def: true , power: 1.0 , accuracy: 1.0, evasion: 1.0, className: "line_ahead"  , keys: ["単縦陣"]},
+	{id: 2 , name: "複縦陣", atk: true , def: true , power: 0.8 , accuracy: 1.2, evasion: 1.0, className: "double_line" , keys: ["複縦陣"]},
+	{id: 3 , name: "輪形陣", atk: true , def: true , power: 0.7 , accuracy: 1.0, evasion: 1.1, className: "diamond"     , keys: ["輪形陣"]},
+	{id: 4 , name: "梯形陣", atk: true , def: true , power: 0.75, accuracy: 1.2, evasion: 1.4, className: "echelon"     , keys: ["梯形陣"]},
+	{id: 5 , name: "単横陣", atk: true , def: true , power: 0.6 , accuracy: 1.2, evasion: 1.3, className: "line_abreast", keys: ["単横陣"]},
+	// 暫定 (命中)
+	{id: 6 , name: "警戒陣", atk: true , def: false, power: 0.5 , accuracy: 1.0, evasion: 1.0, className: "vanguard"    , keys: ["警戒陣"]},
+	// 回避は主力/警戒の区分とはまた別…
+	// {id: 7 , name: "警戒陣 (主力)", atk: false, def: false, power: 0.5 , accuracy: 1.0, evasion: 1.0, className: "vanguard"    },
+	// {id: 8 , name: "警戒陣 (警戒)", atk: false, def: false, power: 1.0 , accuracy: 1.0, evasion: 1.0, className: "vanguard"    },
+	// とりあえずひとまとめ。困ったら考える
+	{id: 10, name: "連合艦隊", atk: true , def: true , power: 1.0 , accuracy: 1.0, evasion: 1.0, combined: true, className: "combined", keys: ["連合艦隊"]},
+];
+/**
+ * 陣形補正の例外(上の設定を上書き)
+ */
+export const FORMATION_EXCEPTION = [
+	// 複縦陣 vs 単横陣
+	{atk_id: 2, def_id: 5, accuracy: 1.0},
+	// 梯形陣 vs 単縦陣
+	{atk_id: 4, def_id: 1, accuracy: 1.0},
+	// 単横陣 vs 梯形陣
+	{atk_id: 5, def_id: 4, accuracy: 1.0},
+];
+
+/**
+ * 探索モード
+ */
+export const TARGETING_PRECAP  = 1;
+export const TARGETING_POSTCAP = 2;
+export const TARGETING_VENEMY  = 3;
+
+/**
+ * 疲労度
+ */
+export const CONDITION_GOOD   = 4;
+export const CONDITION_NORMAL = 3;
+export const CONDITION_ORANGE = 2;
+export const CONDITION_RED    = 1;
+/**
+ * 疲労度の効果
+ */
+export const CONDITION_MODIFY = [
+	{id: CONDITION_NORMAL, accuracy: 1.0, evasion: 1.0},
+	{id: CONDITION_GOOD  , accuracy: 1.2, evasion: 0.7},
+	{id: CONDITION_ORANGE, accuracy: 0.8, evasion: 1.2},
+	{id: CONDITION_RED   , accuracy: 0.5, evasion: 1.4},
+];
 
 /**
  * @typedef SupportOwnEquipmentDef
@@ -157,7 +221,7 @@ export const EQUIP_PRIORITY_DEF = [
 /** LocalStorage に保存するデータのバージョン
  * @type {number}
  */
-export const SUPPORT_SAVEDATA_VERSION = 2;
+export const SUPPORT_SAVEDATA_VERSION = 3;
 
 /** ページの読込ごとに変更される定数
  * @type {number}

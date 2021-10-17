@@ -86,6 +86,10 @@ function SASlotData_get_group_id(shipType){
 function SupportFleetData_annealing(iteration_scale = 1){
 	if (this.ssd_list.length == 0) return;
 	
+	// 装備のリセット
+	// this.countup_equipment(true, false, -1);
+	// this.clear_slots(true, false);
+	// this.random_fill();
 	this.fill();
 	
 	this.ssd_list.forEach(ssd => ssd.calc_bonus());
@@ -210,7 +214,7 @@ function SupportFleetData_annealing(iteration_scale = 1){
 	
 	// スコアは使い回して、メモリ割り当てを少なくする
 	let max_fleet = this.clone(false);
-	const max_score = new SupportFleetScore(this.ssd_list);
+	const max_score = new SupportFleetScore(this.ssd_list, SupportFleetScore.MODE_VENEMY_DAMAGE);
 	const current_score = max_score.clone();
 	const temp_score = current_score.clone();
 	
@@ -363,6 +367,8 @@ function SupportFleetData_annealing(iteration_scale = 1){
 	
 	max_fleet.generate_own_map();
 	this.move_from(max_fleet);
+
+	// console.log(move_count * 100 / expect_loop_count, this.ssd_list[0].allslot_equipment.map(slot => slot?.equipment_data?.name ?? null))
 }
 
 
@@ -381,6 +387,10 @@ function SupportFleetData_annealing_entire(iteration_scale = 1){
 function SupportFleetData_annealing_entire_main(iteration_scale, priority_data){
 	if (this.ssd_list.length == 0) return;
 	
+	// 装備のリセット
+	// this.countup_equipment(true, false, -1);
+	// this.clear_slots(true, false);
+	// this.random_fill();
 	this.fill();
 	
 	this.ssd_list.forEach(ssd => ssd.calc_bonus());
@@ -497,7 +507,7 @@ function SupportFleetData_annealing_entire_main(iteration_scale, priority_data){
 	// スコアは使い回して、メモリ割り当てを少なくする
 	// current_score と temp_score はループのはじめでは同じであるとする
 	let max_fleet = this.clone(false);
-	const max_score = new SupportFleetScorePrior(this.ssd_list, priority_data.length);
+	const max_score = new SupportFleetScorePrior(this.ssd_list, priority_data.length, SupportFleetScore.MODE_VENEMY_DAMAGE);
 	const current_score = max_score.clone();
 	const temp_score = current_score.clone();
 	

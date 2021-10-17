@@ -19,6 +19,8 @@ EquipmentBonus
 
 import * as Util from "./utility.mjs";
 import {NODE, ELEMENT, TEXT} from "./utility.mjs";
+import * as Debug from "./kc_support_debug.mjs";
+import {EnemyStatus} from "./kc_enemy_status.mjs";
 
 export {
 	EquipmentDatabase,
@@ -43,6 +45,7 @@ Object.assign(EquipmentDatabase, {
 	csv_equiplist : null,
 	csv_equipable : null,
 	csv_equipbonus: null,
+	csv_enemies   : null,
 	// 支援艦隊用
 	csv_equipable_support: null,
 	// 装備ボーナス
@@ -52,17 +55,27 @@ Object.assign(EquipmentDatabase, {
 	// 装備IDの最大値
 	// 初期化でも利用するため、最初のほうで設定しなければならない
 	equipment_max_number: 0,
+	// 敵艦データ (EnemyStatus)
+	enemy_status: null,
+
+	// 転送用
+	bonusdata_array_json: null,
+	enemy_status_json: null,
 	
 	initialized: false,
 	init_jp_def: EquipmentDatabase_init_jp_def,
 	initialize : EquipmentDatabase_initialize,
 	// カスタムプロパティを追加する
 	add_equipment_property: EquipmentDatabase_add_equipment_property,
+	// デバッグ用
+	trace_jp_notjp: EquipmentDatabase_trace_jp_notjp,
+	check_csv     : EquipmentDatabase_check_csv,
 	
 	// マルチスレッド用
 	// 通常のオブジェクトは共有できないのでコピーする必要がある
 	get_data: EquipmentDatabase_get_data,
 	set_data: EquipmentDatabase_set_data,
+	get_userdata: EquipmentDatabase_get_userdata,
 });
 
 
@@ -94,7 +107,7 @@ Object.assign(EquipmentDatabase, {
 		"高雄型",
 		// 潜水艦
 		"三式潜航輸送艇", "巡潜3型", "巡潜乙型", "巡潜乙型改二", "巡潜甲型改二",
-		"海大VI型", "潜特型(伊400型潜水艦)", "巡潜丙型",
+		"海大VI型", "潜特型(伊400型潜水艦)", "巡潜丙型", "潜高型",
 		// 戦艦・航空戦艦
 		"伊勢型", "大和型", "扶桑型", "改金剛型", "改伊勢型",
 		"金剛型", "長門型",
@@ -102,7 +115,7 @@ Object.assign(EquipmentDatabase, {
 		"加賀型", "大鳳型", "大鷹型", "春日丸級", "祥鳳型",
 		"翔鶴型", "蒼龍型", "赤城型", "雲龍型", "飛鷹型",
 		"飛龍型", "鳳翔型", "龍驤型", "龍鳳型",
-		"改赤城型", "改加賀型",
+		"改赤城型", "改加賀型", "改龍鳳型",
 		// 水母
 		"千歳型", "日進型", "瑞穂型", "秋津洲型",
 		// 海防艦
@@ -110,6 +123,7 @@ Object.assign(EquipmentDatabase, {
 		// ほか
 		"大鯨型", "改風早型", "明石型", "特種船丙型", "神威型",
 		"陸軍特種船(R1)", "迅鯨型",
+		"耐氷型雑用運送艦", "LL01", "PL107",
 	],
 	
 	// 上の日本艦を表すmap: class->boolean
@@ -117,11 +131,19 @@ Object.assign(EquipmentDatabase, {
 });
 
 
+/**
+ * データベースクラス
+ * @constructor
+ */
 function EquipmentDatabase(){
 }
 
+/**
+ * jp_classes_map の生成
+ * @returns {Object} jp_classes_map (map: className -> bool)
+ * @alias EquipmentDatabase.init_jp_def
+ */
 function EquipmentDatabase_init_jp_def(){
-	// jp_classes_map の生成
 	if (!EquipmentDatabase.jp_classes_map) {
 		let jp = new Object;
 		for (let name of EquipmentDatabase.jp_classes_def) {
@@ -132,11 +154,12 @@ function EquipmentDatabase_init_jp_def(){
 	return EquipmentDatabase.jp_classes_map;
 }
 
-function EquipmentDatabase_initialize(csv_shiplist, csv_equiplist_raw, csv_equipable_raw, csv_equipbonus){
+function EquipmentDatabase_initialize(csv_shiplist, csv_equiplist_raw, csv_equipable_raw, csv_equipbonus, csv_enemies){
 	EquipmentDatabase.csv_shiplist      = csv_shiplist;
 	EquipmentDatabase.csv_equiplist_raw = csv_equiplist_raw;
 	EquipmentDatabase.csv_equipable_raw = csv_equipable_raw;
 	EquipmentDatabase.csv_equipbonus    = csv_equipbonus;
+	EquipmentDatabase.csv_enemies       = csv_enemies;
 	
 	EquipmentDatabase.init_jp_def();
 	
@@ -223,8 +246,17 @@ function EquipmentDatabase_initialize(csv_shiplist, csv_equiplist_raw, csv_equip
 	}
 	eqmap[0] = null; // 念の為
 	EquipmentDatabase.equipment_data_map = eqmap;
-	
+
+
+	EquipmentDatabase.enemy_status = new EnemyStatus();
+
 	EquipmentDatabase.initialized = true;
+
+	// DEBUG: csvデータの確認関数
+	if (Debug.DEBUG_MODE) {
+		// EquipmentDatabase.trace_jp_notjp();
+		EquipmentDatabase.check_csv();
+	}
 }
 
 // 装備のカスタムプロパティ
@@ -251,6 +283,36 @@ function EquipmentDatabase_add_equipment_property(name, definition){
 	}
 }
 
+/**
+ * 日本艦に分類されているかの確認用
+ * @alias EquipmentDatabase.trace_jp_notjp
+ */
+ function EquipmentDatabase_trace_jp_notjp(){
+	let jp_def = EquipmentDatabase.jp_classes_map;
+	let jp_names = [], notjp_names = [];
+	for (let ship of EquipmentDatabase.csv_shiplist) {
+		(jp_def[ship.className] ? jp_names : notjp_names).push(ship.name);
+	}
+	console.log("jp", jp_names);
+	console.log("not jp", notjp_names);
+}
+/**
+ * csvのチェック
+ * @alias EquipmentDatabase.check_csv
+ */
+function EquipmentDatabase_check_csv(){
+	// shipId は必須とする
+	let orig_csv_shiplist = EquipmentDatabase.csv_shiplist;
+	let shiplist = orig_csv_shiplist.filter(ln => +ln.shipId);
+	if (orig_csv_shiplist.length != shiplist.length) {
+		console.log("shipIdが定義されていない艦が存在");
+	}
+	shiplist.sort((a, b) => a.shipId - b.shipId);
+	if (shiplist.some((_c, i) => i + 1 < shiplist.length && shiplist[i].shipId == shiplist[i+1].shipId)) {
+		console.log("shipIdの重複があります");
+	}
+}
+
 // postMessage() するデータ
 // postMessage() の際にコピーされるはず
 // SharedArrayBuffer はそのまま転送してよい
@@ -264,24 +326,51 @@ function EquipmentDatabase_get_data(){
 		csv_equiplist        : EquipmentDatabase.csv_equiplist        ,
 		csv_equipable        : EquipmentDatabase.csv_equipable        ,
 		csv_equipbonus       : EquipmentDatabase.csv_equipbonus       ,
+		csv_enemies          : EquipmentDatabase.csv_enemies          ,
 		csv_equipable_support: EquipmentDatabase.csv_equipable_support,
-		bonusdata_array      : EquipmentDatabase.bonusdata_array      ,
 		equipment_data_map   : EquipmentDatabase.equipment_data_map   ,
 		equipment_max_number : EquipmentDatabase.equipment_max_number ,
+		jp_classes_map       : EquipmentDatabase.jp_classes_map       ,
 		initialized          : EquipmentDatabase.initialized          ,
+		// データ変換が必要なもの
+		bonusdata_array_json : EquipmentDatabase.bonusdata_array      ,
+		enemy_status_json    : EquipmentDatabase.enemy_status.getJson(),
 	};
 }
 
 function EquipmentDatabase_set_data(data){
 	Object.assign(EquipmentDatabase, data);
 	
-	// bonusdata_array だけ変換が必要
-	let arr = EquipmentDatabase.bonusdata_array;
-	for (let i=0; i<arr.length; i++) {
-		let bonus = new EquipmentBonusData();
-		Object.assign(bonus, arr[i]);
-		arr[i] = bonus;
+	// bonusdata_array の変換
+	if (EquipmentDatabase.bonusdata_array_json) {
+		let json = EquipmentDatabase.bonusdata_array_json;
+		let data = [];
+		for (let i=0; i<json.length; i++) {
+			let bonus = new EquipmentBonusData();
+			Object.assign(bonus, json[i]);
+			data.push(bonus);
+		}
+		EquipmentDatabase.bonusdata_array = data;
+		EquipmentDatabase.bonusdata_array_json = null;
 	}
+
+	if (EquipmentDatabase.enemy_status_json) {
+		let es = new EnemyStatus();
+		es.setJson(EquipmentDatabase.enemy_status_json);
+		EquipmentDatabase.enemy_status = es;
+		EquipmentDatabase.enemy_status_json = null;
+	}
+}
+
+/**
+ * ユーザーによって変わるデータの転送用
+ * 受信は set_data() でよい
+ * @alias EquipmentDatabase.get_userdata
+ */
+function EquipmentDatabase_get_userdata(){
+	return {
+		enemy_status_json    : EquipmentDatabase.enemy_status.getJson(),
+	};
 }
 
 
@@ -332,68 +421,70 @@ function EquipableInfo_generate_equipables(){
 		let exslot = i == slot_count;
 		let equipable = new Object;
 		
-		for (let d of csv_equipable) {
-			// 艦条件
-			let matched = false;
-			
-			if (d.shipNames) {
-				matched = d.shipNames == "*" || d.shipNames.split("|").indexOf(this.name) >= 0;
-			}
-			if (d.classNames && !matched) {
-				let cls = d.classNames.split("|");
-				matched = cls.indexOf(this.ship.className) >= 0;
-			}
-			if (d.shipTypes && !matched) {
-				let types = d.shipTypesArray;
-				let st = this.ship.shipTypeI || this.ship.shipType;
-				matched = types.indexOf(st) >= 0;
+		if (this.ship) {
+			for (let d of csv_equipable) {
+				// 艦条件
+				let matched = false;
 				
-				// matched = types.indexOf(this.ship.shipType) >= 0;
+				if (d.shipNames) {
+					matched = d.shipNames == "*" || d.shipNames.split("|").indexOf(this.name) >= 0;
+				}
+				if (d.classNames && !matched) {
+					let cls = d.classNames.split("|");
+					matched = cls.indexOf(this.ship.className) >= 0;
+				}
+				if (d.shipTypes && !matched) {
+					let types = d.shipTypesArray;
+					let st = this.ship.shipTypeI || this.ship.shipType;
+					matched = types.indexOf(st) >= 0;
+					
+					// matched = types.indexOf(this.ship.shipType) >= 0;
+					
+					// if (!matched && this.ship.shipType == "戦艦" && this.ship.speed == "高速" && types.indexOf("高速戦艦") >= 0) {
+					// 	matched = true;
+					// }
+					// if (!matched && this.ship.shipType == "陽字号駆逐艦" && types.indexOf("駆逐艦") >= 0) {
+					// 	matched = true;
+					// }
+				}
 				
-				// if (!matched && this.ship.shipType == "戦艦" && this.ship.speed == "高速" && types.indexOf("高速戦艦") >= 0) {
-				// 	matched = true;
-				// }
-				// if (!matched && this.ship.shipType == "陽字号駆逐艦" && types.indexOf("駆逐艦") >= 0) {
-				// 	matched = true;
-				// }
-			}
-			
-			if (!matched) continue;
-			
-			// スロット条件
-			// "*" は増設も含め全て
-			if (!d.slots) {
-				// 空は増設以外全て
-				if (exslot) continue;
+				if (!matched) continue;
 				
-			} else if (d.slots != "*") {
-				// スロット指定 (|区切り、増設は"-1")
-				let slot_text = exslot ? "-1" : String(i + 1);
-				if (d.slots.split("|").indexOf(slot_text) < 0) continue;
-			}
-			
-			// 装備可能性
-			let value = +d.equipable;
-			
-			if (d.equipIds) {
-				if (d.equipIds == "*") {
-					// "全て装備できない"のみ有効とする
-					if (!value) {
-						equipable = new Object;
-					}
-				} else {
-					for (let id of d.equipIds.split("|")) {
-						equipable[id] = value;
+				// スロット条件
+				// "*" は増設も含め全て
+				if (!d.slots) {
+					// 空は増設以外全て
+					if (exslot) continue;
+					
+				} else if (d.slots != "*") {
+					// スロット指定 (|区切り、増設は"-1")
+					let slot_text = exslot ? "-1" : String(i + 1);
+					if (d.slots.split("|").indexOf(slot_text) < 0) continue;
+				}
+				
+				// 装備可能性
+				let value = +d.equipable;
+				
+				if (d.equipIds) {
+					if (d.equipIds == "*") {
+						// "全て装備できない"のみ有効とする
+						if (!value) {
+							equipable = new Object;
+						}
+					} else {
+						for (let id of d.equipIds.split("|")) {
+							equipable[id] = value;
+						}
 					}
 				}
-			}
-			
-			if (d.equipCategories) {
-				let cates = d.equipCategories.split("|");
 				
-				for (let eq of EquipmentDatabase.csv_equiplist) {
-					if (cates.indexOf(eq.category) >= 0) {
-						equipable[eq.number] = value;
+				if (d.equipCategories) {
+					let cates = d.equipCategories.split("|");
+					
+					for (let eq of EquipmentDatabase.csv_equiplist) {
+						if (cates.indexOf(eq.category) >= 0) {
+							equipable[eq.number] = value;
+						}
 					}
 				}
 			}
@@ -700,6 +791,7 @@ function EquipmentSlot_set_json(json){
 	let star = +json.improvement;
 	if (!(0 <= star && star <= 10)) star = 0;
 	this.set_equipment(id, null, star);
+	return this;
 }
 
 function EquipmentSlot_get_power_min(cv_shelling){

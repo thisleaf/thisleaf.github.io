@@ -418,10 +418,30 @@ export function ELEMENT(tag, id_or_props, className){
 	return e;
 }
 
+/**
+ * EL(tag) := ELEMENT(tag) <br>
+ * EL(tag, array) := NODE(ELEMENT(tag), array) <br>
+ * EL(tag, object) := ELEMENT(tag, object) <br>
+ * EL(tag, object, array) := NODE(ELEMENT(tag, object), array)
+ * @param {string} tag 
+ * @param {*} arg1
+ * @param {*} arg2
+ */
+export function EL(tag, arg1, arg2){
+	if (arg2 instanceof Array) {
+		return NODE(ELEMENT(tag, arg1), arg2);
+	} else if (arg1 instanceof Array) {
+		return NODE(ELEMENT(tag), arg1)
+	} else {
+		return ELEMENT(tag, arg1 || null);
+	}
+}
+
 // text-node の生成
 export function TEXT(text){
 	return document.createTextNode(text);
 }
+export {TEXT as _T};
 
 // html版　DocumentFragmentを返す
 // そのまま appendChild() できる
@@ -430,6 +450,18 @@ export function HTML(html){
 	temp.innerHTML = html;
 	return temp.content;
 }
+
+// 改行を<br>に変換するver
+// DocumentFragmentを返す
+export function BRTEXT(text){
+	let temp = new DocumentFragment();
+	text.split(/\r\n|[\r\n]/).forEach((ln, i) => {
+		if (i > 0) temp.appendChild(ELEMENT("br"));
+		temp.appendChild(TEXT(ln));
+	});
+	return temp;
+}
+export {BRTEXT as _BT};
 
 
 // old version
@@ -538,8 +570,11 @@ export function formstr_to_float(value, empty_value, error_value){
 }
 
 
-// 文字実体参照を展開
-// str: 展開する文字列
+/**
+ * 文字実体参照を展開
+ * @param {string} str 展開する文字列
+ * @returns {string}
+ */
 export function unescape_charref(str){
 	if (!unescape_charref.element) {
 		unescape_charref.element = document.createElement("pre");
@@ -548,6 +583,15 @@ export function unescape_charref(str){
 		unescape_charref.element.innerHTML = x;
 		return unescape_charref.element.textContent;
 	});
+}
+
+/**
+ * 文字列をHTML文章のテキストに変換
+ * @param {string} str escapeする文字列
+ * @returns {string}
+ */
+export function escape_charref(str){
+	return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 }
 
 

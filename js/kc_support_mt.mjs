@@ -2,6 +2,7 @@
 
 import * as Util from "./utility.mjs";
 import * as Global from "./kc_support_global.mjs";
+import * as Debug from "./kc_support_debug.mjs";
 import {EquipmentDatabase} from "./kc_equipment.mjs";
 import {
 	SupportFleetScore,
@@ -51,10 +52,11 @@ function worker_terminator(){
 function worker_get(){
 	if (worker_pool.length > 0) {
 		let w = worker_pool.pop();
-		// 一応設定を送っておく
+		// 設定とデータを送っておく(変化している可能性があるため)
 		w.postMessage({
 			type: "settings",
 			settings: Global.Settings,
+			userdata: EquipmentDatabase.get_userdata(),
 		});
 		return w;
 	}
@@ -63,6 +65,7 @@ function worker_get(){
 	let url = new URL("./kc_support_worker.mjs", import.meta.url);
 	let worker = new Worker(url.href, {type: "module", name: "thread " + (++worker_run_count)});
 	// 初期化
+	// 設定とユーザーデータも転送される
 	worker.postMessage({
 		type: "initialize",
 		data: EquipmentDatabase.get_data(),
@@ -128,6 +131,7 @@ Object.assign(MultiThreadSearcher.prototype, {
 	max_score : null,
 	receive_count: 0,
 	max_found_at : 0, // maxが見つかったときのreceive_count
+	max_count    : 0,
 	end_date  : null,
 	
 	set_thread_count: MultiThreadSearcher_set_thread_count,
@@ -204,7 +208,7 @@ function MultiThreadSearcher_run(){
 	
 	// 探索用変数の初期化
 	let begin_result = Object.assign(new Object, this.search_data);
-	begin_result.score = new SupportFleetScorePrior(this.fleet.ssd_list);
+	begin_result.score = new SupportFleetScorePrior(this.fleet.ssd_list, 0, SupportFleetScore.MODE_VENEMY_DAMAGE);
 	
 	this.running = true;
 	this.continuous_running = this.continuous;
@@ -331,20 +335,25 @@ function MultiThreadSearcher_get_elapsed_time(){
 // 新規解の情報文字列
 // nullstr: 新しい解がないときも出力
 function MultiThreadSearcher_get_solution_info(nullstr = false, use_found_at = true){
-	return MultiThreadSearcher.get_score_diff(this.begin_score, this.max_score, this.search_data.search_type, nullstr, use_found_at ? this.max_found_at : -1);
+	return MultiThreadSearcher.get_score_diff(this.begin_score, this.max_score, this.search_data.search_type, nullstr, use_found_at ? this.max_found_at : -1, this.max_count, this.receive_count);
 }
 
 // 探索結果を受信
 function MultiThreadSearcher_receive_message(message){
 	this.receive_count++;
 	
-	let score = new SupportFleetScorePrior().set_json(message.score_data);
+	let score = new SupportFleetScorePrior(null, 0, SupportFleetScore.MODE_VENEMY_DAMAGE);
+	score.set_json(message.score_data);
 	
-	if (!this.max_score || this.compare_score(this.max_score, score) < 0) {
+	let comp = this.max_score ? this.compare_score(this.max_score, score) : -1;
+	if (comp < 0) {
 		this.max_result = message;
 		this.max_score = score;
 		this.max_result.score = score;
 		this.max_found_at = this.receive_count;
+		this.max_count = 1;
+	} else if (comp == 0) {
+		this.max_count++;
 	}
 	
 	// 受信時にイベントを発生させる
@@ -370,9 +379,17 @@ function MultiThreadSearcher_static_compare_score(a, b, search_type = ""){
 }
 
 
-function MultiThreadSearcher_static_get_score_diff(begin_score, end_score, search_type = "", nullstr = false, found_at = -1){
+function MultiThreadSearcher_static_get_score_diff(begin_score, end_score, search_type = "", nullstr = false, found_at = -1, max_count = -1, total_count = -1){
 	let text = "";
-	
+	let acc = sc => {
+		let ts = sc.total_score;
+		return ts.total_accuracy + ts.sub_total_accuracy;
+	};
+	let Pstr = sc => {
+		let ts = sc.total_score;
+		return ts.damage_score > 0 ? "P" + Util.float_to_string(ts.damage_score, 4) + "/" : "";
+	};
+
 	if (end_score && MultiThreadSearcher.compare_score(begin_score, end_score, search_type) < 0) {
 		let c1 = begin_score.compare_s1(end_score);
 		
@@ -385,11 +402,20 @@ function MultiThreadSearcher_static_get_score_diff(begin_score, end_score, searc
 		}
 		text += "(";
 		if (found_at >= 0) text += found_at + "/";
-		text += "命中" + end_score.total_score.total_accuracy + ")";
+		text += Pstr(end_score);
+		text += "命中" + acc(end_score) + ")";
 		
 	} else if (nullstr) {
-		text = "新規解なし";
-		text += "(命中" + begin_score.total_score.total_accuracy + ")";
+		text = "新規解なし(";
+		text += Pstr(end_score);
+		text += "命中" + acc(begin_score) + ")";
+	}
+
+	if (Debug.DEBUG_MODE && max_count > 0) {
+		text += "#" + max_count;
+		if (total_count > 0) {
+			text += " " + Util.float_to_string(max_count * 100 / total_count, 2) +"%";
+		}
 	}
 	
 	return text;

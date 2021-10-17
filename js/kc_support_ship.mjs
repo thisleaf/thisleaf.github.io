@@ -2,7 +2,7 @@
 
 import * as Global from "./kc_support_global.mjs";
 import * as Util from "./utility.mjs";
-import {NODE, ELEMENT, TEXT} from "./utility.mjs";
+import {DOM, NODE, ELEMENT, EL, TEXT, _T, BRTEXT, HTML} from "./utility.mjs";
 import {ShipSelector, ShipSelectorDialog} from "./kc_ship_selector.mjs";
 import {
 	EquipmentDatabase,
@@ -14,6 +14,8 @@ import {
 } from "./kc_equipment.mjs";
 import * as Damage from "./kc_damage_utility.mjs";
 import {DOMDialog} from "./dom_dialog.mjs";
+import {SupportShipData} from "./kc_support_ship_data.mjs";
+import {EnemyStatus, EnemyStatusData} from "./kc_enemy_status.mjs";
 
 export {
 	SupportShip,
@@ -27,6 +29,9 @@ Object.assign(SupportShip.prototype, {
 	// DOMオブジェクト
 	// tbodyにまとめる
 	e_tbody       : null,
+
+	e_panel: null,
+
 	// row
 	e_5th_equipment_row    : null,
 	e_exslot_equipment_row : null,
@@ -42,12 +47,20 @@ Object.assign(SupportShip.prototype, {
 	e_total_firepower_cell : null,
 	e_total_accuracy_cell  : null,
 	e_cost_cell            : null,
+	e_equipment_rows       : null, // array
+	e_fuel: null,
+	e_ammo: null,
+
+	e_target_div: null,
+	e_target_button: null,
+	
 	// form ほか
 	e_lvluck          : null, // div
 	e_lv              : null, // div
 	e_lv_number       : null,
 	e_luck            : null, // div
 	e_luck_number     : null,
+	e_condition_good  : null,
 	e_exslot_available: null,
 	e_priority        : null,
 	e_engagement      : null,
@@ -63,30 +76,29 @@ Object.assign(SupportShip.prototype, {
 	equipment_selects  : null, // array of EquipmentSelect
 	ex_equipment_select: null, // EquipmentSelect
 	
-	// 装備可能情報 (EquipableInfo)
-	equipable_info : null,
-	// 装備ボーナス情報 (EquipmentBonus)
-	equipment_bonus: null,
-	
 	// 左に表示する番号
 	number: 0,
 	// このオブジェクトを区別するID
 	object_id: "",
+	// データ (SupportShipData)
+	// 外部からのアクセスには get_ssd(), set_ssd() を利用すること
+	ssd: null,
+	// 装備フォームに対応する艦名
+	equipform_shipname: "",
+
 	// 艦名(改造度合いを含む)
-	name  : "",
-	// レベル, 運
-	level : -1,
-	luck  : -1,
+		// name  : "",
+	// レベル, 運 (入力値)
+		// level : -1,
+		// luck  : -1,
 
 	// 弾薬消費割合
 	ammocost_rate: 0.8,
-	// callback
-	onchange: null,
 	
 	// method
-	set_name           : SupportShip_set_name           ,
-	create             : SupportShip_create             ,
-	create_tbody       : SupportShip_create_tbody       ,
+	set_name           : SupportShip_set_name,
+	create             : SupportShip_create,
+	create_panel       : SupportShip_create_panel,
 	set_equipment_count: SupportShip_set_equipment_count,
 	empty              : SupportShip_empty,
 	is_cv_shelling     : SupportShip_is_cv_shelling,
@@ -106,18 +118,30 @@ Object.assign(SupportShip.prototype, {
 	get_raw_accuracy: SupportShip_get_raw_accuracy,
 	get_formation_value: SupportShip_get_formation_value,
 	
-	refresh_shipinfo    : SupportShip_refresh_shipinfo    ,
-	refresh_lvluck      : SupportShip_refresh_lvluck      ,
-	refresh_displaypower: SupportShip_refresh_displaypower,
-	refresh_equipstatus : SupportShip_refresh_equipstatus ,
+	recreate_equipform : SupportShip_recreate_equipform,
+	refresh            : SupportShip_refresh,
+	refresh_shipinfo   : SupportShip_refresh_shipinfo,
+	refresh_lvluck     : SupportShip_refresh_lvluck,
+	refresh_target     : SupportShip_refresh_target,
+	refresh_equipstatus: SupportShip_refresh_equipstatus,
+	refresh_probs      : SupportShip_refresh_probs,
 	
+	form_to_ssd: SupportShip_form_to_ssd,
+	ssd_to_form: SupportShip_ssd_to_form,
+	match_ssd: SupportShip_match_ssd,
+
 	// SupportShipData との変換
-	get_data: SupportShip_get_data,
-	set_data: SupportShip_set_data,
+	get_ssd: SupportShip_get_ssd,
+	set_ssd: SupportShip_set_ssd,
+
+	// get_ssd_dep : SupportShip_get_ssd_dep,
+	get_data: null,
+	set_data: null,
 	
 	// json
-	get_json: SupportShip_get_json,
-	set_json: SupportShip_set_json,
+	// ssdを使用するように変更
+	get_json: null,
+	set_json: null,
 	
 	// callback
 	call_onchange : SupportShip_call_onchange,
@@ -125,26 +149,42 @@ Object.assign(SupportShip.prototype, {
 	// event
 	ev_change_ship     : SupportShip_ev_change_ship     ,
 	ev_click_lvluck    : SupportShip_ev_click_lvluck    ,
+	ev_change_cond     : SupportShip_ev_change_cond     ,
 	ev_click_exavail   : SupportShip_ev_click_exavail   ,
 	ev_change_priority : SupportShip_ev_change_priority ,
 	ev_change_target   : SupportShip_ev_change_target   ,
 	ev_change_equipment: SupportShip_ev_change_equipment,
 });
 
+// 主に後方互換
+Object.defineProperties(SupportShip.prototype, {
+	name: {
+		get: function (){ return this.ssd.get_name(); },
+		set: function (n){ this.set_name(n); debugger; },
+	},
+	level: {
+		get: function (){ return this.ssd.input_level; },
+		set: function (n){ this.ssd.input_level = n; }
+	},
+	luck: {
+		get: function (){ return this.ssd.input_luck; },
+		set: function (n){ this.ssd.input_luck = n; }
+	},
+	// 装備可能情報 (EquipableInfo)
+	equipable_info : { get: function (){ return this.ssd.equipable_info; } },
+	// 装備ボーナス情報 (EquipmentBonus)
+	equipment_bonus: { get: function (){ return this.ssd.equipment_bonus; } },
+	// callback
+	onchange: {
+		set: function (f){ this.addEventListener("change", f); }
+	},
+});
+
 
 Object.assign(SupportShip, {
-	default_level: 99,
-	// 砲撃支援時、空母系とみなす shipType のリスト
-	// ちなみに速吸は空母系ではない
-	cv_shelling_types: [
-		"軽空母", "正規空母", "装甲空母", "夜間作戦航空母艦", "近代化航空母艦"
-	],
-	dd_types: [
-		"駆逐艦", "陽字号駆逐艦"
-	],
 	selector_dialog: null,
 	
-	get_border_power: SupportShip_static_get_border_power,
+	ss_to_ssd_json: SupportShip_ss_to_ssd_json,
 });
 
 
@@ -154,35 +194,47 @@ Object.assign(SupportShip, {
  * @param {number} number 
  * @param {string} object_id 
  * @constructor
- * @todo write jsdoc
+ * @extends {EventTarget}
  */
 function SupportShip(number, object_id){
+	Util.attach_event_target(this);
 	if (!object_id) debugger;
 	
 	this.number = number;
 	this.object_id = object_id;
+
+	this.ssd = new SupportShipData("");
 }
 
+/**
+ * 艦名を設定
+ * @param {string} name
+ * @method SupportShip#set_name
+ */
 function SupportShip_set_name(name){
-	this.name = name;
-	this.equipment_bonus = new EquipmentBonus(name, true);
-	
+	this.ssd.set_name(name);
+
 	// create() が呼んである場合
 	if (this.ship_selector) {
-		this.ship_selector.set_shipname(this.name);
-		this.refresh_shipinfo();
+		this.ssd_to_form();
 	}
 }
 
-// DOMの生成
-// ドラッグ＆ドロップ処理は他艦とも関係あるので SupportFleet に
+/**
+ * DOMの生成
+ * ドラッグ＆ドロップ処理は他艦とも関係あるので SupportFleet に
+ * @param {number} def_priority 
+ * @method SupportShip#create
+ */
 function SupportShip_create(def_priority){
 	// イベント関数など
 	let _change_target    = e => this.ev_change_target(e);
 	let _change_equipment = e => this.ev_change_equipment(e);
 	
 	let _renamer = eq => {
-		let str = "[";
+		let str = ""; 
+/*
+		str += "[";
 		if (this.is_cv_shelling()) {
 			str += Util.float_to_string((eq.firepower + eq.torpedo + eq.bombing * 1.3) * 1.5, 2, 0);
 		} else {
@@ -191,11 +243,13 @@ function SupportShip_create(def_priority){
 		if (this.equipment_bonus && this.equipment_bonus.bonus_exists(eq.number)) {
 			str += "+";
 		}
-		str += "/" + eq.accuracy + "] " + Util.unescape_charref(eq.name);
+		str += "/" + eq.accuracy + "] ";
+*/
+		str += Util.unescape_charref(eq.name);
 		return str;
 	};
 	
-	// 選択ダイアログ
+	// 艦娘選択ダイアログ
 	let dialog = SupportShip.selector_dialog;
 	if (!dialog) {
 		dialog = new ShipSelectorDialog();
@@ -207,7 +261,7 @@ function SupportShip_create(def_priority){
 	// 艦の選択・補強増設
 	this.ship_selector = new ShipSelector("popup", dialog);
 	this.ship_selector.onchange = name => this.ev_change_ship(name);
-	this.e_lvluck = NODE(ELEMENT("div.lvluck"), [
+	this.e_lvluck = NODE(ELEMENT("div.lvluck.row"), [
 		this.e_lv = NODE(ELEMENT("div.lv"), [
 			TEXT("Lv"),
 			this.e_lv_number = ELEMENT("span.lvnum"),
@@ -218,6 +272,8 @@ function SupportShip_create(def_priority){
 		]),
 	]);
 	this.e_lvluck.addEventListener("click", e => this.ev_click_lvluck(e));
+	this.e_condition_good = ELEMENT("input", {type: "checkbox"});
+	this.e_condition_good.addEventListener("change", e => this.ev_change_cond(e));
 	this.e_exslot_available = ELEMENT("input", {type: "checkbox"});
 	this.e_exslot_available.addEventListener("change", e => this.ev_click_exavail(e));
 	
@@ -232,6 +288,7 @@ function SupportShip_create(def_priority){
 	this.e_priority.selectedIndex = (1 <= def_priority && def_priority <= 12) ? def_priority - 1 : 0;
 	this.e_priority.addEventListener("change", e => this.ev_change_priority(e));
 	
+	// todo: 不要なオブジェクトの整理
 	// 火力目標
 	this.e_engagement = NODE(ELEMENT("select"),
 		Global.ENGAGEMENT_FORM_DEFINITION.map(d => {
@@ -260,230 +317,197 @@ function SupportShip_create(def_priority){
 	this.e_targetpower.addEventListener("change", _change_target);
 	
 	this.e_displaypower = ELEMENT("span", "", "displaypower");
-	this.refresh_displaypower();
 	
 	// 装備欄
-	this.equipable_info = new EquipableInfo("", true);
 	this.e_slot_fixes = new Array;
 	this.equipment_selects = new Array;
 	
 	for (let i=0; i<5; i++) {
-		this.e_slot_fixes[i] = ELEMENT("input", {type: "checkbox"});
+		this.e_slot_fixes[i] = ELEMENT("input.eq_fix", {type: "checkbox"});
 		this.e_slot_fixes[i].addEventListener("change", _change_equipment);
 		this.equipment_selects[i] = new EquipmentSelect;
 		this.equipment_selects[i].renamer = _renamer;
 		this.equipment_selects[i].onchange = _change_equipment;
 	}
-	this.e_exslot_fix = ELEMENT("input", {type: "checkbox"});
+	this.e_exslot_fix = ELEMENT("input.eq_fix", {type: "checkbox"});
 	this.e_exslot_fix.addEventListener("change", _change_equipment);
 	this.ex_equipment_select = new EquipmentSelect;
 	this.ex_equipment_select.renamer = _renamer;
 	this.ex_equipment_select.onchange = _change_equipment;
 	
-	// テーブル要素の生成
-	this.create_tbody();
+	this.create_panel();
 	
-	if (this.name) {
-		this.ship_selector.set_shipname(this.name);
+	if (!this.ssd.empty()) {
+		this.ship_selector.set_shipname(this.ssd.get_name());
 	}
-	this.refresh_shipinfo();
+	this.refresh();
 }
 
-// DOM生成のうち、table部分
-function SupportShip_create_tbody(){
-	let tbody = document.createElement("tbody");
-	
-	this.e_number_cell = ELEMENT("td", {textContent: this.number, rowSpan: 8, className: "number"});
-	
-	let selector_cell = NODE(ELEMENT("td", {colSpan: 2, rowSpan: 2, className: "shipcell"}), [
-		NODE(ELEMENT("div"), [
+/**
+ * パネルの生成
+ * @method SupportShip#create_panel
+ */
+function SupportShip_create_panel(){
+	this.e_panel = NODE(ELEMENT("div.panel"), [
+		// 番号、名前等
+		NODE(ELEMENT("div.panelheader.row"), [
+			this.e_number_cell = NODE(ELEMENT("div.number.hvcenter"), [TEXT(this.number)]),
 			this.ship_selector.e_shipname_div,
-			NODE(ELEMENT("div", "", "lvluckex"), [
+			NODE(ELEMENT("div.column.m2"), [
 				this.e_lvluck,
-				NODE(ELEMENT("div", "", "ex"), [
-					NODE(document.createElement("label"), [
-						this.e_exslot_available,
-						TEXT("増設"),
-					]),
-				])
+				NODE(ELEMENT("div.row"), [
+					NODE(ELEMENT("label"), [this.e_condition_good, TEXT("キラ")]),
+					NODE(ELEMENT("label"), [this.e_exslot_available, TEXT("増設")]),
+				]),
+			]),
+			NODE(ELEMENT("div.fuelammo.column.gap3.m2"), [
+				NODE(ELEMENT("div"), [TEXT("燃"), this.e_fuel = ELEMENT("span.fuel")]),
+				NODE(ELEMENT("div"), [TEXT("弾"), this.e_ammo = ELEMENT("span.ammo")]),
+			]),
+			NODE(ELEMENT("div.column.hcenter.m2.hidden"), [
+				NODE(ELEMENT("div.poweracc.row"), [
+					this.e_total_firepower_cell = ELEMENT("div.power.total"),
+					this.e_total_accuracy_cell = ELEMENT("div.acc.total"),
+				]),
 			]),
 		]),
+		// 優先度、目標設定
+		NODE(ELEMENT("div.row.gap4.topborder"), [
+			NODE(ELEMENT("div.priority.column.vcenter"), [
+				NODE(ELEMENT("div"), [TEXT("優先度")]),
+				NODE(ELEMENT("div"), [this.e_priority]),
+			]),
+			this.e_target_div = EL("div.goal.grow", [
+				this.e_target_button = EL("span.button.mr", [TEXT("目標")]),
+			]),
+		]),
+		// ツール
+		NODE(ELEMENT("div.tools.row.gap3.topborder.hidden"), [
+			ELEMENT("span.button", {textContent: "探索"}),
+			ELEMENT("span.button", {textContent: "分析"}),
+			ELEMENT("div.grow"),
+			ELEMENT("span.button", {textContent: "装備解除"}),
+		]),
+		// 対仮想敵
+		this.e_venemy_row = EL("div.venemy.column.topborder", [
+			this.e_venemy_probs_row = EL("div.probs.row",
+				this.e_venemy_probs = [
+					EL("div.damage_lv4"),
+					EL("div.damage_lv3"),
+					EL("div.damage_lv2"),
+					EL("div.damage_lv1"),
+					EL("div.damage_lv0"),
+					EL("div.miss"),
+				]
+			),
+			this.e_venemy_probbar_row = EL("div.probbar.row", 
+				this.e_venemy_bars = [
+					EL("div.bar.damage_lv4"),
+					EL("div.bar.damage_lv3"),
+					EL("div.bar.damage_lv2"),
+					EL("div.bar.damage_lv1"),
+					EL("div.bar.damage_lv0"),
+					EL("div.bar.miss"),
+				]
+			),
+		]),
+		// 火力
+		EL("div.fpwrow.row.topborder", [
+			EL("div.label", [_T("キャップ後")]),
+			this.e_postcap_power = EL("div.postcaps.grow"),
+			EL("div.grow"),
+			EL("div.label", [_T("表示火力")]),
+			this.e_display_power = EL("div.display_power"),
+			this.e_total_power = EL("div.total.eq_power"),
+			this.e_total_acc = EL("div.total.eq_acc"),
+		]),
 	]);
-	
-	let target_cell = NODE(ELEMENT("td", {colSpan: 1, rowSpan: 2, className: "targetcell"}), [
-		this.e_formation,
-		this.e_engagement,
-		TEXT(" キャップ後"),
-		this.e_targetpower,
-		ELEMENT("br"),
-		this.e_displaypower,
-	]);
-	
-	this.e_dragdrop_cells = new Array;
-	this.e_slot_firepower_cells = new Array;
-	this.e_slot_accuracy_cells = new Array;
+
+	// 装備
+	let e_eqrows = ELEMENT("div.eqrows.column.topborder");
+	let eqrows = [];
+	let dds = [];
+	let fpws = [];
+	let accs = [];
+
+	// 素火力行
+	eqrows.push(
+		NODE(ELEMENT("div.row"), [
+			this.e_rawfirepower_eq_cell = ELEMENT("div.shipbase"),
+			this.e_rawfirepower_cell = ELEMENT("div.eq_power"),
+			this.e_rawaccuracy_cell = ELEMENT("div.eq_acc"),
+		])
+	);
+	// 通常装備
 	for (let i=0; i<5; i++) {
-		this.e_dragdrop_cells[i] = ELEMENT("td", {className: "eq_dragdrop n_all", textContent: "E" + (i + 1)});
-		this.e_slot_firepower_cells[i] = Util.create_cell("td", "", 1, 1, "eq_firepower n_all");
-		this.e_slot_accuracy_cells[i] = Util.create_cell("td", "", 1, 1, "eq_accuracy n_tb n_l");
+		eqrows.push(
+			NODE(ELEMENT("div.row"), [
+				dds[i] = NODE(ELEMENT("div.eq_dragdrop"), [TEXT("E" + (i + 1))]),
+				this.e_slot_fixes[i],
+				this.equipment_selects[i].e_select,
+				this.equipment_selects[i].e_star,
+				fpws[i] = ELEMENT("div.eq_power"),
+				accs[i] = ELEMENT("div.eq_acc"),
+			])
+		);
 	}
-	this.e_dragdrop_cells[5]     = ELEMENT("td", {className: "eq_dragdrop n_all", textContent: "EX"});
-	this.e_exslot_firepower_cell = Util.create_cell("td", "", 1, 1, "eq_firepower n_all");
-	this.e_exslot_accuracy_cell  = Util.create_cell("td", "", 1, 1, "eq_accuracy n_tb n_l");
-	this.e_total_firepower_cell  = Util.create_cell("td", "", 1, 1, "eq_firepower total n_t n_rl");
-	this.e_total_accuracy_cell   = Util.create_cell("td", "", 1, 1, "eq_accuracy total n_t n_l");
+	// 増設装備
+	eqrows.push(
+		NODE(ELEMENT("div.row"), [
+			dds[5] = NODE(ELEMENT("div.eq_dragdrop"), [TEXT("EX")]),
+			this.e_exslot_fix,
+			this.ex_equipment_select.e_select,
+			this.ex_equipment_select.e_star,
+			fpws[5] = ELEMENT("div.eq_power"),
+			accs[5] = ELEMENT("div.eq_acc"),
+		])
+	);
+	this.e_exslot_firepower_cell = fpws[5];
+	this.e_exslot_accuracy_cell  = accs[5];
+	this.e_dragdrop_cells = dds;
+	this.e_slot_firepower_cells = fpws;
+	this.e_slot_accuracy_cells = accs;
+	this.e_equipment_rows = eqrows;
+
+	this.e_target_button.addEventListener("click", _e => {
+		let detail = {src: this};
+		this.dispatchEvent(new CustomEvent("click_target", {detail: detail}));
+	});
 	
-	this.e_tbody = NODE(tbody, [
-		Util.create_row([
-			this.e_number_cell,
-			selector_cell,
-			ELEMENT("td", "", "eq_dragdrop_cell n_all"),
-			ELEMENT("td", "", "eq_fix_cell n_all"),
-			this.e_rawfirepower_eq_cell = NODE(ELEMENT("td", "", "equipmentcell raw n_rl n_b"), [TEXT("素火力")]),
-			this.e_rawfirepower_cell = ELEMENT("td", "", "eq_firepower n_all"),
-			this.e_rawaccuracy_cell = ELEMENT("td", {textContent: "", className: "eq_accuracy n_b n_l"}),
-		]),
-		Util.create_row([
-			this.e_dragdrop_cells[0],
-			NODE(ELEMENT("td", "", "eq_fix n_all"), [this.e_slot_fixes[0]]),
-			NODE(ELEMENT("td", "", "n_all"), [
-				this.equipment_selects[0].e_select,
-				this.equipment_selects[0].e_star,
-			]),
-			this.e_slot_firepower_cells[0],
-			this.e_slot_accuracy_cells[0],
-		]),
-		Util.create_row([
-			NODE(ELEMENT("th", "", "priority"), [TEXT("優先度")]),
-			NODE(ELEMENT("td"), [this.e_priority]),
-			this.e_dragdrop_cells[1],
-			NODE(ELEMENT("td", "", "eq_fix n_all"), [this.e_slot_fixes[1]]),
-			NODE(ELEMENT("td", "", "n_all"), [
-				this.equipment_selects[1].e_select,
-				this.equipment_selects[1].e_star,
-			]),
-			this.e_slot_firepower_cells[1],
-			this.e_slot_accuracy_cells[1],
-		]),
-		Util.create_row([
-			Util.create_cell("th", "火力目標", 1, 2),
-			target_cell,
-			this.e_dragdrop_cells[2],
-			NODE(ELEMENT("td", "", "eq_fix n_all"), [this.e_slot_fixes[2]]),
-			NODE(ELEMENT("td", "", "n_all"), [
-				this.equipment_selects[2].e_select,
-				this.equipment_selects[2].e_star,
-			]),
-			this.e_slot_firepower_cells[2],
-			this.e_slot_accuracy_cells[2],
-		]),
-		Util.create_row([
-			this.e_dragdrop_cells[3],
-			NODE(ELEMENT("td", "", "eq_fix n_all"), [this.e_slot_fixes[3]]),
-			NODE(ELEMENT("td", "", "n_all"), [
-				this.equipment_selects[3].e_select,
-				this.equipment_selects[3].e_star,
-			]),
-			this.e_slot_firepower_cells[3],
-			this.e_slot_accuracy_cells[3],
-		]),
-		this.e_5th_equipment_row = Util.create_row([
-			Util.create_cell("td", "", 2, 1, "n_b"),
-			this.e_dragdrop_cells[4],
-			NODE(ELEMENT("td", "", "eq_fix n_all"), [this.e_slot_fixes[4]]),
-			NODE(ELEMENT("td", "", "n_all"), [
-				this.equipment_selects[4].e_select,
-				this.equipment_selects[4].e_star,
-			]),
-			this.e_slot_firepower_cells[4],
-			this.e_slot_accuracy_cells[4],
-		]),
-		this.e_exslot_equipment_row = Util.create_row([
-			Util.create_cell("td", "", 2, 1, "n_tb"),
-			this.e_dragdrop_cells[5],
-			NODE(ELEMENT("td", "", "eq_fix n_all"), [this.e_exslot_fix]),
-			NODE(ELEMENT("td", "", "n_all"), [
-				this.ex_equipment_select.e_select,
-				this.ex_equipment_select.e_star,
-			]),
-			this.e_exslot_firepower_cell,
-			this.e_exslot_accuracy_cell,
-		]),
-		Util.create_row([
-			NODE(ELEMENT("th"), [TEXT("消費")]),
-			this.e_cost_cell = ELEMENT("td", "", "cost"),
-			ELEMENT("td", "", "n_t n_r"),
-			ELEMENT("td", "", "n_t n_rl"),
-			ELEMENT("td", {textContent: "合計", className: "equipmentcell total n_t n_rl"}),
-			this.e_total_firepower_cell,
-			this.e_total_accuracy_cell,
-		]),
-	]);
+	NODE(e_eqrows, eqrows);
+	this.e_panel.appendChild(e_eqrows);
 }
 
-
-// 装備表示数の変更
-// 非表示中のフォームは .hidden
-// tr は .hidden_row
+/**
+ * 装備表示数の変更
+ * 非表示中のフォームは .hidden
+ * // tr は .hidden_row
+ * @param {number} count 通常スロット数
+ * @param {boolean} show_exslot 増設
+ * @method SupportShip#set_equipment_count
+ */
 function SupportShip_set_equipment_count(count, show_exslot){
-	for (let i=0; i<this.equipment_selects.length; i++) {
-		if (i < count) {
-			this.e_slot_fixes[i].classList.remove("hidden");
-			this.equipment_selects[i].e_select.classList.remove("hidden");
-			this.equipment_selects[i].e_star  .classList.remove("hidden");
-		} else {
-			this.e_slot_fixes[i].classList.add("hidden");
-			this.equipment_selects[i].e_select.classList.add("hidden");
-			this.equipment_selects[i].e_star  .classList.add("hidden");
-		}
+	// 素火力を含む行オブジェクト
+	let ilast = this.e_equipment_rows.length - 1;
+	for (let i=0; i<ilast; i++) {
+		this.e_equipment_rows[i].classList.toggle("hidden", i > count);
 	}
-	
-	if (show_exslot) {
-		this.e_exslot_fix.classList.remove("hidden");
-		this.ex_equipment_select.e_select.classList.remove("hidden");
-		this.ex_equipment_select.e_star  .classList.remove("hidden");
-	} else {
-		this.e_exslot_fix.classList.add("hidden");
-		this.ex_equipment_select.e_select.classList.add("hidden");
-		this.ex_equipment_select.e_star  .classList.add("hidden");
-	}
-	
-	for (let i=0; i<this.e_dragdrop_cells.length; i++) {
-		let text = "";
-		if (i < count && i < 5) text = "E" + (i + 1);
-		else if (show_exslot && i == 5) text = "EX";
-		this.e_dragdrop_cells[i].textContent = text;
-		this.e_dragdrop_cells[i].classList.toggle("eq_dragdrop", text != "");
-	}
-	
-	let rowspan = 1 + 4 + 1;
-	
-	if (count >= 5) {
-		this.e_5th_equipment_row.classList.remove("hidden_row");
-		rowspan++;
-	} else {
-		this.e_5th_equipment_row.classList.add("hidden_row");
-	}
-	if (show_exslot) {
-		this.e_exslot_equipment_row.classList.remove("hidden_row");
-		rowspan++;
-	} else {
-		this.e_exslot_equipment_row.classList.add("hidden_row");
-	}
-	
-	this.e_number_cell.rowSpan = rowspan;
+	// 増設
+	this.e_equipment_rows[ilast].classList.toggle("hidden", !show_exslot);
 }
 
 // 艦が選択されているかどうか
 function SupportShip_empty(){
-	return this.ship_selector.empty();
+	return this.ssd.empty();
 }
 
+// todo: move to ssd
 // 空母系計算式かどうか
 function SupportShip_is_cv_shelling(){
-	return ( this.equipable_info &&
-		this.equipable_info.ship &&
-		SupportShip.cv_shelling_types.indexOf(this.equipable_info.ship.shipTypeI || this.equipable_info.ship.shipType) >= 0 );
+	return this.ssd.is_cv_shelling();
+	// return ( this.equipable_info &&
+	// 	this.equipable_info.ship &&
+	// 	SupportShip.cv_shelling_types.indexOf(this.equipable_info.ship.shipTypeI || this.equipable_info.ship.shipType) >= 0 );
 }
 
 /**
@@ -492,11 +516,14 @@ function SupportShip_is_cv_shelling(){
  * @method SupportShip.prototype.is_dd
  */
 function SupportShip_is_dd(){
-	return ( this.equipable_info &&
-		this.equipable_info.ship &&
-		SupportShip.dd_types.indexOf(this.equipable_info.ship.shipTypeI || this.equipable_info.ship.shipType) >= 0);
+	return this.ssd.is_dd();
+	// return ( this.equipable_info &&
+	// 	this.equipable_info.ship &&
+	// 	SupportShip.dd_types.indexOf(this.equipable_info.ship.shipTypeI || this.equipable_info.ship.shipType) >= 0);
 }
 
+// 一括設定用関数
+/** @deprecated */
 function SupportShip_set_target(en_index, fm_index, targetpower){
 	this.e_engagement.selectedIndex = en_index;
 	this.e_formation.selectedIndex = fm_index;
@@ -504,19 +531,18 @@ function SupportShip_set_target(en_index, fm_index, targetpower){
 		this.e_targetpower.value = targetpower;
 	}
 	
-	this.refresh_displaypower();
 	this.refresh_equipstatus();
 }
 
 function SupportShip_set_ammocost_rate(new_rate){
 	if (this.ammocost_rate != new_rate) {
 		this.ammocost_rate = new_rate;
-		this.refresh_equipstatus();
+		this.refresh_shipinfo();
 	}
 }
 
 function SupportShip_get_fuelcost(){
-	let ship = this.ship_selector.get_ship();
+	let ship = this.ssd.ship;
 	let cost = 0;
 	if (ship) {
 		cost = Math.ceil(+ship.fuel * 0.5);
@@ -528,7 +554,7 @@ function SupportShip_get_fuelcost(){
 }
 
 function SupportShip_get_ammocost(){
-	let ship = this.ship_selector.get_ship();
+	let ship = this.ssd.ship;
 	let cost = 0;
 	if (ship) {
 		cost = Math.ceil(+ship.ammo * this.ammocost_rate);
@@ -540,44 +566,30 @@ function SupportShip_get_ammocost(){
 }
 
 function SupportShip_clear(priority){
-	this.set_name("");
-	this.set_target(1, 0, 151);
+	// this.set_name("");
+	// this.set_target(1, 0, Global.SUPPORT_POWER_CAP + 1);
+	// if (priority) {
+	// 	this.e_priority.value = priority;
+	// }
+	let ssd = new SupportShipData("");
 	if (priority) {
-		this.e_priority.value = priority;
+		ssd.priority = priority;
+	} else {
+		ssd.priority = +this.e_priority.value;
 	}
+	this.set_ssd(ssd);
 }
 
-// データの入れ替え
-// number とかは入れ替えない
+/**
+ * データの入れ替え
+ * number とかは入れ替えない
+ * @param {SupportShip} ship 
+ * @method SupportShip#swap_data
+ */
 function SupportShip_swap_data(ship){
-	// 装備データについては SupportShipData を使うことにする
-	let this_ssd = new SupportShipData;
-	let ship_ssd = new SupportShipData;
-	if (!this.get_data(this_ssd) || !ship.get_data(ship_ssd)) return;
-	
-	let _swap_property = (a, b, prop) => {
-		let temp = a[prop];
-		a[prop] = b[prop];
-		b[prop] = temp;
-	};
-	
-	// 入れ替え
-	//_swap_property(this                   , ship                   , "ammocost_rate");
-	_swap_property(this.e_exslot_available, ship.e_exslot_available, "checked"      );
-	_swap_property(this.e_priority        , ship.e_priority        , "value"        );
-	_swap_property(this.e_engagement      , ship.e_engagement      , "selectedIndex");
-	_swap_property(this.e_formation       , ship.e_formation       , "selectedIndex");
-	_swap_property(this.e_targetpower     , ship.e_targetpower     , "value"        );
-	
-	// set_name() で表示の更新・フォームも作り直される
-	let this_name = this.name;
-	this.set_name(ship.name);
-	ship.set_name(this_name);
-	
-	// 装備をセット
-	// (装備の)表示の更新も行われるはず
-	this.set_data(ship_ssd);
-	ship.set_data(this_ssd);
+	let this_ssd = this.get_ssd();
+	this.set_ssd(ship.get_ssd());
+	ship.set_ssd(this_ssd);
 }
 
 // 常に5スロ+増設の分のオブジェクトを用意しているが、その index 番目が現在入力可能かどうか
@@ -608,7 +620,7 @@ function SupportShip_get_slot_info(index){
 // レベル情報
 function SupportShip_get_level_info(){
 	let level = this.level;
-	if (level < 0) level = SupportShip.default_level;
+	if (level < 0) level = SupportShipData.default_level;
 	return {
 		level     : level,
 		raw_level : this.level,
@@ -622,7 +634,7 @@ function SupportShip_set_level(level){
 
 // 運の情報
 function SupportShip_get_luck_info(){
-	let ship = this.ship_selector.get_ship();
+	let ship = this.ssd.ship;
 	let luck = this.luck;
 	let min_luck = ship?.luckMin ? +ship.luckMin : -1;
 	let max_luck = ship?.luckMax ? +ship.luckMax : -1;
@@ -653,8 +665,7 @@ function SupportShip_set_luck(luck){
 }
 
 /**
- * @method get_raw_accurac
- * @memberof SupportShip.prototype
+ * @method SupportShip#get_raw_accuracy
  */
 function SupportShip_get_raw_accuracy(){
 	let level = this.get_level_info().level;
@@ -671,39 +682,62 @@ function SupportShip_get_formation_value(){
 	return d ? d.support : 1;
 }
 
-// 艦情報を更新 (フォームから)
-function SupportShip_refresh_shipinfo(suppress_refresh = false){
-	let name = this.ship_selector.get_shipname();
-	
-	this.name = name;
-	this.equipable_info.set_name(name);
-	this.equipable_info.generate_equipables();
-	
-	let slot_count = this.equipable_info.get_slot_count();
-	let exavail = name && this.e_exslot_available.checked;
-	this.set_equipment_count(slot_count, exavail);
-	
-	for (let i=0; i<5; i++) {
-		this.equipment_selects[i].recreate_options(this.equipable_info.slot_equipables[i], null, true);
+
+/**
+ * 装備フォームを再生成する
+ * ssd.equipable_info を利用
+ * @param {boolean} [force_recreate=false] 強制的に再生成する
+ * @method SupportShip#recreate_equipform
+ */
+function SupportShip_recreate_equipform(force_recreate = false){
+	let name = this.ssd.get_name();
+
+	if (force_recreate || name != this.equipform_shipname) {
+		let info = this.ssd.equipable_info;
+		for (let i=0; i<5; i++) {
+			this.equipment_selects[i].recreate_options(info.slot_equipables[i], null, true);
+		}
+		this.ex_equipment_select.recreate_options(info.exslot_equipable, null, true);
+		this.equipform_shipname = name;
 	}
-	this.ex_equipment_select.recreate_options(this.equipable_info.exslot_equipable, null, true);
-	
-	if (!suppress_refresh) {
-		this.refresh_lvluck();
-		this.refresh_displaypower();
-		this.refresh_equipstatus();
-	}
+}
+
+
+/**
+ * 全ての表示を更新する
+ * フォームには関与しない
+ * @param {boolean} [recalc_ssd=false] ssdの一時変数を再計算。敵艦情報が変わった場合など
+ * @method SupportShip#refresh
+ */
+function SupportShip_refresh(recalc_ssd = false){
+	if (recalc_ssd) this.ssd.set_cachevars();
+	this.refresh_shipinfo();
+	this.refresh_lvluck();
+	this.refresh_target();
+	this.refresh_equipstatus();
+	this.refresh_probs();
+}
+
+
+/**
+ * その他の表示の更新
+ * @method SupportShip#refresh_shipinfo
+ */
+function SupportShip_refresh_shipinfo(){
+	// 消費(砲撃支援)
+	let exists = !this.ssd.empty();
+	this.e_fuel.textContent = exists ? this.get_fuelcost() : 0;
+	this.e_ammo.textContent = exists ? this.get_ammocost() : 0;
 }
 
 /**
  * レベル・運の欄(div)を更新
  * 変更された場合は refresh_equipstatus() の方も呼ぶ必要がある
  * ヘッダーのほうも変更の必要があるかも
- * @method refresh_lvluck
- * @memberof SupportShip.prototype
+ * @method SupportShip#refresh_lvluck
  */
 function SupportShip_refresh_lvluck(){
-	if (this.empty()) {
+	if (this.ssd.empty()) {
 		this.e_lv_number.textContent = " -";
 		this.e_lv.classList.toggle("inputted", false);
 		this.e_lv.classList.toggle("married", false);
@@ -725,75 +759,147 @@ function SupportShip_refresh_lvluck(){
 }
 
 /**
- * 目標火力欄：表示火力の更新
- * selectのクラスも設定
- * @method SupportShip#refresh_displaypower
+ * 探索目標の更新
+ * @method SupportShip#refresh_target
  */
-function SupportShip_refresh_displaypower(){
-	let en = Util.formstr_to_float(this.e_engagement.value, 1, 1);
-	let fm = this.get_formation_value();
-	let tp = Util.formstr_to_float(this.e_targetpower.value, 0, 0);
-	
-	let bp = SupportShip.get_border_power(en.value, fm, tp.value);
-	let dp = bp - (5 + Global.SUPPORT_MODIFY);
-	
-	Util.remove_children(this.e_displaypower);
-	
-	if (bp > 0) {
-		NODE(this.e_displaypower, [
-			TEXT("基本攻撃力"),
-			ELEMENT("span", {className: "power basic", textContent: bp}),
-		]);
-		if (!this.is_cv_shelling() && dp > 0) {
-			NODE(this.e_displaypower, [
-				TEXT(" (表示火力"),
-				ELEMENT("span", {className: "power display", textContent: dp}),
-				TEXT(")"),
-			]);
+function SupportShip_refresh_target(){
+	let e_target_div = this.e_target_div;
+	Util.remove_children(e_target_div);
+
+	// [探索目標] 陣形 / 交戦形態
+	let sfm = this.ssd.attack_score.atk_formation_def;
+	let efm = this.ssd.attack_score.def_formation_def;
+	let eng = this.ssd.attack_score.engagementform_def;
+
+	NODE(e_target_div, [
+		this.e_target_button,
+		EL("span.self." + sfm.className, [TEXT(sfm.name)]),
+		TEXT(" vs "),
+		EL("span.enemy." + efm.className, [TEXT(efm.name)]),
+		TEXT(" / "),
+		EL("span." + eng.className, [TEXT(eng.name)]),
+		EL("br"),
+	]);
+
+	if (this.ssd.targeting_mode == Global.TARGETING_VENEMY) {
+		// 仮想敵モード
+		let name = "";
+		let st = null;
+
+		if (this.ssd.target_id == EnemyStatus.ID_EMPTY) {
+			name = "(未選択)";
+		} else if (this.ssd.target_id == EnemyStatus.ID_DIRECTINPUT) {
+			name = "直接入力";
+			st = EnemyStatusData.createDirectInput(this.ssd.target_hp, this.ssd.target_armor, this.ssd.target_evasion, this.ssd.target_luck);
+		} else {
+			name = this.ssd.target_id + ": ";
+			st = EquipmentDatabase.enemy_status.getStatus(this.ssd.target_id);
+			name += st.csv_exists ? st.csv.name : "?";
 		}
+		if (st) {
+			st.default_value = "??";
+			name += " (HP" + st.HP + "/装甲" + st.armor + "/回避" + st.evasion + "/運" + st.luck + ")";
+		}
+
+		let damage_text = "";
+		let app = "";
+		if (st && st.HP >= 1) {
+			if (this.ssd.need_damage == 0) {
+				damage_text = "命中率";
+
+			} else {
+				damage_text = "ダメージ" + this.ssd.need_damage + "以上の確率";
+
+				let borders = this.ssd.attack_score.getNeedBorders();
+				let damage_names = ["撃沈", "大破以上", "中破以上"];
+				for (let i=0; i<damage_names.length; i++) {
+					if (this.ssd.need_damage == borders[i]) {
+						app = damage_names[i];
+						break;
+					}
+				}
+			}
+		}
+		if (app) app = " (" + app + ")";
+		
+		NODE(e_target_div, [
+			_T(name),
+			EL("br"),
+			_T(damage_text + app),
+		]);
+		
 	} else {
-		NODE(this.e_displaypower, [TEXT("条件なし")]);
+		// 火力目標モード
+		let postcap = this.ssd.targeting_mode == Global.TARGETING_POSTCAP;
+		let border = this.ssd.border_power;
+		let fm = this.ssd.attack_score.formation_power;
+		let en = this.ssd.attack_score.engagement_power;
+		let bp = postcap ?
+			SupportShipData.postcap_to_base(en, fm, border) :
+			SupportShipData.precap_to_base(en, fm, border);
+		let dp = bp - (5 + Global.SUPPORT_MODIFY);
+		
+		NODE(e_target_div, [
+			_T((postcap ? "キャップ後" : "キャップ前") + "攻撃力"),
+			EL("span.border_power", [TEXT(this.ssd.border_power)]),
+			_T("以上"),
+			EL("br"),
+		]);
+		
+		if (bp > 0) {
+			NODE(e_target_div, [
+				_T("基本攻撃力"),
+				EL("span.basic_power", [_T(bp)]),
+			]);
+			if (!this.ssd.empty() && !this.ssd.cv_shelling && dp > 0) {
+				NODE(e_target_div, [
+					_T(" (表示火力"),
+					EL("span.display_power", [_T(dp)]),
+					_T(")"),
+				]);
+			}
+		} else {
+			NODE(e_target_div, [_T("火力条件なし")]);
+		}
 	}
-	
-	Util.inherit_option_class(this.e_engagement);
-	Util.inherit_option_class(this.e_formation);
 }
 
-// 装備火力等を更新
+/**
+ * 装備に関する部分の表示を更新
+ * @method SupportShip#refresh_equipstatus
+ */
 function SupportShip_refresh_equipstatus(){
-	let ssd = new SupportShipData;
-	let slot_count = this.equipable_info.get_slot_count();
+	let ssd = this.ssd;
+	let slot_count = ssd.slot_count;
 	let ilim = this.equipment_selects.length + 1;
+	let exists = !this.ssd.empty();
+	let exavail = exists && this.e_exslot_available.checked;
+	// 装備表示数
+	this.set_equipment_count(slot_count, exavail);
 	
-	let exists = this.get_data(ssd);
-	
+	// 素火力行
 	if (exists) {
-		this.e_rawfirepower_eq_cell.textContent = "素火力 (" + ssd.raw_firepower + ")";
+		this.e_rawfirepower_eq_cell.textContent = "素火力 (" + ssd.raw_firepower + ") / 基礎命中 (Lv" + ssd.level + " 運" + ssd.luck +")";
+		// 基礎火力
 		if (ssd.cv_shelling) {
 			this.e_rawfirepower_cell.textContent = Util.float_to_string((ssd.raw_firepower + Global.SUPPORT_MODIFY) * 1.5 + 55, 2, 0);
 		} else {
 			this.e_rawfirepower_cell.textContent = ssd.raw_firepower + 5 + Global.SUPPORT_MODIFY;
 		}
-		// TODO: 基礎命中の表示
-		// 混乱防止のため、探索に適用されるまで非表示
-		// let raw_acc = this.get_raw_accuracy();
-		// this.e_rawaccuracy_cell.textContent = Util.float_to_string(raw_acc, 0, -1);
-		// this.e_rawaccuracy_cell.title = "2 * sqrt(Lv) + 1.5 * sqrt(運)\n= " + String(raw_acc);
-		this.e_rawaccuracy_cell.textContent = "";
+		// 基礎命中
+		this.e_rawaccuracy_cell.textContent = Util.float_to_string(ssd.raw_accuracy, 0, -1);
 
-		ssd.calc_bonus();
-		
 	} else {
-		this.e_rawfirepower_eq_cell.textContent = "素火力";
+		this.e_rawfirepower_eq_cell.textContent = "素火力 / 基礎命中";
 		this.e_rawfirepower_cell.textContent = "";
 		this.e_rawaccuracy_cell.textContent = "";
-		this.e_rawaccuracy_cell.title = "";
 	}
-	
-	// 反映
+
+	// 装備のステータスと装備ボーナス
+	ssd.calc_bonus();
+
 	for (let i=0; i<ilim; i++) {
 		// let enabled = i < slot_count || (ssd.exslot_available && i == ilim - 1);
-		
 		let fpcell = i < 5 ? this.e_slot_firepower_cells[i] : this.e_exslot_firepower_cell;
 		let accell = i < 5 ? this.e_slot_accuracy_cells[i] : this.e_exslot_accuracy_cell;
 		
@@ -823,15 +929,17 @@ function SupportShip_refresh_equipstatus(){
 		accell.textContent = accell_text;
 	}
 	
-	// TODO: 表示される命中合計に基礎命中を適用
 	// 合計
 	let tfp_text = "", tfp_hint = "", tac_text = "";
-	let fpw_good = false, fpw_bad = false;
-	let acc_good = false, acc_bad = false;
+	let fpw_good = false, fpw_bad = false, fpw_between = false, fpw_cl1bad = false;
+	let acc_good = false, acc_bad = false, acc_between = false;
+	let dpw_text = "-";
+	let finals_text = "-";
+
 	if (exists) {
 		let basic = ssd.get_basic_power();
-		let final = ssd.get_final_power();
-		let acc = ssd.get_accuracy();
+		let eq_acc = ssd.get_equipment_accuracy();
+		let acc = Math.floor(ssd.get_accuracy());
 		
 		tfp_text = basic;
 		if (basic > 0) {
@@ -849,15 +957,39 @@ function SupportShip_refresh_equipstatus(){
 			tfp_hint += _get_final("T字不利") + " / ";
 			tfp_hint += _get_final("T字有利") + "\n";
 			tfp_hint += "(同航/反航/T不利/T有利)\n";
+			
+			dpw_text = ssd.get_display_power();
+			finals_text = _get_final("同航戦") + " / ";
+			finals_text += _get_final("反航戦") + " / ";
+			finals_text += _get_final("T字不利") + " / ";
+			finals_text += _get_final("T字有利");
 		} else {
 			tfp_hint += "攻撃不可";
 		}
-		tac_text = acc;
+		tac_text = Util.float_to_string(eq_acc + ssd.raw_accuracy, 0, -1);
 		
-		fpw_good = basic > 0 && basic >= ssd.border_basic_power;
-		fpw_bad = basic <= 0 || basic < ssd.border_basic_power;
-		acc_good = acc > 0;
-		acc_bad = acc < 0;
+		if (ssd.targeting_mode == Global.TARGETING_VENEMY) {
+			// 仮想敵モードの場合
+			if (ssd.attack_score.good()) {
+				// 火力
+				let inf = SupportShipData.postcap_to_base(ssd.attack_score.engagement_power, ssd.attack_score.formation_power, ssd.attack_score.power_infimum);
+				let inf2 = SupportShipData.postcap_to_base(ssd.attack_score.engagement_power, ssd.attack_score.formation_power, Math.ceil(ssd.attack_score.power_infimum / 1.5));
+				fpw_good = basic > 0 && basic >= ssd.border_basic_power;
+				fpw_bad = basic <= 0 || basic <= inf2;
+				fpw_cl1bad = !fpw_bad && basic <= inf;
+				fpw_between = !(fpw_good || fpw_cl1bad || fpw_bad);
+				// 命中
+				acc_good = acc >= ssd.attack_score.accuracy_supremum;
+				acc_bad = acc <= ssd.attack_score.accuracy_infimum;
+				acc_between = !(acc_good || acc_bad);
+			}
+
+		} else {
+			fpw_good = basic > 0 && basic >= ssd.border_basic_power;
+			fpw_bad = basic <= 0 || basic < ssd.border_basic_power;
+			acc_good = eq_acc >= 0;
+			acc_bad = eq_acc < 0;
+		}
 	}
 	this.e_total_firepower_cell.textContent = tfp_text;
 	this.e_total_firepower_cell.title = tfp_hint;
@@ -868,184 +1000,242 @@ function SupportShip_refresh_equipstatus(){
 	this.e_total_accuracy_cell.classList.toggle("good", acc_good);
 	this.e_total_accuracy_cell.classList.toggle("bad", acc_bad);
 	
-	// 消費(砲撃支援)
-	let cost_html = "";
-	if (exists) {
-		let fuel_cost = this.get_fuelcost();
-		let ammo_cost = this.get_ammocost();
-		cost_html = '燃料<span class="fuel">' + fuel_cost + '</span> + 弾薬<span class="ammo">' +
-			ammo_cost + '</span> = <span class="fuelammo">' + (fuel_cost + ammo_cost) + '</span>';
-	}
-	this.e_cost_cell.innerHTML = cost_html;
+	// キャップ後火力行
+	this.e_postcap_power.textContent = finals_text;
+	this.e_postcap_power.title = "同航戦 / 反航戦 / T字不利 / T字有利";
+	this.e_display_power.textContent = dpw_text;
+	this.e_total_power.textContent = tfp_text;
+	this.e_total_power.classList.toggle("good", fpw_good);
+	this.e_total_power.classList.toggle("between", fpw_between);
+	this.e_total_power.classList.toggle("cl1bad", fpw_cl1bad);
+	this.e_total_power.classList.toggle("bad", fpw_bad);
+	this.e_total_acc.textContent = tac_text;
+	this.e_total_acc.classList.toggle("good", acc_good);
+	this.e_total_acc.classList.toggle("between", acc_between);
+	this.e_total_acc.classList.toggle("bad", acc_bad);
 }
-
 
 /**
- * @method SupportShip#get_data
+ * ダメージの確率表示を更新
+ * @alias SupportShip#refresh_probs
  */
-function SupportShip_get_data(data){
-	//data.support_ship = this;
-	data.ship_object_id = this.object_id;
-	data.ship_name = this.name;
-	
-	if (this.empty()) {
-		return false;
+function SupportShip_refresh_probs(){
+	let noprob = this.ssd.empty() || this.ssd.targeting_mode != Global.TARGETING_VENEMY || !this.ssd.attack_score.good();
+
+	this.ssd.calc_bonus();
+	let final = this.ssd.get_final_power();
+	let acc = this.ssd.get_accuracy();
+	// 攻撃不可 (空母など)
+	if (final <= 0) noprob = true;
+	let probs = noprob ? new Array(5).fill(0) : this.ssd.attack_score.getProbs(final, acc);
+
+	let set = (text_div, bar_div, p, text_over = "") => {
+		let text = text_over || (p > 0 ? Util.float_to_string(p * 100, 1) + "%" : "");
+		let size = Util.float_to_string(p * 100, 3) + "%";
+		text_div.textContent = text;
+		text_div.classList.toggle("exists", text != "");
+		text_div.style.flexBasis = size;
+		bar_div.style.flexBasis = size;
+	};
+
+	let hints = [];
+	let miss = 1;
+	for (let i=0; i<probs.length; i++) {
+		set(this.e_venemy_probs[i], this.e_venemy_bars[i], probs[i]);
+		miss -= probs[i];
+		if (probs[i] > 0) {
+			hints.push(Damage.DAMAGE_KEYS_R[i] + ": " + Util.float_to_string(probs[i] * 100, 3) + "%");
+		}
 	}
-	
-	let ship = this.equipable_info.ship;
-	
-	let pr = Util.formstr_to_int(this.e_priority.value, 12, 12);
-	let en = Util.formstr_to_float(this.e_engagement.value, 1, 1);
-	let fm = this.get_formation_value();
-	let tp = Util.formstr_to_float(this.e_targetpower.value, 0, 0);
-	
-	let bp = SupportShip.get_border_power(en.value, fm, tp.value);
-	
-	data.priority = pr.value;
-	//data.power_modifier = en * fm;
-	data.engagementform_modify = en.value;
-	data.formation_modify = fm;
-	data.level = this.get_level_info().level;
-	data.luck = this.get_luck_info().luck;
-	data.border_final_power = tp.value;
-	data.border_basic_power = bp >= 1 ? bp : 1; // 最低1とする(0が攻撃不可を表す)
-	data.raw_firepower = +this.equipable_info.ship.firepowerMax;
-	data.raw_accuracy = this.get_raw_accuracy();
-	data.cv_shelling = this.is_cv_shelling();
-	
-	data.slot_count       = this.equipable_info.get_slot_count();
-	data.exslot_available = this.e_exslot_available.checked;
-	
-	let slots = new Array;
-	let equipables = new Array;
-	let fixes = new Array;
-	
-	for (let i=0; i<data.slot_count; i++) {
-		let sel = this.equipment_selects[i];
-		slots[i] = new EquipmentSlot(+sel.get_id(), null, sel.get_star());
-		equipables[i] = this.equipable_info.slot_equipables[i];
-		fixes[i] = this.e_slot_fixes[i].checked;
+	set(this.e_venemy_probs[probs.length], this.e_venemy_bars[probs.length], miss, noprob ? "N/A" : "");
+	if (!noprob) {
+		hints.push("miss: " + Util.float_to_string(miss * 100, 3) + "%");
 	}
-	
-	if (data.exslot_available) {
-		let sel = this.ex_equipment_select;
-		slots.push(new EquipmentSlot(+sel.get_id(), null, sel.get_star()));
-		equipables.push(this.equipable_info.exslot_equipable);
-		fixes.push(this.e_exslot_fix.checked);
-	}
-	
-	data.allslot_equipment  = slots;
-	data.allslot_equipables = equipables;
-	data.allslot_fixes = fixes;
-	
-	data.equipment_bonus = this.equipment_bonus;
-	
-	return true;
+	this.e_venemy_row.title = hints.join("\n");
 }
 
-// データのセットだが、これは装備のデータについてのみ
-function SupportShip_set_data(data){
+/**
+ * フォーム(DOM)のデータをthis.ssdへ
+ * キラ、増設、優先度、装備、固定状態 (、艦名)
+ * @method SupportShip#form_to_ssd
+ */
+function SupportShip_form_to_ssd(){
+	let ssd = this.ssd;
+	ssd.condition_good = this.e_condition_good.checked;
+	ssd.priority = Util.formstr_to_int(this.e_priority.value, 12, 12).value;
+	ssd.exslot_available = this.e_exslot_available.checked;
+
+	let ids = new Array(6).fill(0);
+	let stars = new Array(6).fill(0);
+	let fixes = new Array(6).fill(false);
+
+	if (!ssd.empty()) {
+		for (let i=0; i<ssd.slot_count; i++) {
+			let sel = this.equipment_selects[i];
+			ids[i] = +sel.get_id();
+			stars[i] = sel.get_star();
+			fixes[i] = this.e_slot_fixes[i].checked;
+		}
+		
+		if (ssd.exslot_available) {
+			let i = 5, sel = this.ex_equipment_select;
+			ids[i] = +sel.get_id();
+			stars[i] = sel.get_star();
+			fixes[i] = this.e_exslot_fix.checked;
+		}
+	}
+	
+	ssd.equipment_ids = ids;
+	ssd.equipment_stars = stars;
+	ssd.equipment_fixes = fixes;
+
+	// 名前は同期するはずだが念の為
+	ssd.set_name(this.ship_selector.get_shipname());
+	// ssd.set_cachevars(); // set_name()で呼ばれる
+}
+
+/**
+ * this.ssdのデータをフォームに
+ * 表示は自動更新
+ * @method SupportShip#ssd_to_form
+ */
+function SupportShip_ssd_to_form(){
+	let ssd = this.ssd;
+	this.e_condition_good.checked = ssd.condition_good;
+	this.e_priority.value = ssd.priority;
+	this.e_exslot_available.checked = ssd.exslot_available;
+
+	if (this.ship_selector.get_shipname() != ssd.get_name()) {
+		this.ship_selector.set_shipname(ssd.get_name());
+	}
+	// 装備フォームの再生成
+	this.recreate_equipform();
+
+	// 装備フォームにデータをセット
 	for (let i=0; i<this.equipment_selects.length; i++) {
 		let val = "", fix = false;
 		let star = 0;
-		
 		// 通常スロット有効部
-		if (i < data.slot_count) {
-			val = data.allslot_equipment[i].equipment_id || "";
-			fix = data.allslot_fixes[i];
-			star = data.allslot_equipment[i].improvement;
+		if (i < ssd.slot_count) {
+			val = ssd.equipment_ids[i] || "";
+			fix = ssd.equipment_fixes[i] ?? false;
+			star = ssd.equipment_stars[i] ?? 0;
 		}
-		
 		this.equipment_selects[i].set_id_star(val, star);
 		this.e_slot_fixes[i].checked = fix;
 	}
-	
-	this.e_exslot_available.checked = data.exslot_available;
-	
+
+	// 増設
 	let ex_val = "", ex_fix = false;
 	let ex_star = 0;
-	
-	if (data.exslot_available) {
-		let r = data.allslot_equipment.length - 1;
-		ex_val = data.allslot_equipment[r].equipment_id || "";
-		ex_fix = data.allslot_fixes[r];
-		ex_star = data.allslot_equipment[r].improvement;
+	if (ssd.exslot_available && !ssd.empty()) {
+		let r = 5;
+		ex_val = ssd.equipment_ids[r] || "";
+		ex_fix = ssd.equipment_fixes[r] ?? false;
+		ex_star = ssd.equipment_stars[r] ?? 0;
 	}
-	
 	this.ex_equipment_select.set_id_star(ex_val, ex_star);
 	this.e_exslot_fix.checked = ex_fix;
-	
-	this.refresh_equipstatus();
+
+	// 表示の更新
+	this.refresh();
 }
 
-function SupportShip_get_json(){
-	// 要素の追加や削除を考慮して表示名で保存しておくことにする
-	function _text(select){
-		return select.selectedIndex >= 0 ? select.options[select.selectedIndex].textContent : "";
-	}
-	
-	return {
-		name             : this.name,
-		level            : this.level,
-		luck             : this.luck,
-		exslot_available : this.e_exslot_available.checked,
-		priority         : this.e_priority.value,
-		engagement       : _text(this.e_engagement),
-		formation        : this.e_formation.value,
-		targetpower      : this.e_targetpower.value,
-		slot_fixes       : this.e_slot_fixes.map(e => e.checked),
-		exslot_fix       : this.e_exslot_fix.checked,
-		equipment_ids    : this.equipment_selects.map(sel => sel.get_id()),
-		equipment_stars  : this.equipment_selects.map(sel => sel.get_star()),
-		ex_equipment_id  : this.ex_equipment_select.get_id(),
-		ex_equipment_star: this.ex_equipment_select.get_star(),
+/**
+ * このオブジェクトに対応するssdかどうか
+ * @param {SupportShipData} ssd 
+ * @returns {boolean}
+ * @alias SupportShip#match_ssd
+ */
+function SupportShip_match_ssd(ssd){
+	return this.object_id == ssd.ship_object_id;
+}
+
+/**
+ * SupportShipData 形式でデータのコピーを得る
+ * @returns {SupportShipData}
+ * @method SupportShip#get_ssd
+ */
+function SupportShip_get_ssd(){
+	let ssd = this.ssd.clone();
+	ssd.ship_object_id = this.object_id;
+	delete ssd.cv_force_attackable;
+	return ssd;
+}
+
+/**
+ * SupportShipData 形式でデータを設定する
+ * @param {SupportShipData} ssd
+ * @method SupportShip#set_ssd
+ */
+function SupportShip_set_ssd(ssd){
+	this.ssd = ssd.clone();
+	this.ssd_to_form();
+}
+
+/**
+ * 旧JSON(SupportShip用)を新JSON(SupportShipData用)に変換
+ * @param {*} src
+ * @returns {*}
+ * @alias SupportShip.ss_to_ssd_json
+ */
+function SupportShip_ss_to_ssd_json(src){
+	if (!src) return null;
+
+	let ship = EquipmentDatabase.csv_shiplist.find(d => d.name == src.name);
+	let json = Object.assign({}, src, {
+		ship_id: ship?.shipId,
+		input_level: src.level,
+		input_luck : src.luck,
+		priority : +src.priority,
+		exslot_available: src.exslot_available ? 1 : 0,
+	});
+
+	let duparray = (out, arr, type, len = out.length) => {
+		for (let i=0; i<len; i++) {
+			out[i] = arr?.[i] ?? out[i];
+			if (type) out[i] = type(out[i]);
+		}
+		return out;
 	};
+
+	json.equipment_ids = duparray(new Array(6).fill(0), json.equipment_ids, Number);
+	json.equipment_stars = duparray(new Array(6).fill(0), json.equipment_stars, Number);
+	json.equipment_fixes = duparray(new Array(6).fill(0), json.slot_fixes, Number);
+	json.equipment_ids[5] = +(json.ex_equipment_id ?? 0);
+	json.equipment_stars[5] = +(json.ex_equipment_star ?? 0);
+	json.equipment_fixes[5] = +(json.exslot_fix ?? 0);
+
+	json.self_formation = Global.FORMATION_DEFINITION_EX.find(x => x.keys?.includes(json.formation))?.id ?? 1;
+	json.engagementform = Global.ENGAGEMENT_FORM_DEFINITION.find(x => x.keys?.includes(json.engagement))?.id ?? 1;
+	json.targeting_mode = Global.TARGETING_POSTCAP;
+	json.border_power   = +(json.targetpower ?? SupportShipData.prototype.border_power);
+	// 他はデフォルト値
+
+	// 不要なプロパティ
+	let dels = [
+		"name", "level", "luck",
+		"ex_equipment_id", "ex_equipment_star", "slot_fixes", "exslot_fix",
+		"formation", "engagement", "targetpower",
+	];
+	for (let key of dels) delete json[key];
+
+	return json;
 }
 
-function SupportShip_set_json(json){
-	this.clear();
-	if (!json) return;
-	
-	function _set_by_text(select, text){
-		for (let i=0; i<select.options.length; i++) {
-			if (select.options[i].textContent == text) {
-				select.selectedIndex = i;
-				return;
-			}
-		}
-	}
-	function _foreach2(arr1, arr2, func){
-		if (!arr1 || !arr2) return;
-		for (let i=0; i<arr1.length; i++) {
-			func(arr1[i], arr2[i]);
-		}
-	}
-	
-	this.set_name(json.name || "");
-	this.level = json.level >= 0 ? json.level : -1;
-	this.luck = json.luck >= 0 ? json.luck : -1;
-	this.e_exslot_available.checked = json.exslot_available;
-	this.e_priority.value = json.priority;
-	_set_by_text(this.e_engagement, json.engagement);
-	this.e_formation.value = json.formation;
-	this.e_targetpower.value = json.targetpower;
-	_foreach2(this.e_slot_fixes, json.slot_fixes, (e, b) => e.checked = b);
-	this.e_exslot_fix.checked = json.exslot_fix;
-	_foreach2(this.equipment_selects, json.equipment_ids, (sel, id) => sel.set_id(id));
-	_foreach2(this.equipment_selects, json.equipment_stars, (sel, star) => sel.set_star(star));
-	this.ex_equipment_select.set_id(json.ex_equipment_id);
-	this.ex_equipment_select.set_star(json.ex_equipment_star || 0);
-	
-	this.refresh_shipinfo();
-}
-
+/**
+ * changeイベントをdispatch
+ * @method SupportShip#call_onchange
+ * @protected
+ */
 function SupportShip_call_onchange(){
-	if (this.onchange) this.onchange.call(null);
+	this.dispatchEvent(new CustomEvent("change"));
 }
 
 
 function SupportShip_ev_change_ship(name){
-	this.set_name(name);
+	this.ssd.set_name(name);
+	this.ssd_to_form();
 	this.call_onchange();
 }
 
@@ -1058,8 +1248,11 @@ function SupportShip_ev_click_lvluck(e){
 		if (code == "ok") {
 			this.set_level(dialog.level);
 			this.set_luck(dialog.luck);
+			this.ssd.set_cachevars();
+			this.refresh_shipinfo();
 			this.refresh_lvluck();
 			this.refresh_equipstatus();
+			this.refresh_probs();
 			this.call_onchange();
 		}
 		dialog.dispose();
@@ -1072,41 +1265,37 @@ function SupportShip_ev_click_lvluck(e){
 	dialog.move_to(x, y);
 }
 
+function SupportShip_ev_change_cond(){
+	this.form_to_ssd();
+	this.refresh_equipstatus();
+	this.refresh_probs();
+	this.call_onchange();
+}
+
 function SupportShip_ev_click_exavail(){
-	this.refresh_shipinfo();
+	this.form_to_ssd();
+	this.refresh_equipstatus();
+	this.refresh_probs();
 	this.call_onchange();
 }
 
 function SupportShip_ev_change_priority(){
+	this.form_to_ssd();
 	this.call_onchange();
 }
 
 function SupportShip_ev_change_target(){
-	this.refresh_displaypower();
+	this.refresh_target();
 	this.refresh_equipstatus();
+	this.refresh_probs();
 	this.call_onchange();
 }
 
 function SupportShip_ev_change_equipment(){
+	this.form_to_ssd();
 	this.refresh_equipstatus();
+	this.refresh_probs();
 	this.call_onchange();
-}
-
-
-// sqrtcap(bp * en * fm) >= tp なる最小の整数 bp を返す
-// dp = bp - (5 + Global.SUPPORT_MODIFY) が表示火力になる
-function SupportShip_static_get_border_power(engagement_form, formation, target_power){
-	// 最初の bp はだいたいあっているが、計算誤差の都合で確定ではない
-	// とはいえ、修正しても実際の艦これと合っているかは微妙ではあるが
-	let bpmin = Damage.inv_sqrtcap(target_power, Global.SUPPORT_POWER_CAP) / formation / engagement_form;
-	let bp = Math.ceil(bpmin);
-	
-	let f = bp => Damage.sqrtcap(bp * engagement_form * formation, Global.SUPPORT_POWER_CAP);
-	
-	if (f(bp) < target_power) bp++;
-	else if (f(bp - 1) >= target_power) bp--;
-	
-	return bp;
 }
 
 
@@ -1289,574 +1478,3 @@ class SupportShipLvLuckDialog extends DOMDialog {
 		this.refresh_info();
 	}
 };
-
-// SupportShipData ---------------------------------------------------------------------------------
-// SupportShip のデータを計算用に
-Object.assign(SupportShipData.prototype, {
-	//support_ship: null,
-	ship_object_id: "",
-	ship_name     : "",
-	
-	// 優先度
-	priority: 0,
-	// 交戦形態等の修正
-//	power_modifier: 1, // 乗算の順番が変わるが気にしないことにする
-	// やっぱり気になったので
-	engagementform_modify: 1,
-	formation_modify     : 1,
-	
-	// レベル・運
-	// 負数で初期値を表す
-	level: -1,
-	luck : -1,
-
-	// 目標攻撃力
-//	border_display_power: 150, // 表示火力だが、空母系が…
-	border_basic_power: 150, // 基本攻撃力
-	border_final_power: 150, // 最終攻撃力
-	// 素火力
-	raw_firepower: 0,
-	// 基礎命中
-	raw_accuracy : 0,
-	// 空母系(計算式)かどうか
-	cv_shelling  : false,
-	// 空母系で艦載機がなくても攻撃可能として攻撃力を計算するか
-	cv_force_attackable: false,
-	
-	// スロット数(増設除く)
-	slot_count      : 0,
-	// 増設が利用可能か
-	exslot_available: false,
-	
-	// スロットの有効部のみを抽出
-	// 増設が有効の場合は、ラストが増設であるものとする
-	allslot_equipment : null, // array of EquipmentSlot
-	allslot_equipables: null, // array of map: id -> bool
-	allslot_fixes     : null, // array of bool
-	
-	equipment_bonus   : null, // EquipmentBonus
-	
-	clone              : SupportShipData_clone            ,
-	clear_bonus        : SupportShipData_clear_bonus      ,
-	calc_bonus         : SupportShipData_calc_bonus       ,
-	get_display_power  : SupportShipData_get_display_power,
-	get_basic_power    : SupportShipData_get_basic_power  ,
-	get_final_power    : SupportShipData_get_final_power  ,
-	get_bonus_firepower: SupportShipData_get_bonus_firepower,
-	get_bonus_torpedo  : SupportShipData_get_bonus_torpedo,
-	get_accuracy       : SupportShipData_get_accuracy     ,
-	get_equipment_priority: SupportShipData_get_equipment_priority,
-	sort_equipment     : SupportShipData_sort_equipment   ,
-	is_upper_equipment : SupportShipData_is_upper_equipment,
-	
-	get_json_deckbuilder: SupportShipData_get_json_deckbuilder,
-	get_json_MT: SupportShipData_get_json_MT,
-	set_json_MT: SupportShipData_set_json_MT,
-	
-	eqab_compare        : SupportShipData_eqab_compare,
-	has_irregular_exslot: SupportShipData_has_irregular_exslot,
-	power_compare       : SupportShipData_power_compare,
-	accuracy_compare    : SupportShipData_accuracy_compare,
-	priority_compare    : SupportShipData_priority_compare,
-});
-
-Object.assign(SupportShipData, {
-	power_compare       : SupportShipData_static_power_compare,
-	accuracy_compare    : SupportShipData_accuracy_compare,
-	priority_compare    : SupportShipData_priority_compare,
-});
-
-/**
- * @constructor
- */
-function SupportShipData(){
-}
-
-// 複製
-// deeply を指定すると、allslot_equipables と allslot_fixes についても配列の複製を行う
-// (通常は読み取りのみのはず)
-function SupportShipData_clone(deeply){
-	let ssd = Object.assign(new SupportShipData, this);
-	
-	// 通常は allslot_equipment の内容だけ複製すればよい
-	ssd.allslot_equipment = this.allslot_equipment.map(slot => slot.clone());
-	
-	if (deeply) {
-		ssd.allslot_equipables = this.allslot_equipables.concat();
-		ssd.allslot_fixes = this.allslot_fixes.concat();
-	}
-	
-	return ssd;
-}
-
-function SupportShipData_clear_bonus(){
-	for (let i=0; i<this.allslot_equipment.length; i++) {
-		this.allslot_equipment[i].clear_bonus();
-	}
-}
-
-function SupportShipData_calc_bonus(){
-	this.equipment_bonus.get_bonus(this.allslot_equipment, false);
-}
-
-// 表示火力
-// 先にボーナス値を計算しておく
-function SupportShipData_get_display_power(){
-	let power = this.raw_firepower;
-	for (let i=0; i<this.allslot_equipment.length; i++) {
-		let slot = this.allslot_equipment[i];
-		if (slot.equipment_data) {
-			power += slot.equipment_data.firepower + slot.bonus_firepower;
-		}
-	}
-	return power;
-}
-
-// 基本攻撃力
-// これも先にボーナス値を計算しておく
-// 攻撃できないときは0、ただしスコア計算モードの場合は-1000される
-function SupportShipData_get_basic_power(score_mode = false){
-	if (this.cv_shelling) {
-		let fire = this.raw_firepower;
-		let torp = 0;
-		let bomb = 0;
-		let attackable = this.cv_force_attackable;
-		
-		for (let i=0; i<this.allslot_equipment.length; i++) {
-			let slot = this.allslot_equipment[i];
-			let data = slot.equipment_data;
-			
-			if (data) {
-				fire += data.firepower + slot.bonus_firepower;
-				torp += data.torpedo; //  + slot.bonus_torpedo; // ボーナスはないかも？
-				bomb += data.bombing;
-				
-				if (!attackable) {
-					// 艦攻・艦爆を一つは装備していないと攻撃できない
-					//attackable = data.category == "艦上爆撃機" || data.category == "艦上攻撃機" || data.category == "噴式戦闘爆撃機";
-					attackable = data.cv_attackable;
-				}
-			}
-		}
-		
-		let power;
-		if (attackable) {
-			power = Math.floor((fire + torp + Math.floor(bomb * 1.3) + Global.SUPPORT_MODIFY) * 1.5) + 55;
-		} else if (score_mode) {
-			power = Math.floor((fire + torp + Math.floor(bomb * 1.3) + Global.SUPPORT_MODIFY) * 1.5) + 55 - 1000;
-		} else {
-			power = 0;
-		}
-		return power;
-		
-	} else {
-		return this.get_display_power() + 5 + Global.SUPPORT_MODIFY;
-	}
-}
-
-function SupportShipData_get_final_power(){
-	let power = this.get_basic_power();
-	let precap = power * this.engagementform_modify * this.formation_modify;
-	return Math.floor(Damage.sqrtcap(precap, Global.SUPPORT_POWER_CAP));
-}
-
-function SupportShipData_get_bonus_firepower(){
-	let fpw = 0;
-	for (let i=0; i<this.allslot_equipment.length; i++) {
-		let slot = this.allslot_equipment[i];
-		let data = slot.equipment_data;
-		if (data) {
-			fpw += slot.bonus_firepower;
-		}
-	}
-	return fpw;
-}
-
-function SupportShipData_get_bonus_torpedo(){
-	let tor = 0;
-	for (let i=0; i<this.allslot_equipment.length; i++) {
-		let slot = this.allslot_equipment[i];
-		let data = slot.equipment_data;
-		if (data) {
-			tor += slot.bonus_torpedo;
-		}
-	}
-	return tor;
-}
-
-/**
- * 命中値 = floor(基礎命中 + 装備命中)
- * の予定だが探索の都合で基礎命中の反映はまだ
- * @method get_accuracy
- * @memberof SupportShipData.prototype
- * @todo 基礎命中の反映
- */ 
-function SupportShipData_get_accuracy(){
-	let acc = 0;
-	// let acc = this.raw_accuracy;
-	for (let i=0; i<this.allslot_equipment.length; i++) {
-		let data = this.allslot_equipment[i].equipment_data;
-		if (data) {
-			acc += data.accuracy;
-		}
-	}
-	return Math.floor(acc);
-}
-
-// 装備優先度の合計
-function SupportShipData_get_equipment_priority(){
-	let p = 0;
-	for (let i=0; i<this.allslot_equipment.length; i++) {
-		let data = this.allslot_equipment[i].equipment_data;
-		if (data) {
-			p += data.priority;
-		}
-	}
-	return p;
-}
-
-// 装備のソート
-function SupportShipData_sort_equipment(sort_by, use_category){
-	// 装備の比較(a, b: slot)
-	let _compare_equip = (a, b) => {
-		let eq_a = a.equipment_data;
-		let eq_b = b.equipment_data;
-		
-		// 攻撃力 (降順)
-		let c_pow = b.get_power_float(this.cv_shelling, true, true) - a.get_power_float(this.cv_shelling, true, true);
-		// 命中 (降順)
-		let c_acc = eq_b.accuracy - eq_a.accuracy;
-		// id (昇順)
-		let c_id = eq_a.number - eq_b.number;
-		// 改修値 (降順)
-		let c_star = b.improvement - a.improvement;
-		// category (定義順)
-		// use_category が true の場合にのみ、sort_by より優先して使用
-		let c_cat = 0;
-		if (use_category) {
-			c_cat = _category_index(eq_a.category) - _category_index(eq_b.category);
-		}
-		
-		return (
-			sort_by == Global.SORT_BY_POWER    ? (c_cat || c_pow || c_acc || c_id || c_star) :
-			sort_by == Global.SORT_BY_ACCURACY ? (c_cat || c_acc || c_pow || c_id || c_star) :
-			/* sort_by == Global.SORT_BY_ID */   (c_cat || c_id || c_star || c_pow || c_acc)
-		);
-	};
-	let _category_index = (cat) => {
-		let index = Global.SORT_CATEGORY_DEF.indexOf(cat);
-		if (index < 0) index = Global.SORT_CATEGORY_DEF.length;
-		return index;
-	};
-	
-	// slot の比較(i, j: 位置)
-	// 正順-1/同値0/逆順1
-	// 交換不可は同値としておく
-	let _compare = (i, j) => {
-		let a = this.allslot_equipment[i];
-		let b = this.allslot_equipment[j];
-		let eq_a = a.equipment_data;
-		let eq_b = b.equipment_data;
-		
-		// 固定
-		if (this.allslot_fixes[i] || this.allslot_fixes[j]) return 0;
-		// 空チェック
-		if (eq_a && !eq_b) return -1;
-		if (!eq_a && eq_b) return 1;
-		if (!eq_a && !eq_b) return 0;
-		// 交換可能かどうか
-		let eqab_a = this.allslot_equipables[i];
-		let eqab_b = this.allslot_equipables[j];
-		if (!eqab_a[b.equipment_id] || !eqab_b[a.equipment_id]) return 0;
-		
-		return _compare_equip(a, b);
-	};
-	let _check_and_swap = (i, j) => {
-		if (_compare(i, j) > 0) {
-			let a = this.allslot_equipment[i];
-			this.allslot_equipment[i] = this.allslot_equipment[j];
-			this.allslot_equipment[j] = a;
-			return true;
-		}
-		return false;
-	};
-	
-	// ボーナスは装備本数によっても変わるため、単体ボーナスのみ考慮してソートすることにする
-	for (let i=0; i<this.allslot_equipment.length; i++) {
-		this.equipment_bonus.get_independent_bonus(this.allslot_equipment[i]);
-	}
-	
-	LOOP:
-	for (;;) {
-		// 隣り合うもの
-		for (let i=0; i<this.allslot_equipment.length-1; i++) {
-			let j = i + 1;
-			if (_check_and_swap(i, j)) continue LOOP;
-		}
-		// 隣り合わないもの
-		for (let i=0; i<this.allslot_equipment.length; i++)
-		for (let j=i+2; j<this.allslot_equipment.length; j++)
-		{
-			if (_check_and_swap(i, j)) continue LOOP;
-		}
-		break;
-	}
-	
-	this.calc_bonus();
-}
-
-
-// この艦に装備する際に、常に upper >= base と考えて良いかを判定する
-// upper, base: 装備データオブジェクト(csv)
-function SupportShipData_is_upper_equipment(upper, base){
-	let upper_fpw = upper.firepower;
-	let upper_tor = upper.torpedo;
-	let base_fpw = base.firepower;
-	let base_tor = base.torpedo;
-	
-	let bonus = this.equipment_bonus;
-	
-	// 装備優先度
-	if (upper.priority < base.priority) return false;
-	
-	// シナジーボーナスについて
-	if (bonus.assist_exists(base.number)) {
-		// 同一種類のものでないならば不明とする
-		if (!bonus.same_assist(upper.number, base.number)) return false;
-	}
-	
-	if (bonus.bonus_exists(base.number)) {
-		// 自身への装備ボーナスあり
-		// どのくらいのボーナスがあるか分からないので、最大値で考えることにする
-		let slot = new EquipmentSlot(base.number, base, 10);
-		bonus.get_max_bonus(slot);
-		base_fpw += slot.bonus_firepower;
-		//base_tor += slot.bonus_torpedo;
-	}
-	// upperは最小値
-	if (bonus.bonus_independent(upper.number)) {
-		let slot = new EquipmentSlot(upper.number, upper, 0);
-		bonus.get_independent_bonus(slot);
-		upper_fpw += slot.bonus_firepower;
-		//upper_tor += slot.bonus_torpedo;
-	}
-	
-	// ステータス比較
-	if ( this.cv_shelling
-		?	upper_fpw      >= base_fpw &&
-			upper_tor      >= base_tor &&
-			upper.bombing  >= base.bombing &&
-			upper.accuracy >= base.accuracy
-		:	upper_fpw      >= base_fpw &&
-			upper.accuracy >= base.accuracy )
-	{
-		return true;
-	}
-	
-	return false;
-}
-
-// デッキビルダー形式
-// IDが定義されていない場合は"0"
-/* {
-	id: '100', lv: 40, luck: -1,
-	items:{ // 装備
-		// id: ID, rf: 改修, mas: 熟練度
-		i1:{id:1, rf: 4, mas:7},
-		i2:{id:3, rf: 0},
-		...,
-		ix:{id:43} // 増設
-	}
-} */
-function SupportShipData_get_json_deckbuilder(){
-	let airplane_cates = [
-		"艦上偵察機", "艦上攻撃機", "艦上爆撃機", "噴式戦闘爆撃機",
-		"水上偵察機", "多用途水上機/水上爆撃機", "水上戦闘機",
-	];
-	
-	let ship = EquipmentDatabase.csv_shiplist.find(d => d.name == this.ship_name);
-	let json = {
-		id: String(ship?.shipId || "0"),
-		lv: this.level >= 0 ? this.level : 99,
-		luck: this.luck >= 0 ? this.luck : -1,
-		items: {},
-	};
-	
-	for (let i=0; i<this.allslot_equipment.length; i++) {
-		let item_key;
-		if (this.exslot_available && i == this.allslot_equipment.length - 1) {
-			// 増設
-			item_key = "ix";
-		} else {
-			item_key = "i" + (i + 1);
-		}
-		
-		let slot = this.allslot_equipment[i];
-		if (slot.equipment_id) {
-			json.items[item_key] = {
-				id: slot.equipment_id,
-				rf: slot.improvement,
-			};
-			if (airplane_cates.indexOf(slot.equipment_data.category) >= 0) {
-				json.items[item_key].mas = 7;
-			}
-		}
-	}
-	
-	return json;
-}
-
-// サブスレッドへの転送用
-function SupportShipData_get_json_MT(){
-	// いくつかは変換する
-	return {
-		ship_object_id       : this.ship_object_id       ,
-		ship_name            : this.ship_name            ,
-		priority             : this.priority             ,
-		engagementform_modify: this.engagementform_modify,
-		formation_modify     : this.formation_modify     ,
-		level: this.level,
-		luck : this.luck,
-		border_basic_power   : this.border_basic_power   ,
-		border_final_power   : this.border_final_power   ,
-		raw_firepower        : this.raw_firepower        ,
-		raw_accuracy         : this.raw_accuracy         ,
-		cv_shelling          : this.cv_shelling          ,
-		cv_force_attackable  : this.cv_force_attackable  ,
-		slot_count           : this.slot_count           ,
-		exslot_available     : this.exslot_available     ,
-		allslot_equipment    : this.allslot_equipment.map(s => s.get_json()),
-		allslot_equipables   : this.allslot_equipables   ,
-		allslot_fixes        : this.allslot_fixes        ,
-		//equipment_bonus_name : this.equipment_bonus.name , // ship_name
-	};
-}
-
-function SupportShipData_set_json_MT(json){
-	this.ship_object_id       = json.ship_object_id       ,
-	this.ship_name            = json.ship_name            ,
-	this.priority             = json.priority             ,
-	this.engagementform_modify= json.engagementform_modify,
-	this.formation_modify     = json.formation_modify     ,
-	this.level = this.level,
-	this.luck  = this.luck,
-	this.border_basic_power   = json.border_basic_power   ,
-	this.border_final_power   = json.border_final_power   ,
-	this.raw_firepower        = json.raw_firepower        ,
-	this.raw_accuracy         = json.raw_accuracy         ,
-	this.cv_shelling          = json.cv_shelling          ,
-	this.cv_force_attackable  = json.cv_force_attackable  ,
-	this.slot_count           = json.slot_count           ,
-	this.exslot_available     = json.exslot_available     ,
-	this.allslot_equipment    = json.allslot_equipment.map(d => {
-		let sl = new EquipmentSlot();
-		sl.set_json(d);
-		return sl;
-	}),
-	this.allslot_equipables   = json.allslot_equipables   ,
-	this.allslot_fixes        = json.allslot_fixes        ,
-	this.equipment_bonus = new EquipmentBonus(json.ship_name, true);
-}
-
-
-// 2つの装備の、この艦への装備可能条件に関する包含関係
-// ただし固定されているスロットは除く
-// a, b: 装備ID
-// mainslot: 通常の装備スロットについて
-// exslot: 増設スロットについて
-function SupportShipData_eqab_compare(a, b, mainslot = true, exslot = false){
-	let a_inc_b = true; // bが装備可能⇒aが装備可能、a⊃b である
-	let b_inc_a = true; // b⊃a
-	
-	let ibegin = mainslot ? 0 : this.slot_count;
-	let iend   = exslot ? this.allslot_equipment.length : this.slot_count;
-	
-	for (let i=ibegin; i<iend; i++) {
-		if (this.allslot_fixes[i]) continue;
-		let eqab = this.allslot_equipables[i];
-		
-		if (eqab[a] && !eqab[b]) b_inc_a = false;
-		if (eqab[b] && !eqab[a]) a_inc_b = false;
-	}
-	
-	let c = 0;
-	if (a_inc_b && b_inc_a) { // 同等
-	} else if (a_inc_b) {     // a⊃b
-		c = 1;
-	} else if (b_inc_a) {     // b⊃a
-		c = -1;
-	} else {
-/*
-		// 含むでも含まれるでもない
-		// 艦これのシステムならこれはないと仮定する
-		// …が、増設に見張員が積めるようになってしまったので、夕張などで発生することに
-		console.log("warning: 装備可能条件が仮定を満たさない");
-		debugger;
-*/
-	}
-	return c;
-}
-
-// 装備可能条件が特殊な(非固定)増設スロットを持つか
-// 特殊とは、増設に装備可能だが通常の(非固定)スロットのいずれかに装備できない装備があること
-// ids: 装備IDのリスト　省略すると全ての装備
-function SupportShipData_has_irregular_exslot(ids = null){
-	// 増設スロット位置
-	let ex_index = this.slot_count;
-	if (!this.exslot_available || this.allslot_fixes[ex_index]) return false;
-	
-	// 比較する通常スロットの位置
-	let last_index = -1;
-	for (let r=0; r<ex_index; r++) {
-		let i = ex_index - r - 1;
-		if (!this.allslot_fixes[i]) {
-			last_index = i;
-			break;
-		}
-	}
-	if (last_index < 0) return false;
-	
-	let last_eqab = this.allslot_equipables[last_index];
-	let ex_eqab = this.allslot_equipables[ex_index];
-	let keys = ids || Object.keys(ex_eqab);
-	
-	for (let i=0; i<keys.length; i++) {
-		if (ex_eqab[keys[i]] && !last_eqab[keys[i]]) return true;
-	}
-	
-	return false;
-}
-
-// 砲撃戦火力で比較　装備ボーナスはなし
-// a, b: 装備ID
-// 厳密には、整数化の都合でこの順番にならない場合がある
-function SupportShipData_power_compare(a, b){
-	let da = EquipmentDatabase.equipment_data_map[a];
-	let db = EquipmentDatabase.equipment_data_map[b];
-	
-	if (this.cv_shelling) {
-		let _cv_power = eq => eq.firepower + eq.torpedo + eq.bombing * 1.3;
-		return _cv_power(da) - _cv_power(db);
-	} else {
-		return da.firepower - db.firepower;
-	}
-}
-
-// 命中値で比較
-function SupportShipData_accuracy_compare(a, b){
-	let da = EquipmentDatabase.equipment_data_map[a];
-	let db = EquipmentDatabase.equipment_data_map[b];
-	return da.accuracy - db.accuracy;
-}
-
-// 装備優先度
-function SupportShipData_priority_compare(a, b){
-	let da = EquipmentDatabase.equipment_data_map[a];
-	let db = EquipmentDatabase.equipment_data_map[b];
-	return da.priority - db.priority;
-}
-
-function SupportShipData_static_power_compare(a, b, cv_shelling){
-	return SupportShipData_power_compare.call({cv_shelling: cv_shelling}, a, b);
-}
-

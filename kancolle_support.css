@@ -2,6 +2,7 @@
 
 /* 共通 */
 body {
+	margin-top: 4px;
 	margin-bottom: 8px;
 }
 
@@ -75,21 +76,31 @@ body {
 /* 共通ここまで */
 
 
+/* タイトル */
+#rakuraku {
+	display: inline-block;
+	margin: 0 0.3em 0 0;
+	font-size: 1.3em;
+	vertical-align: middle;
+}
+
 /* ヘッダーのタブ */
 #header_tab {
-	display: flex;
+	display: inline-flex;
 	column-gap: 3px;
 	row-gap: 2px;
 	flex-wrap: wrap;
 	user-select: none;
 	margin-bottom: 3px;
+	font-size: 90%;
+	vertical-align: middle;
 }
 #header_tab > div {
-	padding: 2px 5px;
+	padding: 2px 4px;
 	border: 1px solid #444;
 	border-radius: 6px;
 	cursor: pointer;
-	min-width: 80px;
+	min-width: 75px;
 	text-align: center;
 	background-color: #ddd;
 }
@@ -132,6 +143,7 @@ body {
 #explanation div.recent_update {
 	float: right;
 	width: 30%;
+	margin-left: 4px;
 }
 #explanation div.recent_update > h5 {
 	position: absolute;
@@ -752,7 +764,7 @@ body {
 }
 
 
-#support_A {
+/* #support_A {
 	float: left;
 	margin-right: 0.5em;
 	margin-bottom: 0.5em;
@@ -791,7 +803,7 @@ body {
 }
 #support_B tbody .eq_dragdrop {
 	background-color: lavender;
-}
+} */
 
 /* 支援艦隊 > Lv/運入力ダイアログ */
 .dialog_container .inside.lvluck .contents {
@@ -1104,4 +1116,754 @@ body {
 	text-align: right;
 }
 
+#support_fleet_pair {
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: center;
+	align-items: flex-start;
+	column-gap: 4px;
+	min-width: min-content;
+}
+.support_fleet {
+	display: grid;
+	grid-template-columns: auto auto;
+	padding: 2px;
+	margin-bottom: 10px;
+	gap: 2px;
+	background-color: #e9d9f2;
+	border: 1px solid #6d14a2;
+}
+.support_fleet .fleetinfo {
+	grid-column-end: span 2;
+	background-color: white;
+	margin: -3px;
+	margin-bottom: 0;
+	border-bottom: 1px solid #6d14a2;
+	display: flex;
+	align-items: stretch;
+	line-height: 1.3;
+	text-align: center;
+}
+#support_A .fleetinfo {
+	background-color: #fef0ff;
+}
+#support_A .fleetinfo > div.caption {
+	background-color: #ffccee;
+}
+#support_B .fleetinfo {
+	background-color: #faffe0;
+}
+#support_B .fleetinfo > div.caption {
+	background-color: #ffff88;
+}
+.support_fleet .fleetinfo > div {
+	padding: 0.2em 0.6em;
+}
+.support_fleet .fleetinfo > div.caption {
+	padding: 0 1em;
+	font-size: 110%;
+	font-weight: bold;
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+}
+.support_fleet .fleetinfo > div:not(.caption) {
+	font-size: 80%;
+}
+.support_fleet .fleetinfo .support_type, 
+.support_fleet .fleetinfo .cost .fuel,
+.support_fleet .fleetinfo .cost .ammo,
+.support_fleet .fleetinfo .cost .fuelammo {
+	font-weight: bold;
+}
+.support_fleet .fleetinfo .support_type.unabled    { color: red; }
+.support_fleet .fleetinfo .support_type.shelling   { color: blue; }
+.support_fleet .fleetinfo .support_type.aerial     { color: red; }
+.support_fleet .fleetinfo .support_type.aerial_asw { color: red; }
+.support_fleet .fleetinfo .support_type.torpedo    { color: red; }
+.support_fleet .fleetinfo .grow {
+	flex-grow: 1;
+}
+.support_fleet .fleetinfo .cost .fuel { color: green; }
+.support_fleet .fleetinfo .cost .ammo { color: sienna; }
+.support_fleet .fleetinfo .cost .fuelammo { color: indigo; }
+
+.support_fleet .panel {
+	display: flex;
+	flex-direction: column;
+	width: 450px;
+	border: 1px solid #6d14a2;
+	border-radius: 4px;
+	padding: 2px;
+	font-size: 80%;
+	line-height: 1.3;
+	background-color: white;
+}
+/* 1列表示 */
+.support_fleet.column1 {
+	grid-template-columns: auto;
+}
+.support_fleet.column1 .fleetinfo {
+	grid-column-end: span 1;
+}
+.support_fleet.column1 .panel {
+	justify-self: center;
+}
+/* 2列表示 */
+.support_fleet.column2 {
+	grid-template-columns: auto auto;
+}
+.support_fleet.column2 .fleetinfo {
+	grid-column-end: span 2;
+}
+.support_fleet.column2 .panel:nth-child(2n+2) {
+	justify-self: right;
+}
+.support_fleet.column2 .panel:nth-child(2n+3) {
+	justify-self: left;
+}
+/* 3列表示 */
+.support_fleet.column3 {
+	grid-template-columns: auto auto auto;
+}
+.support_fleet.column3 .fleetinfo {
+	grid-column-end: span 3;
+}
+.support_fleet.column3 .panel:nth-child(3n+2) {
+	justify-self: right;
+}
+.support_fleet.column3 .panel:nth-child(3n+3) {
+	justify-self: center;
+}
+.support_fleet.column3 .panel:nth-child(3n+4) {
+	justify-self: left;
+}
+
+.panel .row {
+	display: flex;
+	flex-direction: row;
+}
+.panel .column {
+	display: flex;
+	flex-direction: column;
+}
+.panel .gap3 {
+	justify-content: space-evenly;
+	column-gap: 3px;
+}
+.panel .gap4 {
+	justify-content: space-evenly;
+	column-gap: 4px;
+}
+.panel .jcc {
+	justify-content: center;
+}
+.panel .hcenter {
+	display: flex;
+	justify-content: center;
+}
+.panel .vcenter {
+	display: flex;
+	align-items: center;
+}
+.panel .hvcenter, .panel .vhcenter {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+.panel .priority {
+	flex-grow: 0;
+}
+.panel .grow {
+	flex-grow: 1;
+}
+.panel .topborder {
+	border-top: 1px solid #8a43b5;
+	margin-top: 2px;
+	padding-top: 2px;
+}
+.panel .hidden {
+	display: none;
+}
+.panel .m2 {
+	margin: 0px 2px;
+}
+
+.panel .panelheader {
+	white-space: nowrap;
+	background-color: #ebfaff;
+	user-select: none;
+}
+.panel .number {
+	width: 40px;
+	flex-grow: 0;
+	font-size: 16pt;
+	/* background-color: rgb(255, 203, 106); */
+	background-color: #bef;
+	cursor: default;
+	user-select: none;
+}
+.panel .shipnamediv {
+	flex-basis: 12em;
+	flex-grow: 6;
+	font-size: 14pt;
+	padding: 2px 0.2em;
+	display: flex;
+	align-items: center;
+}
+
+.panel .lvluck {
+	color: black;
+	cursor: pointer;
+	padding: 1px 0px;
+	display: flex;
+	justify-content: space-evenly;
+}
+.panel .lvluck:hover {
+	background-color:#dfe8ff;
+}
+.panel .lvluck { color: gray; }
+.panel .lvluck > .inputted { color: blue; }
+.panel .lvluck > .married { color: deeppink; }
+.panel .lvluck > .error { color: red; }
+.panel .shipnamediv:hover {
+	background-color: #d3ebff;
+}
+
+.panel .fuelammo {
+	min-width: 35px;
+	font-size: 95%;
+	text-align: center;
+}
+.panel span.fuel {color: green;}
+.panel span.ammo {color: sienna;}
+/* fuel+ammo color: indigo; */
+
+.panel .poweracc {
+	column-gap: 3px;
+}
+.panel .power {
+	width: 30px;
+	text-align: center;
+}
+.panel .acc {
+	width: 30px;
+	text-align: center;
+}
+.panel .total {
+	font-weight: bold;
+}
+.panel .total.good {
+	color: blue;
+}
+.panel .total.between {
+	color: purple;
+}
+.panel .total.cl1bad {
+	color: #e60000;
+}
+.panel .total.bad {
+	color: red;
+}
+
+
+.panel .goal {
+	line-height: 1.3;
+	overflow: hidden;
+}
+.panel .button {
+	display: inline-block;
+	border: 1px solid #7cd052;
+	border-radius: 4px;
+	background-color: #ddffcc;
+	cursor: pointer;
+	padding: 0.1em 0.5em;
+	user-select: none;
+}
+.panel .button:hover {
+	border-color: #4fb51c;
+	background-color: #baff51;
+}
+.panel .button.mr {
+	margin-right: 0.5em;
+	margin-bottom: 1px;
+	padding: 0 0.5em;
+}
+
+.panel .venemy {
+	margin-bottom: -1px;
+}
+.panel .venemy .probs {
+	font-weight: bold;
+	text-align: center;
+}
+.panel .venemy .probs .damage_lv4 { color: darkblue; }
+.panel .venemy .probs .damage_lv3 { color: red; }
+.panel .venemy .probs .damage_lv2 { color: #e8860a; }
+.panel .venemy .probs .damage_lv1 { color: #808000; }
+.panel .venemy .probs .damage_lv0 { color: green; }
+.panel .venemy .probs .miss       { color: gray; }
+.panel .venemy .probbar {
+	height: 4px;
+	background-color: #eee;
+}
+.panel .venemy .probs > div {
+	transition: 0.2s ease;
+}
+.panel .venemy .probs > div.exists {
+	padding: 0 1px;
+}
+.panel .venemy .probbar > .bar {
+	transition: 0.2s ease;
+}
+.panel .venemy .probbar .bar.damage_lv4 { background-color: darkblue; }
+.panel .venemy .probbar .bar.damage_lv3 { background-color: red; }
+.panel .venemy .probbar .bar.damage_lv2 { background-color: orange; }
+.panel .venemy .probbar .bar.damage_lv1 { background-color: #ffec3c; }
+.panel .venemy .probbar .bar.damage_lv0 { background-color: #8f8; }
+.panel .venemy .probbar .bar.miss       { background-color: #ccc; }
+
+
+.panel .fpwrow .label {
+	margin: 0 0.4em;
+}
+.panel .fpwrow .eq_power,
+.panel .fpwrow .eq_acc {
+	text-align: center;
+}
+
+.panel .eqrows > div:nth-child(n+2) {
+	border-top: 1px dotted gray;
+}
+.panel .eqrows > div.row > * {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+.panel .eqrows > div.row > div.shipbase {
+	margin-left: calc(2em + 24px);
+	flex-grow: 1;
+	justify-content: flex-start;
+}
+.panel .eq_dragdrop {
+	text-align: center;
+	cursor: default;
+	background-color: lavender;
+	flex: 0 0 2em;
+	width: 2em;
+}
+.panel input.eq_fix {
+	flex-grow: 0;
+	flex-shrink: 0;
+}
+.panel select.equipment {
+	flex: 1 1 150px;
+	min-height: 18px;
+	border-width: 0px;
+	width: 150px;
+}
+.panel select.star {
+	border-width: 0px;
+	color: #45a9a5;
+	flex-grow: 0;
+	flex-shrink: 0;
+}
+.panel .eq_power {
+	flex: 0 0 60px;
+	width: 60px;
+}
+.panel .eq_acc {
+	flex: 0 0 40px;
+	width: 40px;
+}
+
+
+
+/* 敵艦ダイアログ */
+.dialog_container .inside.enemy_selector {
+	width: 85%;
+}
+
+.enemy_selector .row {
+	display: flex;
+	flex-direction: row;
+}
+.enemy_selector .column {
+	display: flex;
+	flex-direction: column;
+}
+.enemy_selector .grow {
+	flex-grow: 1;
+}
+.enemy_selector span.elite {
+	color: #e60000;
+}
+.enemy_selector span.flagship {
+	color: #dbb300;
+}
+
+.enemy_selector .search_bar {
+	user-select: none;
+}
+.enemy_selector .search_bar .mark_x {
+	--color: gray;
+}
+.enemy_selector .search_bar .mark_x:hover {
+	--color: #444;
+}
+.enemy_selector .search_bar .normal {
+	margin: 0 .5em 0 1em;
+}
+
+.enemy_selector .list {
+	flex: 1 1 60%;
+	border-width: 1px 1px 0 0;
+	border-style: solid;
+	border-color: #00a;
+	height: 80vh;
+	font-size: 80%;
+	overflow-y: scroll;
+}
+.enemy_selector .list .listheader {
+	background-color: white;
+	border-bottom: 1px solid #00a;
+	cursor: default;
+	position: relative;
+}
+.enemy_selector .list .listitem {
+	border-bottom: 1px solid rgb(114, 197, 224);
+	cursor: pointer;
+}
+.enemy_selector .list .listitem:hover {
+	background-color: rgb(224, 247, 255);
+}
+.enemy_selector .list .listitem.selected {
+	background-color: rgb(193 227 255);
+}
+.enemy_selector .list .id {
+	flex: 0 0 3.5em;
+	text-align: center;
+}
+.enemy_selector .list .name {
+	flex: 1 0 8em;
+}
+.enemy_selector .list .HP,
+.enemy_selector .list .armor,
+.enemy_selector .list .evasion,
+.enemy_selector .list .luck,
+.enemy_selector .list .evasion_part {
+	flex: 0 0 3em;
+	text-align: center;
+}
+.enemy_selector .list .basic_evasion {
+	flex: 0 0 4em;
+	text-align: center;
+}
+.enemy_selector .list .basic_evasion {
+	display: none;
+}
+
+.enemy_selector .current {
+	flex: 1 1 40%;
+	white-space: nowrap;
+	margin: 0 .5em;
+}
+.enemy_selector .current div.nameline {
+	font-size: 85%;
+	border-width: 3px 0px;
+	border-color: #666;
+	border-style: double;
+	margin-bottom: 4px;
+}
+.enemy_selector .current div.nameline > div {
+	margin: 0 .5em;
+}
+.enemy_selector .current div.nameline > div.shiptype {
+	flex-grow: 1;
+	max-width: 8em;
+}
+.enemy_selector .current div.statusline {
+	font-size: 80%;
+}
+.enemy_selector .current div.statusline > div {
+	margin: 0 .5em;
+}
+.enemy_selector .current div.caption {
+	flex: 0 0 5em;
+	text-align: center;
+}
+.enemy_selector .current div.defparam {
+	flex: 0 1 4em;
+	text-align: center;
+}
+.enemy_selector .current .question {
+	color: gray;
+}
+.enemy_selector .current div.defparam.user {
+	text-decoration: line-through;
+}
+
+.enemy_selector .current div.basic_evasion {
+	flex: 0 1 8em;
+	text-align: center;
+}
+.enemy_selector .current div.bevtext {
+	flex: 1 1 8em;
+	font-size: 70%;
+	display: flex;
+	align-items: center;
+}
+.enemy_selector .current input[type="number"] {
+	width: 50px;
+	text-align: right;
+}
+.enemy_selector .current .evasionpart {
+	margin: 1px 0;
+	border-width: 0 1px 1px 0;
+	border-color: gray;
+	border-style: solid;
+	font-size: 75%;
+} 
+.enemy_selector .current .evasionpart > div.column {
+	flex: 1 1 50px;
+}
+.enemy_selector .current .evasionpart > div.column > div {
+	text-align: center;
+	white-space: nowrap;
+	border-width: 1px 0 0 1px;
+	border-color: gray;
+	border-style: solid;
+}
+.enemy_selector .current .damageborder {
+	margin: 1px 0;
+	border-width: 0 1px 1px 0;
+	border-color: gray;
+	border-style: solid;
+	font-size: 75%;
+}
+.enemy_selector .current .damageborder > div.column {
+	flex: 1 1 3em;
+}
+.enemy_selector .current .damageborder > div.column.header {
+	flex: 2 2 9em;
+	text-align: center;
+	white-space: nowrap;
+	border-width: 1px 0 0 1px;
+	border-color: gray;
+	border-style: solid;
+}
+.enemy_selector .current .damageborder > div.column > div {
+	text-align: center;
+	white-space: nowrap;
+	border-width: 1px 0 0 1px;
+	border-color: gray;
+	border-style: solid;
+}
+
+.enemy_selector .current button.ok,
+.enemy_selector .current button.apply,
+.enemy_selector .current button.cancel {
+	flex: 0 1 5em;
+	margin: 2px;
+}
+.enemy_selector .current div.comment {
+	white-space: normal;
+	margin: 1em .5em;
+	font-size: 80%;
+	line-height: 130%;
+}
+
+
+/* 探索目標の設定 */
+.dialog_container .inside.search_target {
+	min-width: 90%;
+	max-height: initial;
+	width: calc(100vw - 4em);
+	max-width: unset;
+}
+.dialog_container .inside.search_target .contents {
+	max-height: calc(100vh - 2em);
+}
+.search_target .targettable {
+	white-space: nowrap;
+	text-align: center;
+	overflow: auto;
+	max-height: calc(100vh - 5em);
+	border-bottom: 1px solid #819095;
+}
+.search_target .row {
+	display: flex;
+	flex-direction: row;
+}
+.search_target .column {
+	display: flex;
+	flex-direction: column;
+}
+.search_target .hidden {
+	display: none;
+}
+.search_target .targettable .shiprow.highlight {
+	background: linear-gradient(180deg, #99ff66 0%, #f5fff0 10%, #f5fff0 90%, #99ff66 100%);
+}
+.search_target .targettable .row select {
+	max-width: 100%;
+}
+.search_target .targettable .row > div {
+	flex-shrink: 0;
+}
+.search_target .targettable div.span2 {
+	grid-column-end: span 2;
+}
+.search_target .targettable div.numname {
+	width: calc(24px + 80px);
+	flex-grow: 1;
+}
+.search_target .targettable div.number {
+	width: 24px;
+}
+.search_target .targettable div.name {
+	width: 80px;
+	flex-grow: 1;
+	text-align: left;
+	overflow: hidden;
+}
+.search_target .targettable div.name.empty {
+	color: #aaa;
+}
+
+.search_target .targettable div.modgroup {
+	line-height: 1.3;
+}
+.search_target .targettable div.kira {
+	width: 40px;
+}
+.search_target .targettable div.priority {
+	width: 45px;
+	display: flex;
+	justify-content: center;
+}
+.search_target .targettable div.selffm {
+	width: 80px;
+}
+.search_target .targettable div.enemyfm {
+	width: 80px;
+}
+.search_target .targettable div.engagement {
+	width: 80px;
+}
+.search_target .targettable div.modinfo {
+	justify-content: center;
+	font-size: 80%;
+	position: relative;
+}
+.search_target .targettable div.modinfo.guide::before,
+.search_target .targettable div.modinfo.guide::after {
+	content: '';
+	display: block;
+	position: absolute;
+	top: 1px;
+	width: 1em;
+	height: 50%;
+	border: dotted blue;
+}
+.search_target .targettable div.modinfo.guide::before {
+	left: 0.5em;
+	border-width: 0 0 1px 1px;
+}
+.search_target .targettable div.modinfo.guide::after {
+	right: 0.5em;
+	border-width: 0 1px 1px 0;
+}
+
+.search_target .targettable div.targetselect {
+	width: 100px;
+}
+.search_target .targettable div.target {
+	width: 300px;
+	flex-grow: 3;
+	text-align: left;
+	font-size: 80%;
+}
+.search_target .targettable .header div.target {
+	font-size: 100%;
+}
+.search_target .targettable input.firepower,
+.search_target .targettable input.damage {
+	width: 45px;
+	text-align: right;
+}
+.search_target .targettable div.venemyname {
+	background-color: hsl(45deg 80% 90%);
+	cursor: pointer;
+	min-width: min-content;
+}
+.search_target .targettable div.venemyname:hover {
+	color: #e65e19;
+	text-decoration: underline;
+}
+.search_target .targettable div.venemy span.damage_lv4,
+.search_target .targettable div.venemy span.damage_lv3,
+.search_target .targettable div.venemy span.damage_lv2 {
+	margin-left: 0.2em;
+	padding: 0 0.3em;
+	border-radius: 6px;
+	background-color:#ffe5e5;
+	cursor: pointer;
+}
+.search_target .targettable .fleet > div.row {
+	align-items: center;
+	border-bottom: 1px solid #7c4b9b;
+	padding: 1px 0;
+}
+.search_target .targettable .fleet > div.row:last-child {
+	border-bottom-width: 0;
+}
+.search_target .targettable .fleet > div.row.header {
+	background-color:rgb(179, 236, 255);
+	border: solid #3b4446;
+	border-width: 1px 0;
+}
+
+.search_target div.comment {
+	font-size: 80%;
+	text-align: center;
+	margin-top: 0.5em;
+	line-height: 1.3;
+}
+.search_target div.toolbar {
+	display: flex;
+	justify-content: center;
+	column-gap: 0.3em;
+	margin: 0.5em 0em;
+}
+.search_target div.toolbar button {
+	flex-basis: 7em;
+}
+
+/* 色など */
+/* 攻撃側陣形 */
+.search_target .selffm .line_ahead     { background-color: #eff;    } /* 1.0 */
+.search_target .selffm .double_line    { background-color: #ffb;    } /* 0.8 */
+.search_target .selffm .diamond        { background-color: #fed;    } /* 0.7 */
+.search_target .selffm .echelon        { background-color: #fff6dd; } /* 0.75 */
+.search_target .selffm .line_abreast   { background-color: #fdd;    } /* 0.6 */
+.search_target .selffm .vanguard       { background-color: #fcc;    } /* 0.5 */
+.search_target .selffm .combined       { background-color: #eff;    } /* 1.0 */
+/* 交戦形態 */
+.search_target .engagement .parallel       { background-color: #eff;    } /* 1.0 */
+.search_target .engagement .head_on        { background-color: #ffb;    } /* 0.8 */
+.search_target .engagement .t_disadvantage { background-color: #fdd;    } /* 0.6 */
+.search_target .engagement .t_advantage    { background-color: #dfd;    } /* 1.2 */
+/* 火力目標 */
+.search_target .targettable div.target span.basic_power {
+	color: red;
+	font-weight: bold;
+}
+.search_target .targettable div.target span.display_power {
+	color: red;
+}
+/* 仮想敵ダメージ */
+.search_target .targettable div.venemy span.damage_lv4 { color: darkblue; }
+.search_target .targettable div.venemy span.damage_lv3 { color: #eb0000; /* color: red; */ }
+.search_target .targettable div.venemy span.damage_lv2 { color: #a86205; /* color: #e8860a; */ }
 

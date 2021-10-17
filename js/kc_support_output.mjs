@@ -182,8 +182,8 @@ function OutputDeckDialog_fleet_to_json_deckbuilder(fleet, error_names){
 		let sup = fleet.support_ships[s];
 		
 		if (!sup.empty()) {
-			let ssd = new SupportShipData();
-			if (sup.get_data(ssd)) {
+			let ssd = sup.get_ssd();
+			if (!ssd.empty()) {
 				let ssd_json = ssd.get_json_deckbuilder();
 				json["s" + (s + 1)] = ssd_json;
 				

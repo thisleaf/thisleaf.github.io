@@ -1,7 +1,7 @@
 // デバッグ用のコード
 // こちらのファイルに分離しておく
 
-// TODO: DEBUG_MODE release時にはfalseに
+// DEBUG: [DEBUG_MODE] release時にはfalseに
 const DEBUG_MODE = false;
 
 
@@ -13,6 +13,13 @@ import {
 	ShipSelector,
 	ShipSelectorDialog,
 } from "./kc_ship_selector.mjs";
+import {
+	EnemyStatus,
+	EnemySelectorDialog,
+} from "./kc_enemy_status.mjs";
+import {
+	SearchTargetDialog,
+} from "./kc_support_target.mjs";
 import {
 	EquipmentDatabase,
 	EquipableInfo,
@@ -31,22 +38,6 @@ import {
 import {DamageTable} from "./kc_damage_table.mjs";
 import {DOMDialog} from "./dom_dialog.mjs";
 
-import {
-	OwnEquipmentForm,
-	OwnResetDialog,
-	OwnConvertDialog,
-} from "./kc_support_equip.mjs";
-import {
-	OutputDeckDialog,
-} from "./kc_support_output.mjs";
-import {
-	worker_get,
-	worker_release,
-	MultiThreadSearcher,
-} from "./kc_support_mt.mjs";
-import {BonusViewer} from "./kc_bonus_viewer.mjs";
-import {RomajiSearch} from "./romaji_search.mjs";
-
 
 export {
 	DEBUG_MODE,
@@ -58,7 +49,6 @@ export {
 let debug_object = null;
 
 
-// Debug -------------------------------------------------------------------------------------------
 // デバッグモードならばボタンを表示したりする
 function init(obj){
 	if (!DEBUG_MODE) return;
@@ -75,8 +65,6 @@ function init(obj){
 	_click("test3", ev_click_test3);
 	for (let e of document.querySelectorAll(".debug")) e.style.display = "unset";
 	
-	DOM("header_tab").children[2].click();
-	
 	console.log("debug mode");
 }
 
@@ -84,16 +72,21 @@ function init(obj){
 
 // event -------------------------------------------------------------------------------------------
 function ev_click_test(){
+	let fleet = debug_object.load_form(true);
+	let exec = fleet.executable();
+	console.log(exec, fleet.reason);
 }
 
 function ev_click_test2(){
 	if (0) {
-		for (let d of own_equipment_form.data_array) {
-			d.total_counts[0] = 1;
-			d.total_counts[5] = 0;
-			d.total_counts[10] = 1;
-		}
-		own_equipment_form.refresh_tab();
+		let es = EquipmentDatabase.enemy_status;
+		let dialog = new EnemySelectorDialog(es).create();
+		dialog.show().then((e) => {
+			dialog.dispose();
+			let id = dialog.getCurrentId();
+			console.log(e, id, es.getStatus(id));
+			// console.log("exit dialog", e);
+		});
 		return;
 	}
 }
@@ -150,7 +143,7 @@ function performance_check(func, name, loop_count, base_time = 1000){
 		func(fleet_data);
 		let b = new Date;
 		
-		let score = new SupportFleetScorePrior(fleet_data.ssd_list);
+		let score = new SupportFleetScorePrior(fleet_data.ssd_list, 0, SupportFleetScore.MODE_VENEMY_DAMAGE);
 		let res = {
 			msec    : b.getTime() - a.getTime(),
 			accuracy: score.total_score.total_accuracy,

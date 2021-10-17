@@ -12,6 +12,15 @@ export const DAMAGE_KEYS = [
 	"撃沈",
 ];
 
+// 逆順
+export const DAMAGE_KEYS_R = [
+	"撃沈",
+	"大破",
+	"中破",
+	"小破",
+	"表示なし",
+];
+
 
 // IntegerDistribution -----------------------------------------------------------------------------
 // begin <= x <= last の整数範囲の分布

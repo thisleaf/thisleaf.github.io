@@ -13,6 +13,9 @@ import {
 	EquipmentBonusData,
 	EquipmentBonus,
 } from "./kc_equipment.mjs";
+import {EnemyStatus, EnemySelectorDialog} from "./kc_enemy_status.mjs";
+import {SearchTargetDialog} from "./kc_support_target.mjs";
+import {SupportShip} from "./kc_support_ship.mjs";
 import {SupportFleet} from "./kc_support_fleet.mjs";
 import {SupportFleetData} from "./kc_support_fleet_data.mjs";
 import {
@@ -38,6 +41,7 @@ import {
 } from "./kc_support_mt.mjs";
 import {BonusViewer} from "./kc_bonus_viewer.mjs";
 import * as Debug from "./kc_support_debug.mjs";
+import { SupportShipData } from "./kc_support_ship_data.mjs";
 
 
 // 動的に読み込まれるデータ
@@ -49,6 +53,8 @@ let KANCOLLE_EQUIPLIST = null;
 let KANCOLLE_EQUIPABLE = null;
 // 装備ボーナス (kancolle_equipbonus.csv)
 let KANCOLLE_EQUIPBONUS = null;
+// 敵艦データ
+let KANCOLLE_ENEMIES = null;
 
 // 装備フォーム
 let own_equipment_form = null;
@@ -73,6 +79,7 @@ Promise.all([
 	httpload_csv_async("data/kancolle_equipment.csv", true).then(obj => KANCOLLE_EQUIPLIST = obj),
 	httpload_csv_async("data/kancolle_equipable.csv", true).then(obj => KANCOLLE_EQUIPABLE = obj),
 	httpload_csv_async("data/kancolle_equipbonus.csv", true).then(obj => KANCOLLE_EQUIPBONUS = obj),
+	httpload_csv_async("data/kancolle_enemies.csv", true).then(obj => KANCOLLE_ENEMIES = obj),
 	new Promise( resolve => document.addEventListener("DOMContentLoaded", () => resolve()) ),
 	// ここで一度読み込むことで、スーパーリロードが効くことを期待する
 	fetch(new URL("./kc_support_worker.mjs", import.meta.url).href),
@@ -89,7 +96,7 @@ function kancolle_support_init(){
 	// module初期化
 	DOMDialog.initialize();
 	ShipSelector.initialize(KANCOLLE_SHIPLIST);
-	EquipmentDatabase.initialize(KANCOLLE_SHIPLIST, KANCOLLE_EQUIPLIST, KANCOLLE_EQUIPABLE, KANCOLLE_EQUIPBONUS);
+	EquipmentDatabase.initialize(KANCOLLE_SHIPLIST, KANCOLLE_EQUIPLIST, KANCOLLE_EQUIPABLE, KANCOLLE_EQUIPBONUS, KANCOLLE_ENEMIES);
 	EquipmentDatabase.add_equipment_property("priority", Global.EQUIP_PRIORITY_DEF);
 	
 	own_equipment_form = new OwnEquipmentForm();
@@ -108,9 +115,11 @@ function kancolle_support_init(){
 	// 艦隊
 	support_fleet_A.create("支援艦隊A", 3);
 	support_fleet_A.onchange = e => save_userdata();
+	support_fleet_A.addEventListener("click_target", e => ev_click_target(e));
 	support_fleet_A.set_draggable(dragdata_provider);
 	support_fleet_B.create("支援艦隊B", 9);
 	support_fleet_B.onchange = e => save_userdata();
+	support_fleet_B.addEventListener("click_target", e => ev_click_target(e));
 	support_fleet_B.set_draggable(dragdata_provider);
 	
 	// オプション
@@ -172,11 +181,49 @@ function kancolle_support_init(){
 	let e_csv = DOM("csv_update");
 	if (e_csv && lastmod_text) e_csv.innerText = lastmod_text;
 	
+	// URLのhashを適用
+	select_header_tab_by_hash(location.hash);
+	// あとでhashが変わった場合にも反応するように
+	window.addEventListener("hashchange", () => select_header_tab_by_hash(location.hash));
+
 	message_bar.start_hiding();
 	console.log("み");
+	// start_kome_console();
 	
-	// debug
-	Debug.init({});
+	Debug.init({
+		load_form: load_form,
+	});
+}
+
+
+async function start_kome_console(){
+	let normal = "もがみん棒";
+	let result = "";
+	let random_timer = (min, max) => {
+		let time = Math.floor(min + Math.random() * (max - min + 1));
+		return new Promise(resolve => setTimeout(resolve, time));
+	};
+
+	for (let i=0; i<normal.length; i++) {
+		await random_timer(200, 1000);
+		let idx = Math.random() < 0.5 ? result.length : Math.floor(Math.random() * normal.length);
+		let sp = (i % 2) ? " " : "";
+		console.log(normal[idx] + sp);
+		result += normal[idx];
+	}
+
+	await random_timer(200, 1000);
+	console.log("完成");
+
+	await random_timer(1000, 2000);
+	let same = result.split("").reduce((a, c, i) => a + (c == normal[i] ? 1 : 0), 0);
+	if (same == 5) {
+		console.log("美しい");
+	} else if (same >= 1) {
+		console.log("きれい");
+	} else {
+		console.log("うーんこの");
+	}
 }
 
 
@@ -232,19 +279,18 @@ function load_form(prepare){
 		}
 	}
 	
-	fleet_data.ssd_list.forEach(ssd => ssd.calc_bonus());
+	fleet_data.calc_bonus();
 	return fleet_data;
 }
 
 
 function save_form(fleet_data){
 	fleet_data.sort_equipment(Global.SORT_BY_ID, true);
+	fleet_data.save_slots();
 	fleet_data.save_to_form();
 	save_userdata();
 	support_fleet_A.refresh_display();
 	support_fleet_B.refresh_display();
-	
-	//console.log("スコア", new SupportFleetScore(fleet_data.ssd_list));
 }
 
 
@@ -277,6 +323,22 @@ function select_header_tab(tab){
 		
 		// 切替時のイベントがあれば
 		
+	}
+}
+
+/**
+ * hashからタブを切り替え
+ * @param {string} hash_string 先頭の#はあってもなくてもよい
+ */
+function select_header_tab_by_hash(hash_string){
+	let hash = String(hash_string).replace(/^#/, "");
+	if (hash) {
+		for (let tab of DOM("header_tab").children) {
+			if (tab.dataset.relateHash == hash) {
+				select_header_tab(tab);
+				break;
+			}
+		}
 	}
 }
 
@@ -397,6 +459,11 @@ function ev_click_header_tab(e){
 function ev_click_fast_optimize(){
 	let fleet_data = load_form(true);
 	if (!fleet_data) return;
+
+	if (!fleet_data.executable("fast")) {
+		set_search_comment("探索不可: " + fleet_data.reason);
+		return;
+	}
 	
 	if (Global.Settings.MultiThreading) {
 		// マルチスレッド単発
@@ -425,9 +492,9 @@ function ev_click_fast_optimize(){
 		
 	} else {
 		let a = new Date;
-		let a_score = new SupportFleetScorePrior(fleet_data.ssd_list);
+		let a_score = new SupportFleetScorePrior(fleet_data.ssd_list, 0, SupportFleetScore.MODE_VENEMY_DAMAGE);
 		fleet_data.search("fast");
-		let b_score = new SupportFleetScorePrior(fleet_data.ssd_list);
+		let b_score = new SupportFleetScorePrior(fleet_data.ssd_list, 0, SupportFleetScore.MODE_VENEMY_DAMAGE);
 		let b = new Date;
 		
 		let c = MultiThreadSearcher.compare_score(a_score, b_score, "fast");
@@ -447,8 +514,13 @@ function ev_click_fast_optimize(){
 function ev_click_random_optimize(){
 	let fleet_data = load_form(true);
 	if (!fleet_data) return;
-	
+
 	let search_type = Global.Settings.PriorityOption == "entire" ? "annealing_entire" : "annealing";
+	
+	if (!fleet_data.executable(search_type)) {
+		set_search_comment("探索不可: " + fleet_data.reason);
+		return;
+	}
 	
 	if (Global.Settings.MultiThreading) {
 		// マルチスレッド単発
@@ -479,15 +551,15 @@ function ev_click_random_optimize(){
 	} else {
 		// シングルスレッド
 		let a = new Date;
-		let a_score = new SupportFleetScorePrior(fleet_data.ssd_list);
+		let a_score = new SupportFleetScorePrior(fleet_data.ssd_list, 0, SupportFleetScore.MODE_VENEMY_DAMAGE);
 		fleet_data.search(search_type, {
 			iteration_scale: Global.Settings.AnnealingIteration100 / 100,
 		});
-		let b_score = new SupportFleetScorePrior(fleet_data.ssd_list);
+		let b_score = new SupportFleetScorePrior(fleet_data.ssd_list, 0, SupportFleetScore.MODE_VENEMY_DAMAGE);
 		let b = new Date;
 		
 		let c = MultiThreadSearcher.compare_score(a_score, b_score, search_type);
-		if (c <= 0) {
+		if (c < 0) { // 同値解なら入力値を優先
 			save_form(fleet_data);
 		} else {
 			b_score = a_score;
@@ -512,6 +584,11 @@ function ev_click_random_optimize_cont(){
 		// 開始
 		let fleet_data = load_form(true);
 		if (!fleet_data) return;
+		
+		if (!fleet_data.executable(search_type)) {
+			set_search_comment("探索不可: " + fleet_data.reason);
+			return;
+		}
 		
 		mt_searcher = new MultiThreadSearcher();
 		mt_searcher.set_thread_count_by_Global();
@@ -553,7 +630,8 @@ function ev_click_clear_equipment(){
 	if (!fleet_data) return;
 	
 	fleet_data.clear_slots(true, false);
-	
+	fleet_data.save_slots();
+	fleet_data.save_to_form();
 	save_form(fleet_data);
 	
 	set_search_comment("固定されていない装備を解除しました");
@@ -605,11 +683,36 @@ function ev_error_mt(){
 	set_search_comment(text);
 }
 
+/**
+ * 目標設定ダイアログの呼び出し
+ * @param {CustomEvent} e 
+ */
+function ev_click_target(e){
+	let target_dialog = new SearchTargetDialog().create();
+	target_dialog.setFleets(support_fleet_A, support_fleet_B);
+	target_dialog.highlightShip(e.detail.src);
+	target_dialog.show().then(result => {
+		if (result == "ok") {
+			target_dialog.dialogToFleets();
+			save_userdata();
+		}
+		// 敵艦ステータスが更新される場合がある
+		support_fleet_A.refresh_target();
+		support_fleet_B.refresh_target();
+		target_dialog.dispose();
+	});
+}
+
 
 // データの保存・読込 ------------------------------------------------------------------------------
 function load_userdata(){
-	if (!userdata_object.load()) return;
+	if (!userdata_object.load()) {
+		support_fleet_A.clear();
+		support_fleet_B.clear();
+		return;
+	}
 	
+	EquipmentDatabase.enemy_status.setJson(userdata_object.data.enemy_data);
 	own_equipment_form.set_json(userdata_object.data.own_data);
 	support_fleet_A.set_json(userdata_object.data.fleet_A);
 	support_fleet_B.set_json(userdata_object.data.fleet_B);
@@ -619,6 +722,7 @@ function load_userdata(){
 function save_userdata(){
 	if (!userdata_object.data) userdata_object.data = new Object;
 	
+	userdata_object.data.enemy_data = EquipmentDatabase.enemy_status.getJson();
 	userdata_object.data.own_data = own_equipment_form.get_json(userdata_object.data.own_data);
 	userdata_object.data.fleet_A  = support_fleet_A.get_json();
 	userdata_object.data.fleet_B  = support_fleet_B.get_json();
@@ -628,7 +732,13 @@ function save_userdata(){
 }
 
 
-// データの更新
+/**
+ * データの更新
+ * @param {*} data データを格納するオブジェクト
+ * @param {number} data_version dataのバージョン番号
+ * @param {number} newdata_version アップデート後、このバージョン番号になるようにする
+ * @returns {*} data
+ */
 function update_userdata(data, data_version, newdata_version){
 	let version = data_version;
 	
@@ -655,6 +765,19 @@ function update_userdata(data, data_version, newdata_version){
 		
 		version = 2;
 	}
+
+	if (version == 2) {
+		for (let fleet of [data.fleet_A, data.fleet_B]) {
+			for (let i=0; i<fleet?.ships?.length; i++) {
+				if (fleet.ships?.[i]) {
+					fleet.ships[i] = SupportShip.ss_to_ssd_json(fleet.ships[i]);
+				}
+			}
+		}
+		version = 3;
+	}
+
+	if (version != newdata_version) debugger;
 	
 	data.version = version;
 	return data;

@@ -1,5 +1,6 @@
 /* 探索のデータクラスと探索関数 */
 
+import * as Global from "./kc_support_global.mjs";
 import {
 	EquipmentDatabase,
 	EquipableInfo,
@@ -47,10 +48,14 @@ Object.assign(SupportFleetData.prototype, {
 	own_list         : null, // array of OwnEquipmentData
 	own_map          : null, // map: id -> OwnEquipmentData
 	
+	// executable() が偽の場合の理由
+	reason: "",
+
 	set_own_data     : SupportFleetData_set_own_data,
 	generate_own_map : SupportFleetData_generate_own_map,
 	append_fleet     : SupportFleetData_append_fleet,
 	save_to_form     : SupportFleetData_save_to_form,
+	save_slots       : SupportFleetData_save_slots,
 	
 	clone            : SupportFleetData_clone,
 	move_from        : SupportFleetData_move_from,
@@ -65,6 +70,7 @@ Object.assign(SupportFleetData.prototype, {
 	countup_equipment      : SupportFleetData_countup_equipment,
 	clear_slots_ssd   : SupportFleetData_clear_slots_ssd,
 	clear_slots       : SupportFleetData_clear_slots,
+	calc_bonus        : SupportFleetData_calc_bonus,
 	swap_slot_ptr     : SupportFleetData_swap_slot_ptr,
 	check_swappable   : SupportFleetData_check_swappable,
 	sort_equipment    : SupportFleetData_sort_equipment,
@@ -79,6 +85,7 @@ Object.assign(SupportFleetData.prototype, {
 	get_text_diff    : SupportFleetData_get_text_diff,
 	
 	search           : SupportFleetData_search,
+	executable       : SupportFleetData_executable,
 	
 	// kancolle_support_data2.mjs
 	fill             : SupportFleetData_fill,
@@ -96,6 +103,10 @@ Object.assign(SupportFleetData.prototype, {
 });
 
 
+/**
+ * 探索用データと探索関数のクラス
+ * @constructor
+ */
 function SupportFleetData(){
 	this.support_ships = new Array;
 	this.ssd_list = new Array;
@@ -132,8 +143,8 @@ function SupportFleetData_append_fleet(fleet){
 			}
 			this.support_ships.push(sup);
 			
-			let ssd = new SupportShipData;
-			if (sup.get_data(ssd)) {
+			let ssd = sup.get_ssd();
+			if (!ssd.empty()) {
 				this.ssd_list.push(ssd);
 			} else {
 				good = false;
@@ -149,10 +160,19 @@ function SupportFleetData_save_to_form(){
 		let ssd = this.ssd_list[i];
 		let ship = this.support_ships.find(s => s.object_id == ssd.ship_object_id);
 		if (!ship) debugger;
-		ship.set_data(ssd);
+		ship.set_ssd(ssd);
 	}
 }
 
+/**
+ * ssdの計算用スロットのデータを保存する
+ * @method SupportFleetData#save_slots
+ */
+function SupportFleetData_save_slots(){
+	for (let i=0; i<this.ssd_list.length; i++) {
+		this.ssd_list[i].save_slots();
+	}
+}
 
 // 複製
 function SupportFleetData_clone(gen_map = true){
@@ -177,7 +197,7 @@ function SupportFleetData_get_json_MT(json, get_dom){
 	obj.own_list = this.own_list.map(own => own.get_json_MT());
 	
 	if (get_dom) {
-		obj.support_ships = this.support_ships.map(sup => sup.get_json());
+		obj.support_ships = this.support_ships.map(sup => sup.get_ssd().get_json(true));
 	}
 	return obj;
 }
@@ -187,7 +207,9 @@ function SupportFleetData_get_json_MT(json, get_dom){
 function SupportFleetData_set_json_MT(json, set_dom){
 	if (set_dom) {
 		for (let i=0; i<json.support_ships.length; i++) {
-			this.support_ships[i].set_json(json.support_ships[i]);
+			let ssd = new SupportShipData();
+			ssd.set_json(json.support_ships[i], true);
+			this.support_ships[i].set_ssd(ssd);
 		}
 	}
 	
@@ -338,6 +360,15 @@ function SupportFleetData_clear_slots(unfixed, fixed, suggested = true, not_sugg
 	}
 }
 
+/**
+ * 全ての艦の装備ボーナスを計算
+ * @alias SupportFleetData#calc_bonus
+ */
+function SupportFleetData_calc_bonus(){
+	for (let ssd of this.ssd_list) {
+		ssd.calc_bonus();
+	}
+}
 
 // ssd1 の pos1 番目の装備と ssd2 の pos2 番目の装備を入れ替える
 // 入れ替える場合はポインターのみを入れ替え
@@ -408,11 +439,17 @@ function SupportFleetData_allow_fixed_exslot(){
 }
 
 
-// 優先度に従って ssd_list を分割・変更し、func を呼ぶ
-// single_call: 長さが1の場合は single() を呼び出す
-// 優先度の低い艦の装備を解除して呼び出しを行う
-// 現在の装備はなるべく維持しようとするが、個数が足りなくなったら以降の艦は全解除とする
-function SupportFleetData_priority_call(func, single_call){
+/**
+ * 優先度に従って ssd_list を分割・変更し、func を呼ぶ
+ * 優先度の低い艦の装備を解除して呼び出しを行う
+ * 現在の装備はなるべく維持しようとするが、個数が足りなくなったら以降の艦は全解除とする
+ * @param {function} func 
+ * @param {boolean} single_call 長さが1の場合は single() を呼び出す
+ * @alias SupportFleetData#priority_call
+ */
+function SupportFleetData_priority_call(func, _single_call){
+	// NOTE: single_callは現在一時停止中
+	let single_call = false;
 	let orig_ssds = this.ssd_list.map(x => x.clone());
 	
 	// 装備を全解除　元の装備情報は orig_ssds に
@@ -625,5 +662,42 @@ function SupportFleetData_search(search_type, param = null){
 	} else {
 		debugger;
 	}
+
+	// 結果は計算用一時変数にあるので、それを読み込む必要がある
+	for (let i=0; i<this.ssd_list.length; i++) {
+		this.ssd_list[i].save_slots();
+	}
+}
+
+/**
+ * 探索が実行可能かどうか
+ * 不可のときは this.reason に理由を格納
+ * @param {string} search_type
+ * @returns {boolean}
+ * @alias SupportFleetData#executable
+ */
+function SupportFleetData_executable(search_type){
+	if (search_type == "fast") {
+		this.reason = "現在高速探索は利用できません";
+		return false;
+	}
+
+	for (let ssd of this.ssd_list) {
+		if (ssd.targeting_mode == Global.TARGETING_VENEMY) {
+			if (!ssd.attack_score.good()) {
+				if (ssd.attack_score.atk_formation_id == 6) {
+					this.reason = "警戒陣の命中は未実装です";
+				} else {
+					this.reason = "敵艦のステータスに未入力があります";
+				}
+				this.reason += "(" + ssd.get_name() + ")";
+				return false;
+			}
+		}
+	}
+
+	// OK
+	this.reason = "";
+	return true;
 }
 

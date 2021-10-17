@@ -2,7 +2,7 @@
 
 import * as Global from "./kc_support_global.mjs";
 import * as Util from "./utility.mjs";
-import {DOM, NODE, ELEMENT, TEXT} from "./utility.mjs";
+import {DOM, NODE, ELEMENT, TEXT, EL, _T} from "./utility.mjs";
 import {SupportShip, SupportShipData} from "./kc_support_ship.mjs";
 import {EquipmentDatabase} from "./kc_equipment.mjs";
 
@@ -22,7 +22,12 @@ Object.assign(SupportFleet.prototype, {
 	e_batchset        : null,
 	e_batchset2       : null,
 	e_accuracy_cell   : null,
-	
+
+	e_fleet_div       : null,
+	e_header          : null,
+	e_support_type    : null,
+	e_fuelammo        : null,
+
 	// D&Dで使用される識別名
 	name              : "",
 	// 艦
@@ -33,12 +38,11 @@ Object.assign(SupportFleet.prototype, {
 	onchange          : null,
 	
 	create            : SupportFleet_create            ,
-	create_cols       : SupportFleet_create_cols       ,
-	create_thead      : SupportFleet_create_thead      ,
 	set_draggable     : SupportFleet_set_draggable     ,
 	get_support_type  : SupportFleet_get_support_type  ,
 	get_ammocost_rate : SupportFleet_get_ammocost_rate ,
 	refresh_display   : SupportFleet_refresh_display   ,
+	refresh_target    : SupportFleet_refresh_target    ,
 	get_ship_by_number: SupportFleet_get_ship_by_number,
 	
 	clear             : SupportFleet_clear             ,
@@ -71,96 +75,57 @@ Object.assign(SupportFleet, {
 });
 
 
-// name はユニークに
-function SupportFleet(arg_table, name){
-	this.e_table = arg_table;
+/**
+ * 1艦隊を扱うクラス
+ * @param {HTMLElement} arg_fleet_div 
+ * @param {string} name ユニークな文字列
+ * @constructor
+ * @extends {EventTarget}
+ */
+function SupportFleet(arg_fleet_div, name){
+	Util.attach_event_target(this);
+	this.e_fleet_div = arg_fleet_div;
 	this.name = name;
 }
 
+/**
+ * @param {string} caption 
+ * @param {number} def_priority 
+ * @method SupportFleet#create
+ */
 function SupportFleet_create(caption, def_priority){
-	Util.remove_children(this.e_table);
+	Util.remove_children(this.e_fleet_div);
 	
 	this.support_ships = new Array;
-	this.create_cols();
-	this.create_thead(caption);
-	
-	let _onchange_sup = e => this.ev_change_sup(e);
+
+	let onchange_sup = e => this.ev_change_sup(e);
+	let onclick_target = e => this.dispatchEvent(new CustomEvent("click_target", {detail: e.detail}));
 	
 	for (let i=0; i<6; i++) {
 		let sup = new SupportShip(i + 1, this.name + "_" + (i + 1));
 		sup.create(def_priority);
-		this.e_table.appendChild(sup.e_tbody);
-		sup.onchange = _onchange_sup;
+		sup.addEventListener("change", onchange_sup);
+		sup.addEventListener("click_target", onclick_target);
 		this.support_ships.push(sup);
 	}
+	
+	NODE(this.e_fleet_div, [
+		this.e_header = EL("div.fleetinfo", [
+			EL("div.caption", [_T(caption)]),
+			EL("div", [
+				EL("div.suptypelabel", [_T("支援タイプ")]),
+				this.e_support_type = EL("div.support_type"),
+			]),
+			EL("div.grow"),
+			this.e_cost = EL("div.cost"),
+		]),
+		...this.support_ships.map(ss => ss.e_panel),
+	]);
+	this.e_fleet_div.classList.add("column2");
 	
 	this.refresh_display();
 }
 
-function SupportFleet_create_cols(){
-	let cols = new Array;
-	for (let i=0; i<8; i++) cols.push(ELEMENT("col"));
-	NODE(this.e_table, [NODE(ELEMENT("colgroup"), cols)]);
-}
-
-function SupportFleet_create_thead(caption){
-	// 一括設定
-	this.e_engagement = NODE(ELEMENT("select"), Global.ENGAGEMENT_FORM_DEFINITION.map(d => {
-		let op = new Option(d.name, d.support);
-		if (d.className) op.className = d.className;
-		return op;
-	}));
-	this.e_engagement.selectedIndex = 1; // 反航戦
-	this.e_engagement.addEventListener("change", e => Util.inherit_option_class(e.currentTarget));
-	Util.inherit_option_class(this.e_engagement);
-	
-	this.e_formation = NODE(ELEMENT("select"), Global.FORMATION_DEFINITION.map(d => {
-		let op = new Option(d.viewname || d.name, d.name);
-		if (d.className) op.className = d.className;
-		return op;
-	}));
-	this.e_formation.selectedIndex = 0; // 単縦陣
-	this.e_formation.addEventListener("change", e => Util.inherit_option_class(e.currentTarget));
-	Util.inherit_option_class(this.e_formation);
-	
-	this.e_targetpower = ELEMENT("input", {type: "number", className: "targetpower"});
-	this.e_targetpower.min = 0;
-	this.e_targetpower.max = 200;
-	//this.e_targetpower.value = Global.SUPPORT_POWER_CAP + 1;
-	this.e_batchset = ELEMENT("button", {textContent: "駆逐のみ", className: "batchset"});
-	this.e_batchset2 = ELEMENT("button", {textContent: "駆逐以外", className: "batchset"});
-	this.e_batchset.addEventListener("click", e => this.ev_click_batchset(e, true, false));
-	this.e_batchset2.addEventListener("click", e => this.ev_click_batchset(e, false, true));
-	
-	let thead = NODE(ELEMENT("thead"), [
-		NODE(ELEMENT("tr"), [
-			ELEMENT("th", {colSpan: 8, textContent: caption, className: "caption"})
-		]),
-		NODE(ELEMENT("tr"), [
-			ELEMENT("th", {colSpan: 2, textContent: "支援タイプ"}),
-			this.e_supporttype_cell = ELEMENT("td", "", "support_type"),
-			NODE(ELEMENT("td", {colSpan: 4, className: "target"}), [
-				this.e_formation,
-				this.e_engagement,
-				NODE(ELEMENT("span", {className: "postcap", title: "空にするとキャップ後は設定しない"}), [TEXT(" キャップ後")]),
-				this.e_targetpower,
-				this.e_batchset,
-				this.e_batchset2,
-			]),
-			this.e_accuracy_cell = ELEMENT("td", {className: "total_accuracy", title: "命中合計"}),
-		]),
-		NODE(ELEMENT("tr"), [
-			ELEMENT("th", {colSpan: 2, textContent: "消費"}),
-			this.e_cost_cell = ELEMENT("td", "", "cost"),
-			ELEMENT("th", {colSpan: 2, textContent: "固定", className: "fixed_header"}),
-			ELEMENT("th", {textContent: "装備"}),
-			ELEMENT("th", {textContent: "攻撃力"}),
-			ELEMENT("th", {textContent: "命中"}),
-		]),
-	]);
-	
-	this.e_table.appendChild(thead);
-}
 
 // ドラッグドロップを可能にする
 // provider: DragdataProvider
@@ -171,17 +136,25 @@ function SupportFleet_set_draggable(provider){
 		let nc = sup.e_number_cell;
 		nc.draggable = true;
 		nc.addEventListener("dragstart", e => this.ev_dragstart_ship(e, sup));
-		nc.addEventListener("dragover" , e => this.ev_dragover_ship(e, sup));
-		nc.addEventListener("drop"     , e => this.ev_drop_ship(e, sup));
+		// nc.addEventListener("dragover" , e => this.ev_dragover_ship(e, sup));
+		// nc.addEventListener("drop"     , e => this.ev_drop_ship(e, sup));
 		nc.addEventListener("dragend"  , e => this.ev_dragend_ship(e, sup));
+
+		let panel = sup.e_panel;
+		panel.addEventListener("dragover" , e => this.ev_dragover_ship(e, sup));
+		panel.addEventListener("drop"     , e => this.ev_drop_ship(e, sup));
 		
 		for (let index=0; index<sup.e_dragdrop_cells.length; index++) {
 			let dc = sup.e_dragdrop_cells[index];
 			dc.draggable = true;
 			dc.addEventListener("dragstart", e => this.ev_dragstart_equip(e, sup, index));
-			dc.addEventListener("dragover" , e => this.ev_dragover_equip(e, sup, index));
-			dc.addEventListener("drop"     , e => this.ev_drop_equip(e, sup, index));
+			// dc.addEventListener("dragover" , e => this.ev_dragover_equip(e, sup, index));
+			// dc.addEventListener("drop"     , e => this.ev_drop_equip(e, sup, index));
 			dc.addEventListener("dragend"  , e => this.ev_dragend_equip(e, sup, index));
+
+			let parent = dc.parentElement;
+			parent.addEventListener("dragover" , e => this.ev_dragover_equip(e, sup, index));
+			parent.addEventListener("drop"     , e => this.ev_drop_equip(e, sup, index));
 		}
 	}
 	
@@ -210,10 +183,10 @@ function SupportFleet_get_support_type(){
 	def.forEach(d => count[d.key] = 0);
 	
 	for (let sup of this.support_ships) {
-		let ssd = new SupportShipData;
+		let ssd = sup.get_ssd();
 		
-		if (sup.get_data(ssd)) {
-			let ship = sup.ship_selector.get_ship();
+		if (!ssd.empty()) {
+			let ship = ssd.ship;
 			let st = ship.shipTypeI || ship.shipType;
 			for (let d of def) {
 				if (d.types.indexOf(st) >= 0) {
@@ -272,9 +245,9 @@ function SupportFleet_get_ammocost_rate(){
 	def.forEach(d => count[d.key] = 0);
 	
 	for (let sup of this.support_ships) {
-		let ssd = new SupportShipData;
+		let ssd = sup.get_ssd();
 		
-		if (sup.get_data(ssd)) {
+		if (!ssd.empty()) {
 			let ship = sup.ship_selector.get_ship();
 			let st = ship.shipTypeI || ship.shipType;
 			for (let d of def) {
@@ -314,16 +287,19 @@ function SupportFleet_refresh_display(){
 		}
 	}
 	
-	this.e_supporttype_cell.textContent = type_text;
-	this.e_supporttype_cell.className = type_class;
+	this.e_support_type.textContent = type_text;
+	this.e_support_type.className = type_class;
+
+	// this.e_supporttype_cell.textContent = type_text;
+	// this.e_supporttype_cell.className = type_class;
 	
 	let total_fuel = 0;
 	let total_ammo = 0;
 	let total_accuracy = 0;
 	
 	for (let sup of this.support_ships) {
-		let ssd = new SupportShipData;
-		if (sup.get_data(ssd)) {
+		let ssd = sup.get_ssd();
+		if (!ssd.empty()) {
 			sup.set_ammocost_rate(ammorate);
 			total_accuracy += ssd.get_accuracy();
 			total_fuel += sup.get_fuelcost();
@@ -331,14 +307,31 @@ function SupportFleet_refresh_display(){
 		}
 	}
 	
+	// let cost_html = total_fuel + total_ammo > 0 ?
+	// 	'燃料<span class="fuel">' + total_fuel + '</span> + 弾薬<span class="ammo">' +
+	// 	total_ammo + '</span> = <span class="fuelammo">' + (total_fuel + total_ammo) + '</span>' :
+	// 	"";
 	let cost_html = total_fuel + total_ammo > 0 ?
-		'燃料<span class="fuel">' + total_fuel + '</span> + 弾薬<span class="ammo">' +
-		total_ammo + '</span> = <span class="fuelammo">' + (total_fuel + total_ammo) + '</span>' :
+		'燃料<span class="fuel">' + total_fuel + '</span> 弾薬<span class="ammo">' +
+		total_ammo + '</span><br>合計<span class="fuelammo">' + (total_fuel + total_ammo) + '</span>' :
 		"";
+
+	this.e_cost.innerHTML = cost_html;
 	
-	this.e_cost_cell.innerHTML = cost_html;
-	this.e_accuracy_cell.textContent = total_accuracy;
-	this.e_accuracy_cell.classList.toggle("good", total_accuracy > 0);
+	// this.e_cost_cell.innerHTML = cost_html;
+	// this.e_accuracy_cell.textContent = total_accuracy;
+	// this.e_accuracy_cell.classList.toggle("good", total_accuracy > 0);
+}
+
+/**
+ * 目標表示を更新
+ * 敵艦の情報が変化した場合など
+ * @alias SupportFleet#refresh_target
+ */
+function SupportFleet_refresh_target(){
+	for (let sup of this.support_ships) {
+		sup.refresh(true);
+	}
 }
 
 function SupportFleet_get_ship_by_number(number){
@@ -358,7 +351,7 @@ function SupportFleet_clear(priority){
 function SupportFleet_get_json(){
 	let ships = new Array;
 	for (let sup of this.support_ships) {
-		ships.push(sup.get_json());
+		ships.push(sup.get_ssd().get_json(false));
 	}
 	return {ships: ships};
 }
@@ -370,7 +363,9 @@ function SupportFleet_set_json(json){
 	if (!ships) return;
 	
 	for (let i=0; i<this.support_ships.length; i++) {
-		this.support_ships[i].set_json(ships[i]);
+		let ssd = new SupportShipData();
+		ssd.set_json(ships[i]);
+		this.support_ships[i].set_ssd(ssd);
 	}
 	
 	this.refresh_display();
@@ -415,12 +410,12 @@ function SupportFleet_ev_dragstart_ship(e, sup){
 	let x = e.pageX - rect.left - window.scrollX;
 	let y = e.pageY - rect.top - window.scrollY;
 	
-	e.dataTransfer.setDragImage(sup.e_tbody, x, y);
+	e.dataTransfer.setDragImage(sup.e_panel, x, y);
 }
 
 function SupportFleet_ev_dragover_ship(e, sup){
 	let drag = this.dragdata_provider.get_data();
-	
+
 	if (drag && drag.type == "support_ship" && drag.sup != sup) {
 		e.dataTransfer.dropEffect = "move";
 		e.preventDefault();
@@ -458,6 +453,12 @@ function SupportFleet_ev_dragstart_equip(e, sup, index){
 		sup  : sup,
 		index: index,
 	});
+
+	let rect = e.currentTarget.getBoundingClientRect();
+	let x = e.pageX - rect.left - window.scrollX;
+	let y = e.pageY - rect.top - window.scrollY;
+	
+	e.dataTransfer.setDragImage(sup.e_equipment_rows[index + 1], x, y);
 }
 
 function SupportFleet_ev_dragover_equip(e, sup, index){
@@ -469,11 +470,12 @@ function SupportFleet_ev_dragover_equip(e, sup, index){
 		let sup_data = sup.get_slot_info(index);
 		let drag_data = drag.sup.get_slot_info(drag.index);
 		
-		// 入れ替え可能
+		let copy = e.ctrlKey;
+		// 入れ替え可能 or コピー可能(Ctrl)
 		if ( (sup_data.equipable[drag_data.id] || drag_data.id == "") &&
-			(drag_data.equipable[sup_data.id] || sup_data.id == "") )
+			(copy || (drag_data.equipable[sup_data.id] || sup_data.id == "")) )
 		{
-			e.dataTransfer.dropEffect = "move";
+			e.dataTransfer.dropEffect = copy ? "copy" : "move";
 			e.preventDefault();
 		}
 	}
@@ -487,18 +489,29 @@ function SupportFleet_ev_drop_equip(e, sup, index){
 	if (drag && drag.type == "support_ship_equipment" && (drag.sup != sup || drag.index != index)) {
 		let sup_data = sup.get_slot_info(index);
 		let drag_data = drag.sup.get_slot_info(drag.index);
+
+		// Ctrl押しながらでコピー、それ以外は入れ替え
+		let copy = e.ctrlKey;
 		
-		// 入れ替え可能
 		if ( (sup_data.equipable[drag_data.id] || drag_data.id == "") &&
-			(drag_data.equipable[sup_data.id] || sup_data.id == "") )
+			(copy || (drag_data.equipable[sup_data.id] || sup_data.id == "")) )
 		{
 			sup_data.select.set_id_star(drag_data.id, drag_data.star);
-			drag_data.select.set_id_star(sup_data.id, sup_data.star);
+			// formの変更なのでssdに通知
+			sup.form_to_ssd();
 			sup.refresh_equipstatus();
-			if (drag.sup != sup) drag.sup.refresh_equipstatus();
+			sup.refresh_probs();
+
+			if (!copy) {
+				drag_data.select.set_id_star(sup_data.id, sup_data.star);
+				drag.sup.form_to_ssd();
+				drag.sup.refresh_equipstatus();
+				drag.sup.refresh_probs();
+			}
+
 			this.refresh_display();
 			if (drag.fleet != this) drag.fleet.refresh_display();
-			
+
 			this.call_onchange();
 			e.preventDefault();
 		}
