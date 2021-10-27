@@ -66,6 +66,7 @@ export const FORMATION_DEFINITION_EX = [
 	{id: 2 , name: "複縦陣", atk: true , def: true , power: 0.8 , accuracy: 1.2, evasion: 1.0, className: "double_line" , keys: ["複縦陣"]},
 	{id: 3 , name: "輪形陣", atk: true , def: true , power: 0.7 , accuracy: 1.0, evasion: 1.1, className: "diamond"     , keys: ["輪形陣"]},
 	{id: 4 , name: "梯形陣", atk: true , def: true , power: 0.75, accuracy: 1.2, evasion: 1.4, className: "echelon"     , keys: ["梯形陣"]},
+	{id: 9 , name: "梯形陣(旧)", atk: true , def: true , power: 0.6, accuracy: 1.2, evasion: 1.2, className: "echelon_old"     , keys: ["梯形陣(旧)"]},
 	{id: 5 , name: "単横陣", atk: true , def: true , power: 0.6 , accuracy: 1.2, evasion: 1.3, className: "line_abreast", keys: ["単横陣"]},
 	// 暫定 (命中)
 	{id: 6 , name: "警戒陣", atk: true , def: false, power: 0.5 , accuracy: 1.0, evasion: 1.0, className: "vanguard"    , keys: ["警戒陣"]},
@@ -83,8 +84,10 @@ export const FORMATION_EXCEPTION = [
 	{atk_id: 2, def_id: 5, accuracy: 1.0},
 	// 梯形陣 vs 単縦陣
 	{atk_id: 4, def_id: 1, accuracy: 1.0},
+	{atk_id: 9, def_id: 1, accuracy: 1.0},
 	// 単横陣 vs 梯形陣
 	{atk_id: 5, def_id: 4, accuracy: 1.0},
+	{atk_id: 5, def_id: 9, accuracy: 1.0},
 ];
 
 /**

@@ -73,6 +73,16 @@ body {
 	margin: 1em 1.5em 1em 0.5em;
 }
 
+/* flex row/column */
+.row {
+	display: flex;
+	flex-direction: row;
+}
+.column {
+	display: flex;
+	flex-direction: column;
+}
+
 /* 共通ここまで */
 
 
@@ -559,252 +569,6 @@ body {
 }
 
 
-/* 支援艦隊 > table */
-.support_table {
-	font-size: 80%;
-	line-height: 1.3;
-	white-space: nowrap;
-}
-.support_table tbody th, .support_table tbody td {
-	padding: 0px;
-}
-
-
-/* 支援艦隊 > table内select */
-.support_table .parallel       { background-color: #eff;    } /* 1.0 */
-.support_table .head_on        { background-color: #ffb;    } /* 0.8 */
-.support_table .t_disadvantage { background-color: #fdd;    } /* 0.6 */
-.support_table .t_advantage    { background-color: #dfd;    } /* 1.2 */
-
-.support_table .line_ahead     { background-color: #eff;    } /* 1.0 */
-.support_table .double_line    { background-color: #ffb;    } /* 0.8 */
-.support_table .diamond        { background-color: #fed;    } /* 0.7 */
-.support_table .echelon        { background-color: #fff6dd; } /* 0.75 */
-.support_table .line_abreast   { background-color: #fdd;    } /* 0.6 */
-.support_table .vanguard       { background-color: #fcc;    } /* 0.5 */
-.support_table .combined       { background-color: #eff;    } /* 1.0 */
-
-
-/* 支援艦隊 > tableヘッダー */
-.support_table thead .support_type {
-	font-weight: bold;
-	padding-left: 6px;
-}
-.support_table thead .support_type.unabled    { color: red; }
-.support_table thead .support_type.shelling   { color: blue; }
-.support_table thead .support_type.aerial     { color: red; }
-.support_table thead .support_type.aerial_asw { color: red; }
-.support_table thead .support_type.torpedo    { color: red; }
-
-.support_table thead th.fixed_header {
-	text-align: right;
-	padding-right: 4px;
-}
-.support_table thead .target > * {
-	vertical-align: middle;
-}
-.support_table thead .target > select {
-	max-width: 6em;
-}
-.support_table thead .target > span.postcap {
-	vertical-align: text-bottom;
-}
-.support_table thead .batchset {
-	font-size: 90%;
-	margin-left: 6px;
-	padding: 0em 0.5em;
-}
-.support_table thead .total_accuracy {
-	font-weight: bold;
-	text-align: center;
-}
-.support_table thead .total_accuracy.good {
-	color: blue;
-}
-
-/* 支援艦隊 > table各艦 */
-.support_table .number {
-	width: 20px;
-	text-align: center;
-	cursor: default;
-}
-.support_table .shipcell > div {
-	display: flex;
-}
-.support_table .shipcell .shipnamediv {
-	flex-basis: 12em;
-	flex-grow: 6;
-	font-size: 14pt;
-	padding: 2px 0.4em;
-	display: flex;
-	align-items: center;
-}
-.support_table .shipcell .lvluckex {
-	flex-basis: 8em;
-	flex-grow: 4;
-	display: flex;
-	flex-direction: column;
-}
-.support_table .shipcell .lvluckex > .lvluck {
-	color: black;
-	cursor: pointer;
-	padding: 3px 0px 1px 0px;
-	display: flex;
-	justify-content: space-evenly;
-}
-.support_table .shipcell .lvluckex > .lvluck:hover {
-	background-color:#dfe8ff;
-}
-.support_table .shipcell .lvluckex > .lvluck { color: gray; }
-.support_table .shipcell .lvluckex > .lvluck > .inputted { color: blue; }
-.support_table .shipcell .lvluckex > .lvluck > .married { color: deeppink; }
-.support_table .shipcell .lvluckex > .lvluck > .error { color: red; }
-.support_table .shipcell .lvluckex > .ex {
-	text-align: center;
-}
-
-.support_table th.priority {
-	width: 80px;
-}
-.support_table select.priority {
-	margin: 1px;
-}
-.support_table .targetcell {
-	padding: 1px;
-}
-.support_table .targetcell > select {
-	max-width: 6em;
-}
-.support_table .targetpower {
-	width: 42px;
-	text-align: right;
-}
-.support_table .displaypower {
-	margin-left: 5px;
-}
-.support_table .power {
-	color: red;
-}
-.support_table .power.basic {
-	font-weight: bold;
-}
-.support_table .cost {
-	padding-left: 6px;
-}
-.support_table .cost .fuel { color: green; font-weight: bold; }
-.support_table .cost .ammo { color: sienna; font-weight: bold; }
-.support_table .cost .fuelammo { color: indigo; font-weight: bold; }
-
-.support_table .eq_dragdrop_cell {
-	width: 25px;
-}
-.support_table .eq_dragdrop {
-	text-align: center;
-	cursor: default;
-}
-.support_table .eq_fix {
-	text-align: center;
-}
-.support_table .eq_fix > input {
-	margin: 3px;
-}
-.support_table .equipmentcell.raw {
-	padding-left: 4px;
-}
-.support_table select.equipment {
-	width: 300px;
-	min-height: 18px;
-	border-width: 0px;
-}
-.support_table select.star {
-	border-width: 0px;
-	color: #45a9a5;
-}
-.support_table .eq_firepower {
-	height: 20px;
-	width: 75px;
-	text-align: center;
-}
-.support_table .eq_accuracy {
-	width: 40px;
-	text-align: center;
-}
-.support_table .eq_firepower.total {
-	font-weight: bold;
-}
-.support_table .eq_accuracy.total {
-	font-weight: bold;
-}
-.support_table .total.good {
-	color: blue;
-}
-.support_table .total.bad {
-	color: red;
-}
-
-.support_table .equipmentcell.total {
-	font-weight: bold;
-	padding-right: 5px;
-	text-align: right;
-}
-
-.support_table .hidden {
-	visibility: hidden;
-}
-
-.support_table .hidden_row {
-	display: none;
-}
-
-.support_table tr {
-	border: dotted 1px gray;
-}
-.support_table col {
-	border: dotted 1px gray;
-}
-
-
-/* #support_A {
-	float: left;
-	margin-right: 0.5em;
-	margin-bottom: 0.5em;
-}
-#support_A th.caption {
-	background-color: #fce;
-}
-#support_A thead th {
-	background-color: #dfc;
-}
-#support_A tbody .number {
-	background-color: #eff;
-}
-#support_A tbody th {
-	background-color: #bef;
-}
-#support_A tbody .eq_dragdrop {
-	background-color: lavender;
-}
-
-#support_B {
-	float: left;
-	margin-bottom: 0.5em;
-}
-#support_B th.caption {
-	background-color: #ff8;
-}
-#support_B thead th {
-	background-color: #beb;
-}
-#support_B tbody .number {
-	background-color: #dea;
-}
-#support_B tbody th {
-	background-color: #bde;
-}
-#support_B tbody .eq_dragdrop {
-	background-color: lavender;
-} */
-
 /* 支援艦隊 > Lv/運入力ダイアログ */
 .dialog_container .inside.lvluck .contents {
 	padding: 0.5em;
@@ -1038,6 +802,10 @@ body {
 #damage th.option label {
 	margin-right: 4px;
 }
+#damage th.option button.enemyinput {
+	padding: 0 0.5em;
+	margin-right: 0.5em;
+}
 
 #damage td.power { width: 80px; }
 #damage td.cur_hp, #damage td.max_hp { width: 65px; }
@@ -1116,6 +884,8 @@ body {
 	text-align: right;
 }
 
+
+/* 支援艦隊 */
 #support_fleet_pair {
 	display: flex;
 	flex-wrap: wrap;
@@ -1298,7 +1068,6 @@ body {
 	width: 40px;
 	flex-grow: 0;
 	font-size: 16pt;
-	/* background-color: rgb(255, 203, 106); */
 	background-color: #bef;
 	cursor: default;
 	user-select: none;
@@ -1846,6 +1615,7 @@ body {
 .search_target .selffm .double_line    { background-color: #ffb;    } /* 0.8 */
 .search_target .selffm .diamond        { background-color: #fed;    } /* 0.7 */
 .search_target .selffm .echelon        { background-color: #fff6dd; } /* 0.75 */
+.search_target .selffm .echelon_old    { background-color: #fdd;    } /* 0.6 */
 .search_target .selffm .line_abreast   { background-color: #fdd;    } /* 0.6 */
 .search_target .selffm .vanguard       { background-color: #fcc;    } /* 0.5 */
 .search_target .selffm .combined       { background-color: #eff;    } /* 1.0 */
@@ -1866,4 +1636,27 @@ body {
 .search_target .targettable div.venemy span.damage_lv4 { color: darkblue; }
 .search_target .targettable div.venemy span.damage_lv3 { color: #eb0000; /* color: red; */ }
 .search_target .targettable div.venemy span.damage_lv2 { color: #a86205; /* color: #e8860a; */ }
+
+
+/* 計算式 */
+#support_formula {
+	margin-bottom: 10em;
+}
+#support_formula .header {
+	padding: 1px 8px;
+	background-color: #aae1ff;
+	font-weight: bold;
+}
+#support_formula h4 {
+	margin: 0.25em 0;
+	padding: 0 0.5em;
+	background-color: #f9c8d3;
+}
+#support_formula p {
+	margin: 2px 0px;
+	padding-left: 1em;
+}
+#support_formula p.small {
+	font-size: 80%;
+}
 

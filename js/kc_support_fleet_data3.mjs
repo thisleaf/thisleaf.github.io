@@ -24,6 +24,12 @@ export {
 };
 
 
+// DEBUG: 初期状態をランダムにする
+const SA_START_AT_RANDOM = false;
+// 仕上げに山登り法を使う
+const SA_HILL_CLIMBLING = true;
+
+
 // 焼きなまし用
 Object.assign(SASlotData.prototype, {
 	// スロットの艦
@@ -87,11 +93,14 @@ function SupportFleetData_annealing(iteration_scale = 1){
 	if (this.ssd_list.length == 0) return;
 	
 	// 装備のリセット
-	// this.countup_equipment(true, false, -1);
-	// this.clear_slots(true, false);
-	// this.random_fill();
-	this.fill();
-	
+	if (SA_START_AT_RANDOM) {
+		this.countup_equipment(true, false, -1);
+		this.clear_slots(true, false);
+		this.random_fill();
+	} else {
+		this.fill();
+	}
+
 	this.ssd_list.forEach(ssd => ssd.calc_bonus());
 	this.own_list.forEach(own => own.generate_rem_stars());
 	
@@ -187,22 +196,17 @@ function SupportFleetData_annealing(iteration_scale = 1){
 	
 	
 	// 設定など
-	let swap_prob = 0.2;
+	let swap_prob = 0.3;
 	if (ssd_list.length == 1) swap_prob = 0;
 	
 	let retry_count = 0;
 	let retry_max = 1;
 	let start_temperature = 5000;
 	let end_temperature = 1;
-/*
-	//let phasechange_count = 500 * ssd_list.length / retry_max;
-	//let coefficient = 0.75;
-	let phasechange_count = 300 * ssd_list.length / retry_max;
-	let coefficient = 0.85;
-*/
+
 	// 反復回数固定で設定
-	let expect_loop_count = 18000 * ssd_list.length * iteration_scale; // まだ成績が伸びる？
-	let coefficient = 0.8;
+	let expect_loop_count = 18000 * ssd_list.length * iteration_scale;
+	let coefficient = 0.9;
 	let max_step = Math.floor(Math.log(end_temperature / start_temperature) / Math.log(coefficient)) + 1;
 	let phasechange_count = expect_loop_count / (max_step * retry_max);
 	
@@ -368,6 +372,9 @@ function SupportFleetData_annealing(iteration_scale = 1){
 	max_fleet.generate_own_map();
 	this.move_from(max_fleet);
 
+	// 仕上げ
+	if (SA_HILL_CLIMBLING) this.hill_climbling1("rigidly");
+
 	// console.log(move_count * 100 / expect_loop_count, this.ssd_list[0].allslot_equipment.map(slot => slot?.equipment_data?.name ?? null))
 }
 
@@ -388,11 +395,14 @@ function SupportFleetData_annealing_entire_main(iteration_scale, priority_data){
 	if (this.ssd_list.length == 0) return;
 	
 	// 装備のリセット
-	// this.countup_equipment(true, false, -1);
-	// this.clear_slots(true, false);
-	// this.random_fill();
-	this.fill();
-	
+	if (SA_START_AT_RANDOM) {
+		this.countup_equipment(true, false, -1);
+		this.clear_slots(true, false);
+		this.random_fill();
+	} else {
+		this.fill();
+	}
+
 	this.ssd_list.forEach(ssd => ssd.calc_bonus());
 	this.own_list.forEach(own => own.generate_rem_stars());
 	
@@ -475,7 +485,7 @@ function SupportFleetData_annealing_entire_main(iteration_scale, priority_data){
 	
 	
 	// 設定など
-	let swap_prob = 0.2;
+	let swap_prob = 0.3;
 	if (ssd_list.length == 1) swap_prob = 0;
 	
 	let retry_count = 0;
@@ -484,17 +494,17 @@ function SupportFleetData_annealing_entire_main(iteration_scale, priority_data){
 	let end_temperature = 1;
 	
 	// 重み
-	// 線形より指数のほうが成績が良いが、悪い解も多くなる(ばらつく)
 	let priority_counts = this.get_priority_counts();
 	let weight = null;
-	weight = SupportFleetScorePrior.get_exp_weight_c(2, priority_counts);
-	//weight = SupportFleetScorePrior.get_linear_weight_c(priority_counts);
+	// weight = SupportFleetScorePrior.get_exp_weight_c(2, priority_counts);
+	// weight = SupportFleetScorePrior.get_linear_weight_c(priority_counts);
+	weight = SupportFleetScorePrior.get_linear_weight(priority_counts.length);
 	
 	if (weight) end_temperature *= weight[weight.length - 1];
 	
 	// 反復回数固定で設定
 	let expect_loop_count = 18000 * ssd_list.length * iteration_scale;
-	let coefficient = 0.8;
+	let coefficient = 0.9;
 	let max_step = Math.floor(Math.log(end_temperature / start_temperature) / Math.log(coefficient)) + 1;
 	let phasechange_count = expect_loop_count / (max_step * retry_max);
 	
@@ -661,6 +671,9 @@ function SupportFleetData_annealing_entire_main(iteration_scale, priority_data){
 	
 	max_fleet.generate_own_map();
 	this.move_from(max_fleet);
+
+	// 仕上げ
+	if (SA_HILL_CLIMBLING) this.hill_climbling1("entire");
 }
 
 

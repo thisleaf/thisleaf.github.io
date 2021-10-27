@@ -230,7 +230,6 @@ function DOMDialog_alert(message, title = ""){
 // DOMDialog member ------------------------------------------------------------
 /**
  * @constructor
- * @todo write jsdoc
  */
 function DOMDialog(){
 	Util.attach_event_target(this);
@@ -244,8 +243,7 @@ function DOMDialog(){
  * @param {string} [title=""] ダイアログのタイトル
  * @param {boolean} [movable=false] 移動可能にするかどうか
  * @return {DOMDialog} this
- * @method create
- * @memberof DOMDialog.prototype
+ * @alias DOMDialog#create
  */
 function DOMDialog_create(mode, title = "", movable = false){
 	if (this.e_inside || !DOMDialog.initialized) debugger;
@@ -295,13 +293,21 @@ function DOMDialog_create(mode, title = "", movable = false){
 	return this;
 }
 
-// button をクリックしたときに、closeイベント(exitイベント)が発生するようになる
+/**
+ * button をクリックしたときに、closeイベント(exitイベント)が発生するようになる
+ * @param {HTMLElement} button 
+ * @param {string} detail 
+ * @alias DOMDialog#add_dialog_button
+ */
 function DOMDialog_add_dialog_button(button, detail){
 	button.addEventListener("click", e => this.hide(detail));
 }
 
-// ダイアログ(DOM)の解放
-// オブジェクトを捨てる前には必ず
+/**
+ * ダイアログ(DOM)の解放
+ * オブジェクトを捨てる前には必ず呼び出す
+ * @alias DOMDialog#dispose
+ */
 function DOMDialog_dispose(){
 	if (this.showing) {
 		this.hide("cancel", false);
@@ -329,10 +335,14 @@ function DOMDialog_set_title(title){
 	this.e_title.textContent = title;
 }
 
-// 表示
-// Promiseを返し、そのPromiseはダイアログが閉じたときに解決される
-// 既に表示されている場合は拒絶のPromise
-// Promiseの性質上、"exit"イベントのあとにPromiseの解決が通知される
+/**
+ * 表示
+ * Promiseを返し、そのPromiseはダイアログが閉じたときに解決される
+ * 既に表示されている場合は拒絶のPromise
+ * Promiseの性質上、"exit"イベントのあとにPromiseの解決が通知される
+ * @returns {Promise.<string>}
+ * @alias DOMDialog#show
+ */
 function DOMDialog_show(){
 	if (!this.showing) {
 		this.showing = true;
@@ -351,9 +361,14 @@ function DOMDialog_show(){
 	}
 }
 
-// ダイアログ終了
-// reason に終了理由
-// close イベント中に呼び出してはならない
+/**
+ * ダイアログ終了(閉じる)
+ * reason に終了理由
+ * close イベント中に呼び出してはならない
+ * @param {string} reason 
+ * @param {boolean} [cancelable=true] キャンセル可能
+ * @alias DOMDialog#hide
+ */
 function DOMDialog_hide(reason = "hide", cancelable = true){
 	if (this.showing) {
 		let suc = true;
@@ -379,6 +394,10 @@ function DOMDialog_hide(reason = "hide", cancelable = true){
 	}
 }
 
+/**
+ * ダイアログを最前面に持ってくる
+ * @alias DOMDialog#move_to_front
+ */
 function DOMDialog_move_to_front(){
 	if (this.showing) {
 		this.z_base = DOMDialog.max_z_base(this) + 2;
@@ -389,48 +408,97 @@ function DOMDialog_move_to_front(){
 	}
 }
 
+/**
+ * modal dialogかどうか
+ * @returns {boolean}
+ * @alias DOMDialog#is_modal
+ */
 function DOMDialog_is_modal(){
 	return this.e_outside != null;
 }
 
+/**
+ * サイズの設定 単位はcssの単位
+ * @param {string} width 
+ * @param {string} height 
+ * @alias DOMDialog#set_size
+ */
 function DOMDialog_set_size(width, height){
 	if (width) this.e_inside.style.width = width;
 	if (height) this.e_inside.style.height = height;
 }
 
-// ダイアログの位置変数の最大を返す
-// 半分を設定すれば中央に置くことに
-// 表示してからでないと正しい値が返らない
+/**
+ * ダイアログの位置変数の最大を返す
+ * 半分を設定すれば中央に置くことに
+ * 表示してからでないと正しい値が返らない
+ * @returns {number}
+ * @alias DOMDialog#get_max_x
+ */
 function DOMDialog_get_max_x(){
 	return document.documentElement.clientWidth - this.e_inside.offsetWidth;
 }
+/**
+ * @returns {number}
+ * @alias DOMDialog#get_max_y
+ */
 function DOMDialog_get_max_y(){
 	return document.documentElement.clientHeight - this.e_inside.offsetHeight;
 }
 
-// ダイアログの現在位置
-// x, y のプロパティでもアクセスできる
+/**
+ * ダイアログの現在位置
+ * x, y のプロパティでもアクセスできる
+ * @returns {number}
+ * @alias DOMDialog#get_x
+ */
 function DOMDialog_get_x(){
 	return this.e_inside.offsetLeft;
 }
+/**
+ * @returns {number}
+ * @alias DOMDialog#get_y
+ */
 function DOMDialog_get_y(){
 	return this.e_inside.offsetTop;
 }
+/**
+ * x位置のみを設定
+ * @param {number} x
+ * @alias DOMDialog#set_x
+ */
 function DOMDialog_set_x(x){
 	this.move_to(x, this.y);
 }
+/**
+ * y位置のみを設定
+ * @param {number} y
+ * @alias DOMDialog#set_y
+ */
 function DOMDialog_set_y(y){
 	this.move_to(this.x, y);
 }
 
-// ダイアログの移動(相対)
-// fit: 画面内に収める
-// retry_scroff: スクロールバーが消えた場合にリトライ(fit:true)
+/**
+ * ダイアログの移動(相対)
+ * @param {number} dx 
+ * @param {number} dy 
+ * @param {boolean} [fit=true] 画面内に収める
+ * @param {boolean} [retry_scroff=true] スクロールバーが消えた場合にリトライ(fit:true)
+ * @alias DOMDialog#move_by
+ */
 function DOMDialog_move_by(dx, dy, fit = true, retry_scroff = true){
 	this.move_to(dx + this.e_inside.offsetLeft, dy + this.e_inside.offsetTop, fit, retry_scroff);
 }
 
-// ダイアログの移動(絶対)
+/**
+ * ダイアログの移動(絶対)
+ * @param {number} x 
+ * @param {number} y 
+ * @param {boolean} [fit=true] 
+ * @param {boolean} [retry_scroff=true] 
+ * @alias DOMDialog#move_to
+ */
 function DOMDialog_move_to(x, y, fit = true, retry_scroff = true){
 	let left = x, top = y;
 	let cw = document.documentElement.clientWidth;
@@ -457,14 +525,23 @@ function DOMDialog_move_to(x, y, fit = true, retry_scroff = true){
 	}
 }
 
-// centering
-// false にするとそのまま
+/**
+ * centering
+ * 引数を false にするとそのまま
+ * @param {boolean} [move_x=true] 
+ * @param {boolean} [move_y=true] 
+ * @alias DOMDialog#move_to_center
+ */
 function DOMDialog_move_to_center(move_x = true, move_y = true){
 	let new_x = move_x ? this.get_max_x() / 2 : this.e_inside.offsetLeft;
 	let new_y = move_y ? this.get_max_y() / 2 : this.e_inside.offsetTop;
 	this.move_to(new_x, new_y);
 }
 
+/**
+ * 位置リセット
+ * @alias DOMDialog#reset_position
+ */
 function DOMDialog_reset_position(){
 	this.e_inside.style.left   = "";
 	this.e_inside.style.right  = "";
@@ -472,8 +549,12 @@ function DOMDialog_reset_position(){
 	this.e_inside.style.bottom = "";
 }
 
+/**
+ * キャンセル動作
+ * @param {*} detail 
+ * @alias DOMDialog#call_cancel
+ */
 function DOMDialog_call_cancel(detail){
-	// キャンセル動作
 	// どこかで preventDefault() が呼ばれると、戻り値が false になる
 	if (this.dispatchEvent(new CustomEvent("cancel", {detail: detail, cancelable: true}))) {
 		this.hide("cancel");

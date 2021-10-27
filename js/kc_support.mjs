@@ -127,6 +127,7 @@ function kancolle_support_init(){
 	
 	// 損傷率
 	damage_table.create_contents();
+	damage_table.addEventListener("changestatus", e => ev_changestatus_by_damage_table(e));
 	
 	// 探索ボタンなど
 	let _click = (id, func) => {
@@ -701,6 +702,13 @@ function ev_click_target(e){
 		support_fleet_B.refresh_target();
 		target_dialog.dispose();
 	});
+}
+
+// 損傷率計算ツールで敵艦ダイアログの適用が押された
+function ev_changestatus_by_damage_table(e){
+	support_fleet_A.refresh_target();
+	support_fleet_B.refresh_target();
+	save_userdata();
 }
 
 

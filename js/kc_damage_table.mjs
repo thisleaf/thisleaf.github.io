@@ -1,8 +1,10 @@
 // 損傷率の表を作る
 
 import * as Util from "./utility.mjs";
-import {DOM, NODE, ELEMENT, TEXT} from "./utility.mjs";
+import {DOM, NODE, ELEMENT, TEXT, EL} from "./utility.mjs";
 import * as Damage from "./kc_damage_utility.mjs";
+import {EquipmentDatabase} from "./kc_equipment.mjs";
+import {EnemyStatus, EnemySelectorDialog} from "./kc_enemy_status.mjs";
 
 
 // DamageTable -------------------------------------------------------------------------------------
@@ -17,9 +19,11 @@ Object.assign(DamageTable.prototype, {
 	e_cumlative      : null,
 	e_scratch        : null,
 	e_protect        : null,
+	e_enemy_button   : null,
 	
 	input_row        : null,
 	reference_rows   : null,
+	enemy_dialog     : null,
 	
 	// 参考表示中の列番号・方向
 	reference_column : 0,
@@ -30,12 +34,15 @@ Object.assign(DamageTable.prototype, {
 	
 	ev_change_options: DamageTable_ev_change_options,
 	ev_click_triangle: DamageTable_ev_click_triangle,
+	ev_click_enemyinput: DamageTable_ev_click_enemyinput,
 });
 
 DamageTable.reference_row_count = 20;
 
 
 export function DamageTable(table){
+	// 敵艦ステータス変更イベントなど
+	Util.attach_event_target(this);
 	this.e_table = table;
 }
 
@@ -58,8 +65,9 @@ function DamageTable_create_contents(){
 	NODE(this.e_table, [
 		NODE(ELEMENT("thead"), [
 			NODE(ELEMENT("tr"), [
-				ELEMENT("th", {colSpan: 4, className: "n_r left caption", textContent: "損傷率"}),
-				NODE(ELEMENT("th", {colSpan: 5, className: "n_l right option"}), [
+				ELEMENT("th", {colSpan: 2, className: "n_r left caption", textContent: "損傷率"}),
+				NODE(ELEMENT("th", {colSpan: 7, className: "n_l right option"}), [
+					this.e_enemy_button = EL("button.enemyinput", [TEXT("敵艦から入力")]),
 					NODE(ELEMENT("label"), [
 						this.e_cumlative = ELEMENT("input", {type: "checkbox", checked: false}),
 						TEXT("累計表示"),
@@ -105,6 +113,7 @@ function DamageTable_create_contents(){
 	
 	// event
 	let _change = e => this.ev_change_options(e);
+	this.e_enemy_button.addEventListener("click", e => this.ev_click_enemyinput());
 	this.e_cumlative.addEventListener("change", _change);
 	this.e_scratch.addEventListener("change", _change);
 	this.e_protect.addEventListener("change", _change);
@@ -166,6 +175,31 @@ function DamageTable_ev_click_triangle(pos, e){
 		this.reference_dir = -this.reference_dir;
 	}
 	this.refresh();
+}
+
+function DamageTable_ev_click_enemyinput(){
+	if (!this.enemy_dialog) {
+		let es = EquipmentDatabase.enemy_status;
+		this.enemy_dialog = new EnemySelectorDialog(es);
+		this.enemy_dialog.show_empty = false;
+		this.enemy_dialog.show_directinput = false;
+		this.enemy_dialog.create();
+		this.enemy_dialog.addEventListener( "apply", e => this.dispatchEvent(new CustomEvent("changestatus", {detail: e.detail})) );
+	}
+
+	this.enemy_dialog.show().then(result => {
+		if (result == "ok") {
+			let es = EquipmentDatabase.enemy_status;
+			let id = this.enemy_dialog.getCurrentId();
+			if (id != EnemyStatus.ID_EMPTY && id != EnemyStatus.ID_DIRECTINPUT) {
+				let st = es.getStatus(id);
+				this.input_row.e_hp.value = st.HP;
+				this.input_row.e_max_hp.value = st.HP;
+				this.input_row.e_armor.value  = st.armor;
+				this.refresh();
+			}
+		}
+	});
 }
 
 

@@ -36,6 +36,7 @@ class EnemySelectorDialog extends DOMDialog {
 	current_status = null;
 	show_submarine = false;
 	show_empty = true;
+	show_directinput = true;
 
 
 	/**
@@ -210,6 +211,12 @@ class EnemySelectorDialog extends DOMDialog {
 		return this;
 	}
 
+	show(){
+		// ステータスが変更されているかもしれない
+		this.e_list_array.forEach(x => this.refreshListItem(x.id, false));
+		return super.show();
+	}
+
 	clearSearchText(){
 		if (this.e_query.value != "") {
 			this.e_query.value = "";
@@ -307,14 +314,15 @@ class EnemySelectorDialog extends DOMDialog {
 
 		for (let i=0; i<this.e_list_array.length; i++) {
 			let x = this.e_list_array[i];
+
 			if (x.id == EnemyStatus.ID_EMPTY) {
 				// empty
-				if (this.show_empty) {
-					this.e_list.appendChild(x.li);
-				}
+				if (!this.show_empty) continue;
+				this.e_list.appendChild(x.li);
 
 			} else if (x.id == EnemyStatus.ID_DIRECTINPUT) {
 				// 直接入力
+				if (!this.show_directinput) continue;
 				this.e_list.appendChild(x.li);
 
 			} else if (x.csv) {
@@ -535,6 +543,8 @@ class EnemySelectorDialog extends DOMDialog {
 		if (!this.current_status || this.current_status.id == EnemyStatus.ID_EMPTY) return;
 		this.enemy_status.setUserStatus(this.current_status);
 		this.refreshListItem(this.current_status.id, false);
+		// apply event
+		this.dispatchEvent(new CustomEvent("apply", {detail: {id: this.current_status.id}}));
 	}
 
 	ev_keydown_query(e){

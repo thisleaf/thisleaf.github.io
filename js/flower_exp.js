@@ -766,7 +766,7 @@ function calc_optimized(form){
 			var end = new Date;
 			
 			if (1) {
-				// debug用　高速な方と解が変わらないかをチェック
+				// (デバッグ用)　高速な方と解が変わらないかをチェック
 				var fast_uplist = calc_mingold_powerup_of_s_fast(form.total_exp, form.goal_exp, stacks, form.max_level, form.exp_table, form.gold_table, form.once_min_count);
 				var ts_uplist = calc_mingold_powerup_of_s_TS(form.total_exp, form.goal_exp, stacks, form.max_level, form.exp_table, form.gold_table, form.once_min_count);
 				

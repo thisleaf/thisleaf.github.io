@@ -3,6 +3,7 @@
 import {
 	SupportFleetScore,
 	SupportShipScore,
+	SupportFleetScorePrior,
 } from "./kc_support_score.mjs";
 import {
 	EquipmentDatabase,
@@ -177,17 +178,23 @@ function SupportFleetData_random_fill(reset = false){
 }
 
 
-// 山登り法
-// 近傍は入れ換え1回
-function SupportFleetData_hill_climbling1(){
+/**
+ * 山登り法で探索
+ * 近傍は入れ換え1回
+ * 複数の優先度に対応している
+ * @param {string} [compare_type="rigidly"] 複数の優先度がある場合、どうスコアを比較するか
+ * @alias SupportFleetData#hill_climbling1
+ */
+function SupportFleetData_hill_climbling1(compare_type = "rigidly"){
 	this.fill();
 	this.ssd_list.forEach(x => x.calc_bonus());
 	this.own_list.forEach(x => x.generate_rem_stars());
 	
 	let max_fleet = this.clone();
-	let max_score = new SupportFleetScore(this.ssd_list);
+	let max_score = new SupportFleetScorePrior(this.ssd_list);
 	
-	for (;;) {
+	let c = 0;
+	for (;; c++) {
 		let ssds = this.ssd_list;
 		let owns = this.own_list.filter(x => x.remaining > 0);
 		
@@ -224,7 +231,7 @@ function SupportFleetData_hill_climbling1(){
 							score.add(ssd1);
 							score.add(ssd2);
 							
-							if (max_score.compare(score) < 0) { // max_score < score
+							if (max_score.compare_by(score, compare_type) < 0) { // max_score < score
 								max_fleet = this.clone();
 								max_score = score;
 								found = true;
@@ -265,7 +272,7 @@ function SupportFleetData_hill_climbling1(){
 					let score = current_score.clone();
 					score.add(ssd1);
 					
-					if (max_score.compare(score) < 0) { // max_score < score
+					if (max_score.compare_by(score, compare_type) < 0) { // max_score < score
 						let exc = old_id && this.own_map[old_id];
 						
 						// 個数
@@ -293,6 +300,8 @@ function SupportFleetData_hill_climbling1(){
 		if (!found) break;
 		
 		this.move_from(max_fleet);
+
+		if (c >= 10000) debugger;
 	}
 }
 
@@ -611,7 +620,6 @@ function SupportFleetData_single(ssd){
 	ssd.allslot_equipment = max_allslot_equipment;
 	this.countup_equipment_ssd(ssd, true, false);
 	
-	// debug
 	//console.log("nosynergy call:", ns_count);
 	//this.assert_count("single check");
 }

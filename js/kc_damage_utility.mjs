@@ -416,15 +416,20 @@ export function inv_sqrtcap(y, cap){
  * @param {number} x キャップ前値(整数でなくてもよい)
  * @return {number} 整数
  */
-export function evadecap(x){
-	return Math.floor(evadecap_raw(x));
+export function evasioncap(x){
+	return Math.floor(evasioncap_raw(x));
 }
 /**
  * 回避キャップをかけるが整数化しない
  * @param {number} x キャップ前値(整数でなくてもよい)
  * @return {number}
  */
-export function evadecap_raw(x){
+export function evasioncap_raw(x){
 	let e = Math.floor(x);
 	return e >= 65 ? 55 + 2 * Math.sqrt(e - 65) : e >= 40 ? 40 + 3 * Math.sqrt(e - 40) : x;
 }
+// 後方互換
+export {
+	evasioncap as evadecap,
+	evasioncap_raw as evadecap_raw,
+};

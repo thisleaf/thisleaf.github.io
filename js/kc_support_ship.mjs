@@ -235,7 +235,7 @@ function SupportShip_create(def_priority){
 		let str = ""; 
 /*
 		str += "[";
-		if (this.is_cv_shelling()) {
+		if (this.ssd.cv_shelling) {
 			str += Util.float_to_string((eq.firepower + eq.torpedo + eq.bombing * 1.3) * 1.5, 2, 0);
 		} else {
 			str += eq.firepower;
@@ -287,36 +287,6 @@ function SupportShip_create(def_priority){
 	}
 	this.e_priority.selectedIndex = (1 <= def_priority && def_priority <= 12) ? def_priority - 1 : 0;
 	this.e_priority.addEventListener("change", e => this.ev_change_priority(e));
-	
-	// todo: 不要なオブジェクトの整理
-	// 火力目標
-	this.e_engagement = NODE(ELEMENT("select"),
-		Global.ENGAGEMENT_FORM_DEFINITION.map(d => {
-			let op = new Option(d.name, d.support);
-			if (d.className) op.className = d.className;
-			return op;
-		})
-	);
-	this.e_engagement.selectedIndex = 1; // 反航戦
-	this.e_engagement.addEventListener("change", _change_target);
-	
-	this.e_formation = NODE(ELEMENT("select"),
-		Global.FORMATION_DEFINITION.map(d => {
-			let op = new Option(d.viewname || d.name, d.name);
-			if (d.className) op.className = d.className;
-			return op;
-		})
-	);
-	this.e_formation.selectedIndex = 0; // 単縦陣
-	this.e_formation.addEventListener("change", _change_target);
-	
-	this.e_targetpower = ELEMENT("input", {type: "number", className: "targetpower"});
-	this.e_targetpower.min = 0;
-	this.e_targetpower.max = 200;
-	this.e_targetpower.value = Global.SUPPORT_POWER_CAP + 1;
-	this.e_targetpower.addEventListener("change", _change_target);
-	
-	this.e_displaypower = ELEMENT("span", "", "displaypower");
 	
 	// 装備欄
 	this.e_slot_fixes = new Array;
@@ -496,30 +466,27 @@ function SupportShip_set_equipment_count(count, show_exslot){
 	this.e_equipment_rows[ilast].classList.toggle("hidden", !show_exslot);
 }
 
-// 艦が選択されているかどうか
+/**
+ * 艦が選択されているかどうか
+ * @returns {boolean}
+ * @alias SupportShip#empty
+ */
 function SupportShip_empty(){
 	return this.ssd.empty();
 }
-
-// todo: move to ssd
-// 空母系計算式かどうか
+/**
+ * @returns {boolean}
+ * @method SupportShip#is_cv_shelling
+ */
 function SupportShip_is_cv_shelling(){
 	return this.ssd.is_cv_shelling();
-	// return ( this.equipable_info &&
-	// 	this.equipable_info.ship &&
-	// 	SupportShip.cv_shelling_types.indexOf(this.equipable_info.ship.shipTypeI || this.equipable_info.ship.shipType) >= 0 );
 }
-
 /**
- * 駆逐艦かどうか
- * @return {boolean} 駆逐ならtrue
- * @method SupportShip.prototype.is_dd
+ * @return {boolean}
+ * @method SupportShip#is_dd
  */
 function SupportShip_is_dd(){
 	return this.ssd.is_dd();
-	// return ( this.equipable_info &&
-	// 	this.equipable_info.ship &&
-	// 	SupportShip.dd_types.indexOf(this.equipable_info.ship.shipTypeI || this.equipable_info.ship.shipType) >= 0);
 }
 
 // 一括設定用関数
@@ -566,11 +533,6 @@ function SupportShip_get_ammocost(){
 }
 
 function SupportShip_clear(priority){
-	// this.set_name("");
-	// this.set_target(1, 0, Global.SUPPORT_POWER_CAP + 1);
-	// if (priority) {
-	// 	this.e_priority.value = priority;
-	// }
 	let ssd = new SupportShipData("");
 	if (priority) {
 		ssd.priority = priority;

@@ -215,7 +215,8 @@ class AttackScoreCalc {
 	 * @returns {number}
 	 */
 	toCL2Prob100(hit_prob){
-		return Math.floor(Math.sqrt(hit_prob)) + 1;
+		// 命中値の平方根
+		return Math.floor(Math.sqrt(hit_prob - 1)) + 1;
 	}
 
 	/**
@@ -230,7 +231,7 @@ class AttackScoreCalc {
 		let p = this.getHitProb100(accuracy);
 		// クリティカル率 *100
 		// 探索のために、切り捨てずなめらかにする
-		let p_cl2_c = Math.sqrt(p) + 1;
+		let p_cl2_c = Math.sqrt(p - 1) + 1;
 		let p_cl2 = Math.floor(p_cl2_c);
 		// CL1 *100
 		let p_cl1_c = p - p_cl2_c;

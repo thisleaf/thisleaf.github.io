@@ -434,7 +434,7 @@ function calc_mingold_powerup_of_s_TS(base_exp, goal_exp, stacks, limit_level, e
 	var change_size_mode = false;
 	// 最小解
 	var min_gene = current;
-	// debug
+	
 	var calc_count = 0;
 	var cache_count = 0;
 	

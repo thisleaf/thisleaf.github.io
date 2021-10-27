@@ -16,6 +16,19 @@ const MODE_FIREPOWER_BORDER = 1;
 const MODE_VENEMY_DAMAGE = 2;
 
 
+/**
+ * 小数の比較用
+ * 演算の順番が変わったりで計算誤差が発生し厄介
+ * @param {number} a 
+ * @param {number} b 
+ * @returns {number}
+ */
+function float_compare(a, b){
+	let c = a - b;
+	return Math.abs(c) < 1e-9 ? 0 : c;
+}
+
+
 // SupportFleetScore -------------------------------------------------------------------------------
 Object.assign(SupportFleetScore, {
 	// 探索モード定数
@@ -227,14 +240,14 @@ function SupportFleetScore_add_array(list){
  */
 function SupportFleetScore_compare(b){
 	let c = this.unreached_power - b.unreached_power;
-	if (c == 0) c = this.damage_score - b.damage_score;
+	if (c == 0) c = float_compare(this.damage_score, b.damage_score);
 	if (c == 0) c = this.total_accuracy - b.total_accuracy;
 	if (c == 0) c = this.sub_unreached_power - b.sub_unreached_power;
 	if (c == 0) c = this.sub_total_accuracy - b.sub_total_accuracy;
-	if (c == 0) c = b.damage_score_sq - this.damage_score_sq;
+	if (c == 0) c = float_compare(b.damage_score_sq, this.damage_score_sq);
 	if (c == 0) c = b.total_accuracy_sq - this.total_accuracy_sq;
 	if (c == 0) c = this.total_basic_power - b.total_basic_power;
-	if (c == 0) c = this.total_priority - b.total_priority;
+	if (c == 0) c = float_compare(this.total_priority, b.total_priority);
 	if (c == 0) c = this.total_bonus_power - b.total_bonus_power;
 	return c;
 }
@@ -248,7 +261,7 @@ function SupportFleetScore_compare(b){
  */
 function SupportFleetScore_compare_s1(b){
 	let c = this.unreached_power - b.unreached_power;
-	if (c == 0) c = this.damage_score - b.damage_score;
+	if (c == 0) c = float_compare(this.damage_score, b.damage_score);
 	if (c == 0) c = this.total_accuracy - b.total_accuracy;
 	if (c == 0) c = this.sub_unreached_power - b.sub_unreached_power;
 	if (c == 0) c = this.sub_total_accuracy - b.sub_total_accuracy;
@@ -261,7 +274,7 @@ function SupportFleetScore_compare_s1(b){
  * @alias SupportFleetScore#compare_s2
  */
 function SupportFleetScore_compare_s2(b){
-	let c = b.damage_score_sq - this.damage_score_sq;
+	let c = float_compare(b.damage_score_sq, this.damage_score_sq);
 	if (c == 0) c = b.total_accuracy_sq - this.total_accuracy_sq;
 	if (c == 0) c = this.total_basic_power - b.total_basic_power;
 	return c;
@@ -273,7 +286,7 @@ function SupportFleetScore_compare_s2(b){
  * @alias SupportFleetScore#compare_s3
  */
 function SupportFleetScore_compare_s3(b){
-	let c = this.total_priority - b.total_priority;
+	let c = float_compare(this.total_priority, b.total_priority);
 	if (c == 0) c = this.total_bonus_power - b.total_bonus_power;
 	return c;
 }
@@ -285,11 +298,9 @@ function SupportFleetScore_compare_s3(b){
  * @alias SupportFleetScore#compare_annealing
  */
 function SupportFleetScore_compare_annealing(b){
-	// 火力1 = 5%
-	let c = (this.unreached_power - b.unreached_power) * 500;
-	// 目標の確率
-	c += (this.damage_score_c - b.damage_score_c) * 10000;
-	// 命中1 = 火力10
+	// 未達火力1 = 0.5% のレート
+	let c = (this.unreached_power - b.unreached_power) * 100;
+	c += (this.damage_score_c - b.damage_score_c) * 20000;
 	c += (this.total_accuracy - b.total_accuracy) * 50;
 
 	// 上で主要なパラメータは尽きている
@@ -301,7 +312,7 @@ function SupportFleetScore_compare_annealing(b){
 
 /*
 	// 同値解の比較
-	// ほとんど効果はなさそう？ むしろ悪化？
+	// ほとんど効果はなさそう？ 最後に山登りでつめる
 	let this_acc = this.total_accuracy + this.sub_total_accuracy;
 	let b_acc = b.total_accuracy + b.sub_total_accuracy;
 	let c2 = 0;
@@ -431,14 +442,14 @@ function SupportShipScore_add(ssd, border_power = ssd.border_basic_power){
  */
 function SupportShipScore_compare(b){
 	let c = this.unreached_power - b.unreached_power;
-	if (c == 0) c = this.damage_score - b.damage_score;
+	if (c == 0) c = float_compare(this.damage_score, b.damage_score);
 	if (c == 0) c = this.total_accuracy - b.total_accuracy;
 	if (c == 0) c = this.sub_unreached_power - b.sub_unreached_power;
 	if (c == 0) c = this.sub_total_accuracy - b.sub_total_accuracy;
-	// if (c == 0) c = b.damage_score_sq - this.damage_score_sq;
+	// if (c == 0) c = float_compare(b.damage_score_sq, this.damage_score_sq);
 	// if (c == 0) c = b.total_accuracy_sq - this.total_accuracy_sq;
 	if (c == 0) c = this.total_basic_power - b.total_basic_power;
-	if (c == 0) c = this.total_priority - b.total_priority;
+	if (c == 0) c = float_compare(this.total_priority, b.total_priority);
 	if (c == 0) c = this.total_bonus_power - b.total_bonus_power;
 	return c;
 }
@@ -474,6 +485,7 @@ Object.defineProperties(SupportFleetScorePrior.prototype, {
 	compare_s1s2s3   : {value: SupportFleetScorePrior_compare_s1s2s3},
 	compare_annealing: {value: SupportFleetScorePrior_compare_annealing},
 	compare_accuracy : {value: SupportFleetScorePrior_compare_accuracy},
+	compare_by       : {value: SupportFleetScorePrior_compare_by},
 	get_total_score  : {value: SupportFleetScorePrior_get_total_score},
 	set_json         : {value: SupportFleetScorePrior_set_json},
 });
@@ -616,142 +628,36 @@ function SupportFleetScorePrior_compare_s1s2s3(b){
 	return this.compare_s1(b) || this.compare_s2(b) || this.compare_s3(b);
 }
 
+/**
+ * 焼きなまし用比較関数(優先度付き)
+ * @param {SupportFleetScorePrior} b 
+ * @param {number[]} weight 
+ * @returns {number}
+ */
 function SupportFleetScorePrior_compare_annealing(b, weight = null){
-	if (1) {
-		let c1_sum = 0;
+	let c1_sum = 0;
+	
+	for (let i=0; i<this.scores.length; i++) {
+		let a_score = this.scores[i];
+		let b_score = b.scores[i];
 		
-		for (let i=0; i<this.scores.length; i++) {
-			let a_score = this.scores[i];
-			let b_score = b.scores[i];
+		if (a_score) {
+			let w = weight?.[i] || (this.scores.length - i) / this.scores.length;
 			
-			if (a_score) {
-				let w = weight?.[i] || (this.scores.length - i) / this.scores.length;
-				
-				let c1 = 0;
-				c1 += (a_score.unreached_power - b_score.unreached_power) * 500;
-				c1 += (a_score.damage_score_c - b_score.damage_score_c) * 10000;
-				c1 += (a_score.total_accuracy - b_score.total_accuracy) * 50;
-				let c2 = 0;
-				c2 += (a_score.damage_score - b_score.damage_score) * 200;
-				c2 += (a_score.sub_unreached_power - b_score.sub_unreached_power);
-				c2 += (a_score.sub_total_accuracy - b_score.sub_total_accuracy) * 0.1;
+			let c1 = 0;
+			c1 += (a_score.unreached_power - b_score.unreached_power) * 100;
+			c1 += (a_score.damage_score_c - b_score.damage_score_c) * 20000;
+			c1 += (a_score.total_accuracy - b_score.total_accuracy) * 50;
+			let c2 = 0;
+			c2 += (a_score.damage_score - b_score.damage_score) * 20;
+			c2 += (a_score.sub_unreached_power - b_score.sub_unreached_power);
+			c2 += (a_score.sub_total_accuracy - b_score.sub_total_accuracy) * 0.1;
 
-				c1_sum += (c1 + c2 * 0.1) * w;
-			}
+			c1_sum += (c1 + c2) * w;
 		}
-		
-		return c1_sum;
-
-	} else if (1) {
-		// 旧仕様
-		// 重みつきの和をとるパターン
-		// こちらのほうが安定している？
-		let c1_sum = 0;
-		let c2_sum = 0;
-		let c3_sum = 0;
-		
-		for (let i=0; i<this.scores.length; i++) {
-			let a_score = this.scores[i];
-			let b_score = b.scores[i];
-			
-			if (a_score) {
-				let w = weight?.[i] || (this.scores.length - i) / this.scores.length;
-				
-				// stage1
-				let c1 = 0;
-				let und = (a_score.damage_score - b_score.damage_score) * 100000;
-				if (und == 0) und = (a_score.unreached_power - b_score.unreached_power) * 1000;
-				// 流石に大きいのでちょっと細工してみる
-				if (c1_sum == 0) { c1 += und; } else { c1 += und * 0.05; }
-				c1 += (a_score.total_accuracy - b_score.total_accuracy) * 50;
-				c1 *= w;
-				c1_sum += c1;
-				
-				// stage2
-				let c2 = (b_score.total_accuracy_sq - a_score.total_accuracy_sq) * 0.01;
-				c2 += (a_score.total_basic_power - b_score.total_basic_power);
-				c2 *= w;
-				c2_sum += c2;
-				
-				// stage3
-				let c3 = (a_score.total_priority - b_score.total_priority) * 0.1;
-				c3 += (a_score.total_bonus_power - b_score.total_bonus_power) * 0.1;
-				c3 *= w;
-				c3_sum += c3;
-			}
-		}
-		
-		return c1_sum + c2_sum + c3_sum;
-		
-	} else if (0) {
-		// 優先順位が高い方から比較するが、少しなめらかになるようにする
-		let involve = (arg_x, arg_y) => {
-			if (arg_x == 0) return arg_y;
-			let z = arg_x;
-			let m = Math.abs(arg_y) - 100 * Math.abs(arg_x);
-			if (m > 0) z += arg_y > 0 ? m : - m;
-			return z;
-		};
-		
-		let c1 = 0;
-		let c2 = 0;
-		let c3 = 0;
-		
-		for (let i=0; i<this.scores.length; i++) {
-			let a_score = this.scores[i];
-			let b_score = b.scores[i];
-			
-			if (a_score) {
-				let w = weight?.[i] || (this.scores.length - i) / this.scores.length;
-				
-				// stage1
-				c1 = involve(c1, (a_score.unreached_power - b_score.unreached_power) * 1000 * w);
-				c1 = involve(c1, (a_score.total_accuracy - b_score.total_accuracy) * 50 * w);
-				// stage2
-				c2 = involve(c2, (b_score.total_accuracy_sq - a_score.total_accuracy_sq) * 0.01 * w);
-				c2 = involve(c2, (a_score.total_basic_power - b_score.total_basic_power) * w);
-				// stage3
-				c3 = involve(c3, (a_score.total_priority - b_score.total_priority) * 0.1 * w);
-				c3 = involve(c3, (a_score.total_bonus_power - b_score.total_bonus_power) * 0.1 * w);
-			}
-		}
-		
-		return involve(involve(c1, c2), c3);
-		
-	} else {
-		// 和ではなく優先順位が高い方から比較していくパターン
-		let c2 = 0;
-		let c3 = 0;
-		
-		for (let i=0; i<this.scores.length; i++) {
-			let a_score = this.scores[i];
-			let b_score = b.scores[i];
-			
-			if (a_score) {
-				let w = weight?.[i] || (this.scores.length - i) / this.scores.length;
-				
-				// stage1
-				let c1 = (a_score.unreached_power - b_score.unreached_power) * 1000;
-				if (c1 == 0) c1 = (a_score.total_accuracy - b_score.total_accuracy) * 50;
-				c1 *= w;
-				if (c1 != 0) return c1;
-				
-				if (c2 != 0) continue;
-				// stage2
-				c2 = (b_score.total_accuracy_sq - a_score.total_accuracy_sq) * 0.1;
-				if (c2 == 0) c2 = (a_score.total_basic_power - b_score.total_basic_power);
-				c2 *= w;
-				
-				if (c2 != 0 || c3 != 0) continue;
-				// stage3
-				c3 = (a_score.total_priority - b_score.total_priority) * 0.1;
-				if (c3 == 0) c3 = (a_score.total_bonus_power - b_score.total_bonus_power) * 0.1;
-				c3 *= w;
-			}
-		}
-		
-		return c2 || c3;
 	}
+	
+	return c1_sum;
 }
 
 function SupportFleetScorePrior_compare_accuracy(b){
@@ -764,6 +670,25 @@ function SupportFleetScorePrior_compare_accuracy(b){
 		if (c != 0) return c;
 	}
 	return 0;
+}
+
+/**
+ * どの方式で比較するか
+ * @param {SupportFleetScorePrior} b 
+ * @param {("rigidly"|"entire"|"s1s2s3"|"accuracy")} type 
+ * @returns {number}
+ * @alias SupportFleetScorePrior#compare_by
+ */
+function SupportFleetScorePrior_compare_by(b, type){
+	let c;
+	switch (type) {
+	case "rigidly":  c = this.compare_rigidly(b); break;
+	case "entire":
+	case "s1s2s3":   c = this.compare_s1s2s3(b); break;
+	case "accuracy": c = this.compare_accuracy(b); break;
+	default:         c = 0; debugger; break;
+	}
+	return c;
 }
 
 function SupportFleetScorePrior_get_total_score(){

@@ -375,7 +375,7 @@ function SupportShipData_save_slots(load_fixes = false){
 }
 
 /**
- * 空母系計算式かどうか
+ * (砲撃支援で)空母系計算式かどうか
  * @returns {boolean} cv_shelling
  * @method SupportShipData#is_cv_shelling
  */
@@ -586,18 +586,21 @@ function SupportShipData_get_accuracy(){
 
 /**
  * 装備優先度の合計
+ * 改修値 * 0.01 も加える
  * @returns {number}
  * @method SupportShipData#get_equipment_priority
  */
 function SupportShipData_get_equipment_priority(){
 	let p = 0;
+	let star = 0;
 	for (let i=0; i<this.allslot_equipment.length; i++) {
 		let data = this.allslot_equipment[i].equipment_data;
 		if (data) {
 			p += data.priority;
+			star += this.allslot_equipment[i].improvement;
 		}
 	}
-	return p;
+	return p + star * 0.01;
 }
 
 /**

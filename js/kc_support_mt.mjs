@@ -132,7 +132,9 @@ Object.assign(MultiThreadSearcher.prototype, {
 	receive_count: 0,
 	max_found_at : 0, // maxが見つかったときのreceive_count
 	max_count    : 0,
+	max_count_loose: 0,
 	end_date  : null,
+	receive_scores: null, // {score, count}[], デバッグ時のみ
 	
 	set_thread_count: MultiThreadSearcher_set_thread_count,
 	set_thread_count_by_Global: MultiThreadSearcher_set_thread_count_by_Global,
@@ -151,16 +153,24 @@ Object.assign(MultiThreadSearcher.prototype, {
 	
 	// 結果の受信
 	receive_message: MultiThreadSearcher_receive_message,
+	// trace
+	trace_scores: MultiThreadSearcher_trace_scores,
 	// スコアの比較関数
 	compare_score: MultiThreadSearcher_compare_score,
 });
 
 Object.assign(MultiThreadSearcher, {
 	compare_score : MultiThreadSearcher_static_compare_score,
+	get_score_text: MultiThreadSearcher__get_score_text,
 	get_score_diff: MultiThreadSearcher_static_get_score_diff,
 });
 
 
+/**
+ * マルチスレッド探索のクラス
+ * @constructor
+ * @extends {EventTarget}
+ */
 function MultiThreadSearcher(){
 	Util.attach_event_target(this);
 }
@@ -200,8 +210,12 @@ function MultiThreadSearcher_set_search_data(fleet, search_data, continuous = fa
 	}
 }
 
-// 探索の実行
-// Promiseを返し、探索終了時に通知される
+/**
+ * 探索の実行
+ * Promiseを返し、探索終了時に通知される
+ * @returns {Promise}
+ * @alias MultiThreadSearcher#run
+ */
 function MultiThreadSearcher_run(){
 	if (this.workers && this.workers.length > 0) debugger;
 	if (!this.search_data) debugger;
@@ -217,6 +231,11 @@ function MultiThreadSearcher_run(){
 	this.max_result = begin_result;
 	this.max_score = begin_result.score;
 	this.receive_count = 0;
+	this.max_found_at = 0;
+	this.max_count = 0;
+	this.max_count_loose = 0;
+	this.end_date = null;
+	this.receive_scores = [];
 	this.workers = new Array();
 	
 	// Promise
@@ -309,6 +328,7 @@ function MultiThreadSearcher_run(){
 		this.running = false;
 		this.end_date = new Date();
 		delete this.terminate;
+		if (Debug.DEBUG_MODE) this.trace_scores();
 	});
 }
 
@@ -335,7 +355,7 @@ function MultiThreadSearcher_get_elapsed_time(){
 // 新規解の情報文字列
 // nullstr: 新しい解がないときも出力
 function MultiThreadSearcher_get_solution_info(nullstr = false, use_found_at = true){
-	return MultiThreadSearcher.get_score_diff(this.begin_score, this.max_score, this.search_data.search_type, nullstr, use_found_at ? this.max_found_at : -1, this.max_count, this.receive_count);
+	return MultiThreadSearcher.get_score_text(this, {nullstr: nullstr, use_found_at: use_found_at});
 }
 
 // 探索結果を受信
@@ -345,7 +365,11 @@ function MultiThreadSearcher_receive_message(message){
 	let score = new SupportFleetScorePrior(null, 0, SupportFleetScore.MODE_VENEMY_DAMAGE);
 	score.set_json(message.score_data);
 	
-	let comp = this.max_score ? this.compare_score(this.max_score, score) : -1;
+	// compは厳密比較
+	// loose_compは同値解ならば0になる
+	let comp = this.max_score ? this.compare_score(this.max_score, score, false) : -1;
+	let loose_comp = this.max_score ? this.compare_score(this.max_score, score, true) : -1;
+
 	if (comp < 0) {
 		this.max_result = message;
 		this.max_score = score;
@@ -355,32 +379,97 @@ function MultiThreadSearcher_receive_message(message){
 	} else if (comp == 0) {
 		this.max_count++;
 	}
+	if (loose_comp < 0) {
+		this.max_count_loose = 1;
+	} else if (loose_comp == 0) {
+		this.max_count_loose++;
+	}
+
+	if (Debug.DEBUG_MODE) {
+		let i = 0;
+		for (; i<this.receive_scores.length; i++) {
+			let lc = this.compare_score(this.receive_scores[i].score, score, true);
+			if (lc < 0) {
+				this.receive_scores.splice(i, 0, {score: score, count: 1});
+				break;
+			} else if (lc == 0) {
+				this.receive_scores[i].count++;
+				break;
+			}
+		}
+		if (i == this.receive_scores.length) {
+			this.receive_scores.push({score: score, count: 1});
+		}
+	}
 	
 	// 受信時にイベントを発生させる
 	this.dispatchEvent(new CustomEvent("receive"));
 }
 
+/**
+ * 統計データをコンソールに出力(デバッグ用)
+ * @alias MultiThreadSearcher#trace_scores
+ */
+function MultiThreadSearcher_trace_scores(){
+	let c = this.receive_count;
+	let ds_sum = 0;
+	let acc_sum = 0;
+	let acc_sqsum = 0;
+	for (let d of this.receive_scores) {
+		let ts = d.score.total_score;
+		d.damage_score = ts.damage_score;
+		d.accuracy = ts.total_accuracy + ts.sub_total_accuracy;
+		d.p = d.count / c;
+		ds_sum += d.damage_score * d.count;
+		acc_sum += d.accuracy * d.count;
+		acc_sqsum += d.accuracy * d.accuracy * d.count;
+	}
+	let avg_acc = acc_sum / c;
+
+	console.log("Result:", this.receive_scores, {
+		count: c,
+		ds: ds_sum / c,
+		acc: avg_acc,
+		// acc_sd: Math.sqrt(acc_sqsum / c - avg_acc * avg_acc),
+		acc_usd: Math.sqrt((acc_sqsum - acc_sum * avg_acc) / (c - 1)),
+	});
+}
+
 // スコアの比較
 // 探索方法で比較関数が異なる
-function MultiThreadSearcher_compare_score(a, b){
-	return MultiThreadSearcher.compare_score(a, b, this.search_data.search_type);
+function MultiThreadSearcher_compare_score(a, b, loose_compare = false){
+	return MultiThreadSearcher.compare_score(a, b, this.search_data.search_type, loose_compare);
 }
 
 
 // static版
-function MultiThreadSearcher_static_compare_score(a, b, search_type = ""){
+function MultiThreadSearcher_static_compare_score(a, b, search_type = "", loose_compare = false){
 	let c = 0;
 	if (search_type == "annealing_entire") {
-		c = a.compare_s1(b) || a.compare_s2(b) || a.compare_s3(b);
+		c = loose_compare ? a.compare_s1(b) : a.compare_s1(b) || a.compare_s2(b) || a.compare_s3(b);
 	} else {
 		c = a.compare_rigidly(b);
+		// loose: 単に compare_s1() では、比較順番が違うため厳密比較の結果と逆になってしまうことがある
+		// 矛盾しない程度に同値を出力
+		if (loose_compare) {
+			let lc = a.compare_s1(b);
+			if (lc == 0) c = lc;
+		}
 	}
 	return c;
 }
 
-
-function MultiThreadSearcher_static_get_score_diff(begin_score, end_score, search_type = "", nullstr = false, found_at = -1, max_count = -1, total_count = -1){
-	let text = "";
+/**
+ * スコアの変化を1行の文字列で表す
+ * @param {(MultiThreadSearcher|Object)} mt 
+ * @param {?Object} options 
+ * @param {string} options.search_type 
+ * @param {boolean} options.nullstr 新規解なしの場合も文字列を出力
+ * @param {boolean} options.use_found_at
+ * @return {string}
+ * @alias MultiThreadSearcher.get_score_text
+ */
+function MultiThreadSearcher__get_score_text(mt, options){
 	let acc = sc => {
 		let ts = sc.total_score;
 		return ts.total_accuracy + ts.sub_total_accuracy;
@@ -390,8 +479,15 @@ function MultiThreadSearcher_static_get_score_diff(begin_score, end_score, searc
 		return ts.damage_score > 0 ? "P" + Util.float_to_string(ts.damage_score, 4) + "/" : "";
 	};
 
-	if (end_score && MultiThreadSearcher.compare_score(begin_score, end_score, search_type) < 0) {
-		let c1 = begin_score.compare_s1(end_score);
+	let text = "";
+	let begin_score = mt.begin_score;
+	let end_score = mt.max_score ?? mt.end_score;
+	let total_count = mt.receive_count ?? mt.total_count;
+	let search_type = (options?.search_type ?? mt.search_data?.search_type) ?? "";
+
+	if (end_score && MultiThreadSearcher.compare_score(begin_score, end_score, search_type, false) < 0) {
+		// loose compare
+		let c1 = MultiThreadSearcher.compare_score(begin_score, end_score, search_type, true);
 		
 		if (c1 < 0) {
 			text = "改良解発見";
@@ -401,23 +497,48 @@ function MultiThreadSearcher_static_get_score_diff(begin_score, end_score, searc
 			text = "別解発見";
 		}
 		text += "(";
-		if (found_at >= 0) text += found_at + "/";
+		if (options?.use_found_at && mt.max_found_at >= 0) text += mt.max_found_at + "/";
 		text += Pstr(end_score);
 		text += "命中" + acc(end_score) + ")";
 		
-	} else if (nullstr) {
+	} else if (options?.nullstr) {
 		text = "新規解なし(";
-		text += Pstr(end_score);
+		text += Pstr(begin_score);
 		text += "命中" + acc(begin_score) + ")";
 	}
 
-	if (Debug.DEBUG_MODE && max_count > 0) {
-		text += "#" + max_count;
-		if (total_count > 0) {
-			text += " " + Util.float_to_string(max_count * 100 / total_count, 2) +"%";
-		}
+	if (Debug.DEBUG_MODE && total_count > 0) {
+		text += " #" + mt.max_count_loose;
+		text += " " + Util.float_to_string(mt.max_count_loose * 100 / total_count, 2) +"%";
+		text += " (" + Util.float_to_string(mt.max_count * 100 / total_count, 2) +"%)";
 	}
 	
 	return text;
+}
+
+/**
+ * @param begin_score 
+ * @param end_score 
+ * @param search_type 
+ * @param nullstr 
+ * @param found_at 
+ * @param max_count 
+ * @param total_count 
+ * @returns {string}
+ * @alias MultiThreadSearcher.get_score_diff
+ * @deprecated
+ */
+function MultiThreadSearcher_static_get_score_diff(begin_score, end_score, search_type = "", nullstr = false, found_at = -1, max_count = -1, total_count = -1){
+	return MultiThreadSearcher.get_score_text({
+		begin_score: begin_score,
+		max_score: end_score,
+		total_count: total_count,
+		max_found_at: found_at,
+		max_count: max_count,
+	}, {
+		search_type: search_type,
+		nullstr: nullstr,
+		use_found_at: found_at >= 0,
+	});
 }
 
