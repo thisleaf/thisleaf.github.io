@@ -224,7 +224,7 @@ export const EQUIP_PRIORITY_DEF = [
 /** LocalStorage に保存するデータのバージョン
  * @type {number}
  */
-export const SUPPORT_SAVEDATA_VERSION = 3;
+export const SUPPORT_SAVEDATA_VERSION = 4;
 
 /** ページの読込ごとに変更される定数
  * @type {number}

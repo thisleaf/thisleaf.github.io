@@ -464,6 +464,18 @@ body {
 .dialog_container .inside.convert .contents {
 	padding: 0em 0.5em;
 }
+.dialog_container .inside.convert .contents span.fleetnumber {
+	color: #1ca7ad;
+	font-weight: bold;
+	font-size: 80%;
+	margin: 0 4px 0 8px;
+}
+.dialog_container .inside.convert .contents select.fleetname {
+	width: 8em;
+}
+.dialog_container .inside.convert .contents button.out {
+	margin-left: 10px;
+}
 .dialog_container .inside.convert .contents .code_area {
 	width: 70vw;
 	height: 20vh;
@@ -885,14 +897,84 @@ body {
 }
 
 
-/* 支援艦隊 */
-#support_fleet_pair {
+/* 支援艦隊 > 表示オプション */
+.fleet_display_option {
+	float: right;
+	font-size: 80%;
 	display: flex;
-	flex-wrap: wrap;
+	flex-direction: column;
+	min-width: 200px;
+	margin-top: 0.5em;
+	border-radius: 6px / 3px;
+	padding: 3px 2px;
+	background-color: #a9dfc0;
+	white-space: nowrap;
+	user-select: none;
+}
+.fleet_display_option .button {
+	background-color: #dfd;
+	text-align: center;
+	cursor: pointer;
+}
+.fleet_display_option .button:hover {
+	background-color: #afa;
+}
+.fleet_display_option .button.shipcolumn {
+	flex: 1 0 25%;
+}
+.fleet_display_option .button.alignment {
+	flex: 1 0 25%;
+}
+.fleet_display_option .button.fleetcount {
+	flex: 1 0 50%;
+}
+/* 表示オプションダイアログ */
+.fleetdialog .countsrow {
+	margin: 0.5em 2em;
+}
+.fleetdialog .countsrow .item {
+	margin: 0 0.5em;
+}
+.fleetdialog .countsrow select {
+	min-width: 3em;
+}
+.fleetdialog .fleetnames {
+	margin: 0 2em;
+}
+.fleetdialog .fleetnames > div {
+	text-align: center;
+}
+.fleetdialog .fleetnames .fname {
+	width: 150px;
+	margin: 0 4px;
+}
+.fleetdialog .comment {
+	text-align: center;
+	font-size: 80%;
+	margin: 0.5em 0;
+}
+.fleetdialog .toolbar {
+	text-align: center;
+}
+.fleetdialog .toolbar .ok,
+.fleetdialog .toolbar .cancel {
+	min-width: 6em;
+	margin: 0 2px;
+}
+
+
+/* 支援艦隊 */
+.fleet_container {
+	display: grid;
+	/* grid-template-columns: repeat(n, auto); jsから設定 */
 	justify-content: center;
 	align-items: flex-start;
 	column-gap: 4px;
 	min-width: min-content;
+}
+.fleet_container.autocolumn {
+	display: flex;
+	flex-wrap: wrap;
 }
 .support_fleet {
 	display: grid;
@@ -914,30 +996,43 @@ body {
 	line-height: 1.3;
 	text-align: center;
 }
-#support_A .fleetinfo {
-	background-color: #fef0ff;
+/* ヘッダーの色 */
+.support_A .fleetinfo { background-color: #fef0ff; }
+.support_A .fleetinfo > div.caption { background-color: #ffccee; }
+.support_B .fleetinfo { background-color: #faffe0; }
+.support_B .fleetinfo > div.caption { background-color: #ffff88; }
+.support_C .fleetinfo { background-color: #d7f3e8; }
+.support_C .fleetinfo > div.caption { background-color: #a0efd0; }
+.support_D .fleetinfo { background-color: #e0ebff; }
+.support_D .fleetinfo > div.caption { background-color: #b9d2ff; }
+.support_E .fleetinfo { background-color: #fef0ff; }
+.support_E .fleetinfo > div.caption { background-color: #ffccee; }
+.support_F .fleetinfo { background-color: #faffe0; }
+.support_F .fleetinfo > div.caption { background-color: #ffff88; }
+.support_G .fleetinfo { background-color: #d7f3e8; }
+.support_G .fleetinfo > div.caption { background-color: #a0efd0; }
+.support_H .fleetinfo { background-color: #e0ebff; }
+.support_H .fleetinfo > div.caption { background-color: #b9d2ff; }
+.support_fleet .fleetinfo .captionbox {
+	font-size: 110%;
 }
-#support_A .fleetinfo > div.caption {
-	background-color: #ffccee;
-}
-#support_B .fleetinfo {
-	background-color: #faffe0;
-}
-#support_B .fleetinfo > div.caption {
-	background-color: #ffff88;
-}
-.support_fleet .fleetinfo > div {
-	padding: 0.2em 0.6em;
-}
-.support_fleet .fleetinfo > div.caption {
-	padding: 0 1em;
+.support_fleet .fleetinfo .caption {
 	font-size: 110%;
 	font-weight: bold;
 	display: flex;
 	flex-direction: column;
 	justify-content: center;
+	flex-grow: 1;
 }
-.support_fleet .fleetinfo > div:not(.caption) {
+.support_fleet .fleetinfo > div.suptypebox {
+	padding: 0.2em 0.6em;
+	font-size: 80%;
+}
+.support_fleet .fleetinfo .pad {
+	flex-grow: 6;
+}
+.support_fleet .fleetinfo > div.cost {
+	padding: 0.2em 0.6em;
 	font-size: 80%;
 }
 .support_fleet .fleetinfo .support_type, 
@@ -1007,6 +1102,13 @@ body {
 }
 .support_fleet.column3 .panel:nth-child(3n+4) {
 	justify-self: left;
+}
+/* 6列表示 */
+.support_fleet.column6 {
+	grid-template-columns: repeat(6, auto);
+}
+.support_fleet.column6 .fleetinfo {
+	grid-column-end: span 6;
 }
 
 .panel .row {
@@ -1457,7 +1559,7 @@ body {
 	white-space: nowrap;
 	text-align: center;
 	overflow: auto;
-	max-height: calc(100vh - 5em);
+	max-height: calc(100vh - 6.5em);
 	border-bottom: 1px solid #819095;
 }
 .search_target .row {

@@ -285,7 +285,6 @@ function SupportShip_create(def_priority){
 		if (i == 12) name += " (低)";
 		this.e_priority.appendChild(new Option(name, i));
 	}
-	this.e_priority.selectedIndex = (1 <= def_priority && def_priority <= 12) ? def_priority - 1 : 0;
 	this.e_priority.addEventListener("change", e => this.ev_change_priority(e));
 	
 	// 装備欄
@@ -307,10 +306,8 @@ function SupportShip_create(def_priority){
 	
 	this.create_panel();
 	
-	if (!this.ssd.empty()) {
-		this.ship_selector.set_shipname(this.ssd.get_name());
-	}
-	this.refresh();
+	this.ssd.priority = (1 <= def_priority && def_priority <= 12) ? def_priority : 1;
+	this.ssd_to_form();
 }
 
 /**

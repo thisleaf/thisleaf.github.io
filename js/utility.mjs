@@ -513,6 +513,7 @@ export function remove_children(elem){
 	while (elem.firstChild) {
 		elem.removeChild(elem.firstChild);
 	}
+	return elem;
 }
 
 

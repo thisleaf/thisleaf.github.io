@@ -357,9 +357,9 @@ class SearchTargetRow {
 	 * @param {string} letter 
 	 * @returns {HTMLDivElement}
 	 */
-	static createHeader(letter){
+	static createHeader(fleet_name, letter){
 		return EL("div.header.row.header_" + letter, [
-			EL("div.numname", [_T("支援艦隊" + letter)]),
+			EL("div.numname", [_T(fleet_name)]),
 			EL("div.priority", [_T("優先度")]),
 			EL("div.modgroup.column", [
 				EL("div.mods.row", [
@@ -395,6 +395,13 @@ class SearchTargetRow {
  * 探索目標の設定ダイアログ
  */
 class SearchTargetDialog extends DOMDialog {
+	/** @type {SupportFleet[]} */
+	fleets;
+	/** @type {SearchTargetRow[][]} */
+	rows_array;
+	/** @type {HTMLDivElement} */
+	e_table;
+
 	constructor(){
 		super();
 	}
@@ -403,26 +410,9 @@ class SearchTargetDialog extends DOMDialog {
 		super.create("modal", "探索目標の設定", true);
 		this.e_inside.classList.add("search_target");
 
-		let e_table = ELEMENT("div.targettable");
-		let rows = [];
-
-		for (let ab=0; ab<2; ab++) {
-			let letter = ab == 0 ? "A" : "B";
-			
-			let e_fleet = EL("div.fleet", [SearchTargetRow.createHeader(letter)]);
-			e_table.appendChild(e_fleet);
-
-			for (let i=0; i<6; i++) {
-				let target_row = new SearchTargetRow(i + 1);
-				target_row.addEventListener("enddialog", e => this.ev_enddialog(e));
-				e_fleet.appendChild(target_row.e_row);
-				rows.push(target_row);
-			}
-		}
-
-		this.e_contents.appendChild(e_table);
-
-		NODE(this.e_contents,[
+		NODE(this.e_contents, [
+			// 設定テーブル
+			this.e_table = EL("div.targettable"),
 			// 注意書き
 			EL("div.comment", [
 				_BT("* 仮想敵モードはβ版です。命中回避の検証は難しいので参考程度にお願いします。(特に警戒陣は未実装です)"),
@@ -434,9 +424,6 @@ class SearchTargetDialog extends DOMDialog {
 			]),
 		]);
 
-		this.e_grid = e_table;
-		this.rows = rows;
-
 		this.addEventListener("show", () => {
 			if (!this.fleets) debugger;
 			this.move_to_center();
@@ -447,24 +434,55 @@ class SearchTargetDialog extends DOMDialog {
 		return this;
 	}
 
-	setFleets(fleet_A, fleet_B){
-		this.fleets = [fleet_A, fleet_B];
-		this.ships = fleet_A.support_ships.concat(fleet_B.support_ships);
+	/**
+	 * @param {SupportFleet[]} fleets 
+	 */
+	setFleets(fleets){
+		this.fleets = fleets;
 
+		let divs = [];
+		let rows_array = [];
+		for (let fl of fleets) {
+			let rows = fl.support_ships.map((ss, i) => {
+				// データはあとで
+				let target_row = new SearchTargetRow(i + 1);
+				target_row.addEventListener("enddialog", e => this.ev_enddialog(e));
+				return target_row;
+			});
+			let e_fleet = EL("div.fleet", [
+				SearchTargetRow.createHeader(fl.get_fleet_name(), fl.name),
+				...rows.map(row => row.e_row),
+			]);
+			divs.push(e_fleet);
+			rows_array.push(rows);
+		}
+		NODE(Util.remove_children(this.e_table), divs);
+		this.rows_array = rows_array;
+
+		this.ships = this.fleets.flatMap(fl => fl.support_ships);
+		this.rows = this.rows_array.flat();
+
+		// データをダイアログに設定
 		this.fleetsToDialog();
 	}
 
 	fleetsToDialog(){
-		if (this.ships.length != this.rows.length) debugger;
-		for (let i=0; i<this.ships.length; i++) {
-			this.rows[i].setData(this.ships[i].get_ssd());
+		for (let i=0; i<this.fleets.length; i++) {
+			let ships = this.fleets[i].support_ships;
+			let rows = this.rows_array[i];
+			for (let j=0; j<ships.length; j++) {
+				rows[j].setData(ships[j].get_ssd());
+			}
 		}
 	}
 	
 	dialogToFleets(){
-		if (this.ships.length != this.rows.length) debugger;
-		for (let i=0; i<this.ships.length; i++) {
-			this.ships[i].set_ssd(this.rows[i].getData());
+		for (let i=0; i<this.fleets.length; i++) {
+			let ships = this.fleets[i].support_ships;
+			let rows = this.rows_array[i];
+			for (let j=0; j<ships.length; j++) {
+				ships[j].set_ssd(rows[j].getData());
+			}
 		}
 	}
 

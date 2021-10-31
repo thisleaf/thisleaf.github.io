@@ -2,7 +2,7 @@
 
 import * as Global from "./kc_support_global.mjs";
 import * as Util from "./utility.mjs";
-import {NODE, ELEMENT, TEXT} from "./utility.mjs";
+import {NODE, ELEMENT, TEXT, EL, _T} from "./utility.mjs";
 import {EquipmentDatabase} from "./kc_equipment.mjs";
 import {SupportShipData} from "./kc_support_ship.mjs";
 import {DOMDialog} from "./dom_dialog.mjs";
@@ -16,35 +16,25 @@ export {
 class OutputDeckDialog extends DOMDialog {
 	// DOM
 	e_select;
-	
-	e_outfleet_select;
+	selects;
 	e_support_copy;
 	e_textarea_A;
-	
 	e_main_paste;
 	e_textarea_B;
-	
 	e_merge;
 	e_merged_copy;
 	e_textarea_merged;
-	
 	e_log_clear;
 	e_textarea_log;
-	
 	e_close;
 	
 	// データ
-	fleet1;
-	fleet2;
+	fleets;
 	error_names;
 	
-	constructor(f1, f2){
+	constructor(fleets){
 		super();
-		if (f1 || f2) this.set_fleet(f1, f2);
-	}
-	set_fleet(f1, f2){
-		this.fleet1 = f1 || null;
-		this.fleet2 = f2 || null;
+		this.fleets = fleets;
 	}
 };
 
@@ -58,9 +48,7 @@ Object.defineProperties(OutputDeckDialog.prototype, {
 	merge_deckbuilder_text   : {value: OutputDeckDialog_merge_deckbuilder_text},
 	
 	ev_show_dialog           : {value: OutputDeckDialog_ev_show_dialog},
-	ev_change_outfleet_select: {value: OutputDeckDialog_ev_change_outfleet_select},
 	ev_click_support_copy    : {value: OutputDeckDialog_ev_click_support_copy},
-	ev_input_support_area    : {value: OutputDeckDialog_ev_input_support_area},
 	ev_click_main_paste      : {value: OutputDeckDialog_ev_click_main_paste},
 	ev_click_merge           : {value: OutputDeckDialog_ev_click_merge},
 	ev_click_merged_copy     : {value: OutputDeckDialog_ev_click_merged_copy},
@@ -87,10 +75,6 @@ function OutputDeckDialog_create(){
 	this.e_inside.classList.add("convert");
 	this.e_inside.classList.add("output");
 	
-	let _sup_option = (cap) => {
-		return new Option(cap, OutputDeckDialog.outfleet_select_enum[cap]);
-	};
-	
 	NODE(this.e_contents, [
 		NODE(ELEMENT("div"), [
 			this.e_select = NODE(ELEMENT("select", "", "data_type"), [
@@ -98,18 +82,13 @@ function OutputDeckDialog_create(){
 			]),
 		]),
 		
+		this.e_outfleet_div = EL("div"),
+
 		NODE(ELEMENT("div"), [
 			NODE(ELEMENT("div", "", "column_div"), [
 				NODE(ELEMENT("div", "", "tool_div"), [
 					NODE(ELEMENT("div", "", "f_left"), [
 						TEXT("A: 支援艦隊"),
-						this.e_outfleet_select = NODE(ELEMENT("select", "", "outfleet_select"), [
-							_sup_option("/1 /2"),
-							_sup_option("/2 /3"),
-							_sup_option("/3 /4"),
-							_sup_option("/2 /4"),
-							_sup_option("カスタムデータ"),
-						]),
 					]),
 					NODE(ELEMENT("div", "", "f_right"), [
 						this.e_support_copy = ELEMENT("button", {textContent: "コピー"}),
@@ -161,12 +140,31 @@ function OutputDeckDialog_create(){
 			this.e_close = ELEMENT("button", {textContent: "閉じる"}),
 		]),
 	]);
-	
+
+	let selects = [];
+	NODE(this.e_outfleet_div, [_T("出力する艦隊")]);
+	for (let i=0; i<4; i++) {
+		NODE(this.e_outfleet_div, [
+			EL("span.fleetnumber", [_T("/" + (i + 1))]),
+			selects[i] = EL("select.fleetname"),
+		]);
+		selects[i].appendChild(new Option("-", -1));
+		for (let j=0; j<this.fleets.length; j++) {
+			selects[i].appendChild(new Option(this.fleets[j].get_fleet_name(), j));
+		}
+	}
+	NODE(this.e_outfleet_div, [
+		this.e_output = EL("button.out", [_T("出力")])
+	]);
+	selects[0].selectedIndex = 1;
+	if (this.fleets.length >= 2) selects[1].selectedIndex = 2;
+	this.selects = selects;
+
 	// event
+	for (let sel of this.selects) sel.addEventListener("change", e => this.output_support());
+	this.e_output.addEventListener("click", e => this.output_support());
 	this.addEventListener("show", e => this.ev_show_dialog(e));
-	this.e_outfleet_select.addEventListener("change", e => this.ev_change_outfleet_select());
 	this.e_support_copy.addEventListener("click", e => this.ev_click_support_copy());
-	this.e_textarea_A.addEventListener("input", e => this.ev_input_support_area());
 	this.e_main_paste.addEventListener("click", e => this.ev_click_main_paste());
 	this.e_merge.addEventListener("click", e => this.ev_click_merge());
 	this.e_merged_copy.addEventListener("click", e => this.ev_click_merged_copy());
@@ -177,6 +175,7 @@ function OutputDeckDialog_create(){
 
 function OutputDeckDialog_fleet_to_json_deckbuilder(fleet, error_names){
 	let json = {};
+	// json.name = fleet.get_fleet_name(true);
 	
 	for (let s=0; s<fleet.support_ships.length; s++) {
 		let sup = fleet.support_ships[s];
@@ -209,30 +208,22 @@ function OutputDeckDialog_clear_log(){
 
 // 左上を出力
 function OutputDeckDialog_output_support(){
-	let sel = this.e_outfleet_select.value;
-	let sel_enum = OutputDeckDialog.outfleet_select_enum;
-	
 	this.error_names = [];
-	
-	if (sel == sel_enum["カスタムデータ"]) {
-		// 空っぽにする
-		this.e_textarea_A.value = "";
-		
-	} else {
-		let out_pair =
-		  sel == sel_enum["/2 /3"] ? ["f2", "f3"] :
-		  sel == sel_enum["/3 /4"] ? ["f3", "f4"] :
-		  sel == sel_enum["/2 /4"] ? ["f2", "f4"] : ["f1", "f2"];
-		
-		let json = {version: 4};
-		if (this.fleet1) json[out_pair[0]] = this.fleet_to_json_deckbuilder(this.fleet1, this.error_names);
-		if (this.fleet2) json[out_pair[1]] = this.fleet_to_json_deckbuilder(this.fleet2, this.error_names);
-		
-		this.e_textarea_A.value = JSON.stringify(json);
-		this.log("Aに支援艦隊データを出力しました (" + out_pair.join(" ").replace(/f/g, "/") + ")");
-		if (this.error_names.length > 0) {
-			this.log("注意: " + this.error_names.join(", ") + "の内部IDが入力されていません (ID:\"0\"で出力します)");
+
+	let json = {version: 4};
+	let fnames = [];
+	for (let i=0; i<this.selects.length; i++) {
+		let index = +this.selects[i].value;
+		if (index >= 0) {
+			json["f" + (i + 1)] = this.fleet_to_json_deckbuilder(this.fleets[index], this.error_names);
+			fnames.push("/" + (i + 1) + ":" + this.fleets[index].get_fleet_name());
 		}
+	}
+	this.e_textarea_A.value = JSON.stringify(json);
+
+	this.log("Aに支援艦隊データを出力しました (" + fnames.join(" ") + ")");
+	if (this.error_names.length > 0) {
+		this.log("注意: " + this.error_names.join(", ") + "の内部IDが入力されていません (ID:\"0\"で出力します)");
 	}
 }
 
@@ -278,10 +269,6 @@ function OutputDeckDialog_ev_show_dialog(e){
 	this.move_to(this.get_max_x() / 2, this.get_max_y() / 2);
 }
 
-function OutputDeckDialog_ev_change_outfleet_select(){
-	this.output_support();
-}
-
 function OutputDeckDialog_ev_click_support_copy(){
 	if (this.e_textarea_A.value == "") {
 		this.log("データが空です");
@@ -296,11 +283,6 @@ function OutputDeckDialog_ev_click_support_copy(){
 			}
 		});
 	}
-}
-
-function OutputDeckDialog_ev_input_support_area(){
-	// 支援艦隊欄が更新された場合は「カスタムデータ」にする
-	this.e_outfleet_select.value = OutputDeckDialog.outfleet_select_enum["カスタムデータ"];
 }
 
 function OutputDeckDialog_ev_click_main_paste(){

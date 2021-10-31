@@ -5,15 +5,16 @@ import * as Util from "./utility.mjs";
 import {DOM, NODE, ELEMENT, TEXT, EL, _T} from "./utility.mjs";
 import {SupportShip, SupportShipData} from "./kc_support_ship.mjs";
 import {EquipmentDatabase} from "./kc_equipment.mjs";
+import {DOMDialog} from "./dom_dialog.mjs";
 
 export {
 	SupportFleet,
+	SupportFleetTab,
 };
 
 
 // SupportFleet ------------------------------------------------------------------------------------
 Object.assign(SupportFleet.prototype, {
-	e_table           : null,
 	e_supporttype_cell: null,
 	e_cost_cell       : null,
 	e_engagement      : null,
@@ -25,11 +26,14 @@ Object.assign(SupportFleet.prototype, {
 
 	e_fleet_div       : null,
 	e_header          : null,
+	e_caption         : null,
 	e_support_type    : null,
 	e_fuelammo        : null,
 
 	// D&Dで使用される識別名
 	name              : "",
+	// 表示される艦隊名
+	fleet_name        : "",
 	// 艦
 	support_ships     : null,
 	// ドラッグドロップのデータを仲介する外部オブジェクト
@@ -39,6 +43,9 @@ Object.assign(SupportFleet.prototype, {
 	
 	create            : SupportFleet_create            ,
 	set_draggable     : SupportFleet_set_draggable     ,
+	set_fleet_name    : SupportFleet_set_fleet_name    ,
+	get_fleet_name    : SupportFleet_get_fleet_name    ,
+	set_column_count  : SupportFleet_set_column_count  ,
 	get_support_type  : SupportFleet_get_support_type  ,
 	get_ammocost_rate : SupportFleet_get_ammocost_rate ,
 	refresh_display   : SupportFleet_refresh_display   ,
@@ -63,6 +70,12 @@ Object.assign(SupportFleet.prototype, {
 	ev_dragend_equip  : SupportFleet_ev_dragend_equip  ,
 });
 
+Object.defineProperties(SupportFleet.prototype, {
+	onchange: {
+		set: function (f){ this.addEventListener("change", f); }
+	},
+});
+
 Object.assign(SupportFleet, {
 	// 支援タイプ
 	SUPPORT_UNABLED  : 0,
@@ -77,14 +90,12 @@ Object.assign(SupportFleet, {
 
 /**
  * 1艦隊を扱うクラス
- * @param {HTMLElement} arg_fleet_div 
  * @param {string} name ユニークな文字列
  * @constructor
  * @extends {EventTarget}
  */
-function SupportFleet(arg_fleet_div, name){
+function SupportFleet(name){
 	Util.attach_event_target(this);
-	this.e_fleet_div = arg_fleet_div;
 	this.name = name;
 }
 
@@ -94,8 +105,6 @@ function SupportFleet(arg_fleet_div, name){
  * @method SupportFleet#create
  */
 function SupportFleet_create(caption, def_priority){
-	Util.remove_children(this.e_fleet_div);
-	
 	this.support_ships = new Array;
 
 	let onchange_sup = e => this.ev_change_sup(e);
@@ -109,20 +118,21 @@ function SupportFleet_create(caption, def_priority){
 		this.support_ships.push(sup);
 	}
 	
-	NODE(this.e_fleet_div, [
+	this.e_fleet_div = EL("div.support_fleet.support_" + this.name, [
 		this.e_header = EL("div.fleetinfo", [
-			EL("div.caption", [_T(caption)]),
-			EL("div", [
+			this.e_caption = EL("div.caption"),
+			EL("div.suptypebox", [
 				EL("div.suptypelabel", [_T("支援タイプ")]),
 				this.e_support_type = EL("div.support_type"),
 			]),
-			EL("div.grow"),
+			EL("div.pad"),
 			this.e_cost = EL("div.cost"),
 		]),
 		...this.support_ships.map(ss => ss.e_panel),
 	]);
 	this.e_fleet_div.classList.add("column2");
 	
+	this.set_fleet_name(caption);
 	this.refresh_display();
 }
 
@@ -136,8 +146,6 @@ function SupportFleet_set_draggable(provider){
 		let nc = sup.e_number_cell;
 		nc.draggable = true;
 		nc.addEventListener("dragstart", e => this.ev_dragstart_ship(e, sup));
-		// nc.addEventListener("dragover" , e => this.ev_dragover_ship(e, sup));
-		// nc.addEventListener("drop"     , e => this.ev_drop_ship(e, sup));
 		nc.addEventListener("dragend"  , e => this.ev_dragend_ship(e, sup));
 
 		let panel = sup.e_panel;
@@ -148,8 +156,6 @@ function SupportFleet_set_draggable(provider){
 			let dc = sup.e_dragdrop_cells[index];
 			dc.draggable = true;
 			dc.addEventListener("dragstart", e => this.ev_dragstart_equip(e, sup, index));
-			// dc.addEventListener("dragover" , e => this.ev_dragover_equip(e, sup, index));
-			// dc.addEventListener("drop"     , e => this.ev_drop_equip(e, sup, index));
 			dc.addEventListener("dragend"  , e => this.ev_dragend_equip(e, sup, index));
 
 			let parent = dc.parentElement;
@@ -159,6 +165,31 @@ function SupportFleet_set_draggable(provider){
 	}
 	
 	this.dragdata_provider = provider;
+}
+
+/**
+ * @param {string} fname 
+ * @alias SupportFleet#set_fleet_name
+ */
+function SupportFleet_set_fleet_name(fname){
+	this.fleet_name = fname;
+	this.e_caption.textContent = this.get_fleet_name();
+}
+/**
+ * @param {boolean} [nodefault=false] デフォルトの名前を使用しない
+ * @returns {string}
+ */
+function SupportFleet_get_fleet_name(nodefault = false){
+	let name = this.fleet_name;
+	if (!nodefault && name == "") name = "支援艦隊" + this.name;
+	return name;
+}
+
+function SupportFleet_set_column_count(count){
+	this.e_fleet_div.classList.toggle("column1", count == 1);
+	this.e_fleet_div.classList.toggle("column2", count == 2);
+	this.e_fleet_div.classList.toggle("column3", count == 3);
+	this.e_fleet_div.classList.toggle("column6", count == 6);
 }
 
 function SupportFleet_get_support_type(){
@@ -353,11 +384,15 @@ function SupportFleet_get_json(){
 	for (let sup of this.support_ships) {
 		ships.push(sup.get_ssd().get_json(false));
 	}
-	return {ships: ships};
+	return {
+		name: this.fleet_name,
+		ships: ships,
+	};
 }
 
 function SupportFleet_set_json(json){
 	this.clear();
+	this.set_fleet_name(json?.name ?? "");
 	
 	let ships = json && json.ships;
 	if (!ships) return;
@@ -372,7 +407,7 @@ function SupportFleet_set_json(json){
 }
 
 function SupportFleet_call_onchange(){
-	if (this.onchange) this.onchange.call(null);
+	this.dispatchEvent(new CustomEvent("change", {detail: {fleet: this}}));
 }
 
 function SupportFleet_ev_click_batchset(_e, dd, not_dd){
@@ -521,4 +556,291 @@ function SupportFleet_ev_drop_equip(e, sup, index){
 function SupportFleet_ev_dragend_equip(){
 	this.dragdata_provider.clear();
 }
+
+
+/**
+ * 支援艦隊タブをコントロールするクラス
+ * @extends {EventTarget}
+ */
+class SupportFleetTab extends EventTarget {
+	// 設定
+	shipcolumn = 2;
+	alignment = 0; // 0:center, 1:left, 2:right
+	// fleet_count は fleets.length
+	// 表示列数
+	fleetcolumn = 0;
+
+	/**
+	 * データ
+	 * @type {SupportFleet[]}
+	 */
+	fleets = [];
+
+	// DOM
+	e_fleet_container;
+	e_option_container;
+	e_shipcolumn;
+	e_alignment;
+	e_fleetcount;
+
+	// dragdrop
+	dragdata_provider = new Util.DragdataProvider();
+
+	static letters = "ABCDEFGHIJKLMNOP";
+	static fleet_priors = [3, 6, 9];
+	static other_prior = 12;
+	static max_fleet_count = 8;
+
+
+	constructor(fleet_container, option_container){
+		super();
+
+		this.e_fleet_container = fleet_container;
+		this.e_option_container = option_container;
+
+		// className
+		fleet_container.classList.add("fleet_container");
+		option_container.classList.add("fleet_display_option");
+
+		// create option panel
+		NODE(option_container, [
+			EL("div.row", [
+				this.e_shipcolumn = EL("div.button.shipcolumn"),
+				this.e_alignment = EL("div.button.alignment"),
+				this.e_fleetcount = EL("div.button.fleetcount", [_T("艦隊数設定")]),
+			]),
+		]);
+		this.e_shipcolumn.addEventListener("click", e => this.toggleButton("shipcolumn"));
+		this.e_alignment.addEventListener("click", e => this.toggleButton("alignment"));
+		this.e_fleetcount.addEventListener("click", e => {
+			let dialog = new FleetOptionDialog().create();
+			dialog.fleet_count = this.fleets.length;
+			dialog.column_count = this.fleetcolumn;
+			dialog.names = this.fleets.map(fl => fl.get_fleet_name(true));
+			dialog.resets = this.fleets.map(fl => false);
+
+			dialog.show().then(result => {
+				if (result == "ok") {
+					this.setFleetCount(dialog.fleet_count);
+					this.fleetcolumn = dialog.column_count;
+					let names = dialog.names;
+					let resets = dialog.resets;
+					for (let i=0; i<names.length; i++) {
+						this.fleets[i].set_fleet_name(names[i]);
+						if (resets[i]) this.fleets[i].clear(this.getDefaultPriorityAt(i));
+					}
+					this.refreshArrangement();
+					this.dispatchEvent(new CustomEvent("changeoption", {detail: {name: "fleetcount"}}));
+				}
+				dialog.dispose();
+			});
+		});
+
+		// create default fleets
+		this.setFleetCount(2);
+		this.refreshArrangement();
+	}
+	/**
+	 * index 艦隊目のデフォルト優先度
+	 * @param {number} index 0が最初
+	 */
+	getDefaultPriorityAt(index){
+		return SupportFleetTab.fleet_priors[index] ?? SupportFleetTab.other_prior;
+	}
+	/**
+	 * 艦隊数を変更
+	 * @param {number} count 
+	 */
+	setFleetCount(count){
+		if (count > SupportFleetTab.max_fleet_count) debugger;
+
+		for (let i=this.fleets.length; i<count; i++) {
+			this.fleets[i] = new SupportFleet(SupportFleetTab.letters[i]);
+			this.fleets[i].create("", this.getDefaultPriorityAt(i));
+			this.fleets[i].set_draggable(this.dragdata_provider);
+			SupportFleetTab.setEventTransfer(this.fleets[i], this, "change");
+			SupportFleetTab.setEventTransfer(this.fleets[i], this, "click_target");
+		}
+		this.fleets.length = count;
+
+		NODE(Util.remove_children(this.e_fleet_container), this.fleets.map(f => f.e_fleet_div));
+	}
+
+	clear(){
+		for (let fleet of this.fleets) fleet.clear();
+	}
+	refresh_target(){
+		for (let fleet of this.fleets) fleet.refresh_target();
+	}
+	refresh_display(){
+		for (let fleet of this.fleets) fleet.refresh_display();
+	}
+
+	// 表示切り替えボタンをクリックした
+	toggleButton(name){
+		if (name == "shipcolumn") {
+			this.shipcolumn = this.shipcolumn % 4 + 1;
+		} else if (name == "alignment") {
+			this.alignment = (this.alignment + 1) % 3;
+		} else {
+			debugger;
+		}
+		this.refreshArrangement();
+		this.dispatchEvent(new CustomEvent("changeoption", {detail: {name: name}}));
+	}
+	/**
+	 * オプションで設定する表示の適用
+	 * オプションパネルの更新もする
+	 */
+	refreshArrangement(){
+		let colspan = this.shipcolumn == 4 ? 6 : this.shipcolumn;
+		for (let fl of this.fleets) {
+			fl.set_column_count(colspan);
+		}
+		this.e_shipcolumn.textContent = colspan + "列";
+		this.e_fleet_container.style.justifyContent = ["center", "left", "right"][this.alignment];
+		this.e_alignment.textContent = ["中央", "左", "右"][this.alignment];
+		let fixed = this.fleetcolumn > 0;
+		this.e_fleet_container.style.gridTemplateColumns = fixed ? `repeat(${this.fleetcolumn}, auto)` : "";
+		this.e_fleet_container.classList.toggle("autocolumn", !fixed);
+	}
+
+	setFleetsJson(json){
+		let count = json?.length ?? 2;
+		if (!(count >= 1)) count = 2;
+		this.setFleetCount(count);
+		for (let i=0; i<count; i++) {
+			this.fleets[i].set_json(json?.[i]);
+		}
+	}
+	getFleetsJson(){
+		return this.fleets.map(f => f.get_json());
+	}
+	setOptionJson(json){
+		let intval = (x, d, a, b) => {
+			let v = Math.floor(x) || d;
+			return v <= a ? a : v >= b ? b : v;
+		};
+		this.shipcolumn = intval(json?.shipcolumn, 2, 1, 4);
+		this.alignment = intval(json?.alignment, 0, 0, 2);
+		this.fleetcolumn = intval(json?.fleetcolumn, 0, 0, SupportFleetTab.max_fleet_count);
+		this.refreshArrangement();
+	}
+	getOptionJson(){
+		return {
+			shipcolumn: this.shipcolumn,
+			alignment: this.alignment,
+			fleetcolumn: this.fleetcolumn,
+		};
+	}
+
+	static setEventTransfer(child, parent, type){
+		child.addEventListener( type, e => parent.dispatchEvent(new CustomEvent(e.type, {detail: e.detail})) );
+	}
+};
+
+
+class FleetOptionDialog extends DOMDialog {
+	get fleet_count(){
+		return +this.e_fleet_count.value;
+	}
+	set fleet_count(n){
+		this.e_fleet_count.value = n;
+		this.setNamedivCount(n);
+	}
+	get column_count(){
+		return +this.e_column_count.value;
+	}
+	set column_count(n){
+		this.e_column_count.value = n;
+	}
+	get names(){
+		return this.name_inputs.slice(0, this.fleet_count).map(input => input.value);
+	}
+	set names(arr){
+		for (let i=0; i<this.name_inputs.length; i++) {
+			this.name_inputs[i].value = arr[i] ?? "";
+		}
+	}
+	get resets(){
+		return this.reset_checkboxes.slice(0, this.fleet_count).map(input => input.checked);
+	}
+	set resets(arr){
+		for (let i=0; i<this.reset_checkboxes.length; i++) {
+			this.reset_checkboxes[i].checked = arr[i] ?? false;
+		}
+	}
+
+	create(){
+		super.create("modal", "艦隊数/艦隊名", true);
+		this.e_inside.classList.add("fleetdialog");
+
+		NODE(this.e_contents, [
+			EL("div.countsrow.row", [
+				EL("div.item", [
+					_T("艦隊数 "),
+					this.e_fleet_count = EL("select.fleetcount"),
+				]),
+				EL("div.item", [
+					_T("表示列数 "),
+					this.e_column_count = EL("select.columncount"),
+				]),
+			]),
+			this.e_fleet_names = EL("div.fleetnames", [
+				EL("div", [_T("艦隊名 / 艦隊のリセット")]),
+			]),
+			EL("div.comment", [
+				_T("* 減らした分の艦隊のデータは消えます"),
+			]),
+			EL("div.toolbar", [
+				this.e_ok = EL("button.ok", [_T("変更")]),
+				this.e_cancel = EL("button.cancel", [_T("キャンセル")]),
+			]),
+		]);
+
+		let name_rows = [];
+		let name_inputs = [];
+		let reset_checkboxes = [];
+		const max_count = SupportFleetTab.max_fleet_count;
+
+		this.e_column_count.appendChild(new Option("自動", 0));
+		for (let i=0; i<max_count; i++) {
+			let n = i + 1;
+			let c = SupportFleetTab.letters[i];
+			this.e_fleet_count.appendChild(new Option(n, n));
+			this.e_column_count.appendChild(new Option(n, n));
+
+			name_rows[i] = EL("div", [
+				_T(n + ":"),
+				name_inputs[i] = EL("input.fname", {type: "text", placeholder: "支援艦隊" + c, maxLength: 12}),
+				EL("label", [
+					reset_checkboxes[i] = EL("input", {type: "checkbox"}),
+					_T("リセット"),
+				]),
+			]);
+		}
+		NODE(this.e_fleet_names, name_rows);
+		this.name_rows = name_rows;
+		this.name_inputs = name_inputs;
+		this.reset_checkboxes = reset_checkboxes;
+
+		this.e_fleet_count.value = 2;
+		this.e_column_count.value = 0;
+		this.setNamedivCount(2);
+
+		this.e_fleet_count.addEventListener("change", e => this.setNamedivCount(this.fleet_count));
+		this.add_dialog_button(this.e_ok, "ok");
+		this.add_dialog_button(this.e_cancel, "cancel");
+		this.addEventListener("show", e => this.move_to_center());
+
+		return this;
+	}
+
+	setNamedivCount(count){
+		for (let i=0; i<this.name_rows.length; i++) {
+			// this.namerows[i].style.visibility = i < count ? "visible" : "hidden";
+			this.name_rows[i].style.display = i < count ? "block" : "none";
+		}
+	}
+};
 

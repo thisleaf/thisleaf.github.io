@@ -54,6 +54,7 @@ Object.assign(SupportFleetData.prototype, {
 	set_own_data     : SupportFleetData_set_own_data,
 	generate_own_map : SupportFleetData_generate_own_map,
 	append_fleet     : SupportFleetData_append_fleet,
+	append_fleets    : SupportFleetData_append_fleets,
 	save_to_form     : SupportFleetData_save_to_form,
 	save_slots       : SupportFleetData_save_slots,
 	
@@ -150,6 +151,19 @@ function SupportFleetData_append_fleet(fleet){
 				good = false;
 			}
 		}
+	}
+	return good;
+}
+
+/**
+ * 艦を追加(配列版)
+ * @param {SupportFleet[]} fleets 
+ * @alias SupportFleetData#append_fleets
+ */
+function SupportFleetData_append_fleets(fleets){
+	let good = true;
+	for (let fleet of fleets) {
+		if (!this.append_fleet(fleet)) good = false;
 	}
 	return good;
 }

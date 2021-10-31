@@ -16,7 +16,7 @@ import {
 import {EnemyStatus, EnemySelectorDialog} from "./kc_enemy_status.mjs";
 import {SearchTargetDialog} from "./kc_support_target.mjs";
 import {SupportShip} from "./kc_support_ship.mjs";
-import {SupportFleet} from "./kc_support_fleet.mjs";
+import {SupportFleet, SupportFleetTab} from "./kc_support_fleet.mjs";
 import {SupportFleetData} from "./kc_support_fleet_data.mjs";
 import {
 	SupportFleetScore,
@@ -59,8 +59,7 @@ let KANCOLLE_ENEMIES = null;
 // 装備フォーム
 let own_equipment_form = null;
 // 支援艦隊フォーム
-let support_fleet_A = null;
-let support_fleet_B = null;
+let support_fleet_tab = null;
 // ボーナスビューワー
 let bonus_viewer = null;
 // 損傷率
@@ -100,8 +99,7 @@ function kancolle_support_init(){
 	EquipmentDatabase.add_equipment_property("priority", Global.EQUIP_PRIORITY_DEF);
 	
 	own_equipment_form = new OwnEquipmentForm();
-	support_fleet_A = new SupportFleet(DOM("support_A"), "A");
-	support_fleet_B = new SupportFleet(DOM("support_B"), "B");
+	support_fleet_tab = new SupportFleetTab(DOM("support_fleet_container"), DOM("support_form_option"));
 	bonus_viewer = new BonusViewer(DOM("bonus_viewer"));
 	damage_table = new DamageTable(DOM("damage"));
 	userdata_object = new LSUserData("kancolle_support_data", Global.SUPPORT_SAVEDATA_VERSION, update_userdata);
@@ -113,14 +111,9 @@ function kancolle_support_init(){
 	own_equipment_form.addEventListener("change", e => save_userdata());
 	
 	// 艦隊
-	support_fleet_A.create("支援艦隊A", 3);
-	support_fleet_A.onchange = e => save_userdata();
-	support_fleet_A.addEventListener("click_target", e => ev_click_target(e));
-	support_fleet_A.set_draggable(dragdata_provider);
-	support_fleet_B.create("支援艦隊B", 9);
-	support_fleet_B.onchange = e => save_userdata();
-	support_fleet_B.addEventListener("click_target", e => ev_click_target(e));
-	support_fleet_B.set_draggable(dragdata_provider);
+	support_fleet_tab.addEventListener("change", e => save_userdata());
+	support_fleet_tab.addEventListener("click_target", e => ev_click_target(e));
+	support_fleet_tab.addEventListener("changeoption", e => save_userdata());
 	
 	// オプション
 	settings_initialize_form();
@@ -233,7 +226,7 @@ function load_form(prepare){
 	let fleet_data = new SupportFleetData();
 	fleet_data.set_own_data(own_equipment_form.get_calc_data());
 	
-	if (!fleet_data.append_fleet(support_fleet_A) || !fleet_data.append_fleet(support_fleet_B)) {
+	if (!fleet_data.append_fleets(support_fleet_tab.fleets)) {
 		// ここには来ないはず
 		debugger;
 		message_bar.show("不明なエラーです", 10000);
@@ -290,8 +283,7 @@ function save_form(fleet_data){
 	fleet_data.save_slots();
 	fleet_data.save_to_form();
 	save_userdata();
-	support_fleet_A.refresh_display();
-	support_fleet_B.refresh_display();
+	support_fleet_tab.refresh_display();
 }
 
 
@@ -662,7 +654,7 @@ function ev_click_convert_dialog(){
 
 // データ変換(支援艦隊出力)
 function ev_click_output_deck_dialog(){
-	let dialog = new OutputDeckDialog(support_fleet_A, support_fleet_B);
+	let dialog = new OutputDeckDialog(support_fleet_tab.fleets);
 	dialog.create();
 	dialog.addEventListener("exit", e => dialog.dispose());
 	dialog.show();
@@ -690,7 +682,7 @@ function ev_error_mt(){
  */
 function ev_click_target(e){
 	let target_dialog = new SearchTargetDialog().create();
-	target_dialog.setFleets(support_fleet_A, support_fleet_B);
+	target_dialog.setFleets(support_fleet_tab.fleets);
 	target_dialog.highlightShip(e.detail.src);
 	target_dialog.show().then(result => {
 		if (result == "ok") {
@@ -698,16 +690,14 @@ function ev_click_target(e){
 			save_userdata();
 		}
 		// 敵艦ステータスが更新される場合がある
-		support_fleet_A.refresh_target();
-		support_fleet_B.refresh_target();
+		support_fleet_tab.refresh_target();
 		target_dialog.dispose();
 	});
 }
 
 // 損傷率計算ツールで敵艦ダイアログの適用が押された
 function ev_changestatus_by_damage_table(e){
-	support_fleet_A.refresh_target();
-	support_fleet_B.refresh_target();
+	support_fleet_tab.refresh_target();
 	save_userdata();
 }
 
@@ -715,15 +705,14 @@ function ev_changestatus_by_damage_table(e){
 // データの保存・読込 ------------------------------------------------------------------------------
 function load_userdata(){
 	if (!userdata_object.load()) {
-		support_fleet_A.clear();
-		support_fleet_B.clear();
+		support_fleet_tab.clear();
 		return;
 	}
 	
 	EquipmentDatabase.enemy_status.setJson(userdata_object.data.enemy_data);
 	own_equipment_form.set_json(userdata_object.data.own_data);
-	support_fleet_A.set_json(userdata_object.data.fleet_A);
-	support_fleet_B.set_json(userdata_object.data.fleet_B);
+	support_fleet_tab.setFleetsJson(userdata_object.data.fleets);
+	support_fleet_tab.setOptionJson(userdata_object.data.fleetoptions);
 	settings_set_json(userdata_object.data.settings);
 }
 
@@ -732,8 +721,8 @@ function save_userdata(){
 	
 	userdata_object.data.enemy_data = EquipmentDatabase.enemy_status.getJson();
 	userdata_object.data.own_data = own_equipment_form.get_json(userdata_object.data.own_data);
-	userdata_object.data.fleet_A  = support_fleet_A.get_json();
-	userdata_object.data.fleet_B  = support_fleet_B.get_json();
+	userdata_object.data.fleets = support_fleet_tab.getFleetsJson();
+	userdata_object.data.fleetoptions = support_fleet_tab.getOptionJson();
 	userdata_object.data.settings = settings_get_json();
 	
 	userdata_object.save();
@@ -783,6 +772,13 @@ function update_userdata(data, data_version, newdata_version){
 			}
 		}
 		version = 3;
+	}
+
+	if (version == 3) {
+		data.fleets = [data.fleet_A, data.fleet_B];
+		delete data.fleet_A;
+		delete data.fleet_B;
+		version = 4;
 	}
 
 	if (version != newdata_version) debugger;
