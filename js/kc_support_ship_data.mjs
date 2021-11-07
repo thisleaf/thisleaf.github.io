@@ -45,9 +45,7 @@ Object.assign(SupportShipData.prototype, {
 	luck : 0,
 
 	// 目標攻撃力
-//	border_display_power: 150, // 表示火力だが、空母系が…
 	border_basic_power: 150, // 基本攻撃力
-//		border_final_power: 150, // 最終攻撃力: 未使用？
 	// 素火力
 	raw_firepower: 0,
 	// 基礎命中
@@ -917,59 +915,10 @@ function SupportShipData_get_json_deckbuilder(){
 // サブスレッドへの転送用
 function SupportShipData_get_json_MT(){
 	return this.get_json(true);
-/* 
-	// いくつかは変換する
-	return {
-		ship_object_id       : this.ship_object_id       ,
-		ship_name            : this.ship_name            ,
-		priority             : this.priority             ,
-		engagementform_modify: this.engagementform_modify,
-		formation_modify     : this.formation_modify     ,
-		level: this.level,
-		luck : this.luck,
-		border_basic_power   : this.border_basic_power   ,
-		border_final_power   : this.border_final_power   ,
-		raw_firepower        : this.raw_firepower        ,
-		raw_accuracy         : this.raw_accuracy         ,
-		cv_shelling          : this.cv_shelling          ,
-		cv_force_attackable  : this.cv_force_attackable  ,
-		slot_count           : this.slot_count           ,
-		exslot_available     : this.exslot_available     ,
-		allslot_equipment    : this.allslot_equipment.map(s => s.get_json()),
-		allslot_equipables   : this.allslot_equipables   ,
-		allslot_fixes        : this.allslot_fixes        ,
-		//equipment_bonus_name : this.equipment_bonus.name , // ship_name
-	};
- */
 }
 
 function SupportShipData_set_json_MT(json){
 	this.set_json(json, true);
-/* 
-	this.ship_object_id       = json.ship_object_id       ,
-	this.ship_name            = json.ship_name            ,
-	this.priority             = json.priority             ,
-	this.engagementform_modify= json.engagementform_modify,
-	this.formation_modify     = json.formation_modify     ,
-	this.level = this.level,
-	this.luck  = this.luck,
-	this.border_basic_power   = json.border_basic_power   ,
-	this.border_final_power   = json.border_final_power   ,
-	this.raw_firepower        = json.raw_firepower        ,
-	this.raw_accuracy         = json.raw_accuracy         ,
-	this.cv_shelling          = json.cv_shelling          ,
-	this.cv_force_attackable  = json.cv_force_attackable  ,
-	this.slot_count           = json.slot_count           ,
-	this.exslot_available     = json.exslot_available     ,
-	this.allslot_equipment    = json.allslot_equipment.map(d => {
-		let sl = new EquipmentSlot();
-		sl.set_json(d);
-		return sl;
-	}),
-	this.allslot_equipables   = json.allslot_equipables   ,
-	this.allslot_fixes        = json.allslot_fixes        ,
-	this.equipment_bonus = new EquipmentBonus(json.ship_name, true);
- */
 }
 
 

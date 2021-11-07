@@ -382,7 +382,7 @@ class SearchTargetRow {
 		if (!this.enemy_selector_dialog) {
 			let es = EquipmentDatabase.enemy_status;
 			let dialog = new EnemySelectorDialog(es);
-			dialog.show_empty = false;
+			// dialog.show_empty = false;
 			dialog.create();
 			this.enemy_selector_dialog = dialog;
 		}

@@ -15,6 +15,8 @@ export {
 const MODE_FIREPOWER_BORDER = 1;
 const MODE_VENEMY_DAMAGE = 2;
 
+const SA_ENTIRE_DIFF = 0.001;
+
 
 /**
  * 小数の比較用
@@ -298,16 +300,19 @@ function SupportFleetScore_compare_s3(b){
  * @alias SupportFleetScore#compare_annealing
  */
 function SupportFleetScore_compare_annealing(b){
-	// 未達火力1 = 0.5% のレート
-	let c = (this.unreached_power - b.unreached_power) * 100;
-	c += (this.damage_score_c - b.damage_score_c) * 20000;
-	c += (this.total_accuracy - b.total_accuracy) * 50;
+	/*
+	 * damage_score, damage_score_c については、入力によって最適な割合が異なる
+	 * (低確率は damage_score_c が優位か)
+	 */
+	const cr = 10000;
+	let c = (this.unreached_power - b.unreached_power) * 400;
+	c += (this.damage_score - b.damage_score) * (20000 - cr);
+	c += (this.damage_score_c - b.damage_score_c) * cr;
+	c += (this.total_accuracy - b.total_accuracy) * 100;
 
-	// 上で主要なパラメータは尽きている
 	let c1 = 0;
-	c1 += (this.damage_score - b.damage_score) * 20;
-	c1 += (this.sub_unreached_power - b.sub_unreached_power);
-	c1 += (this.sub_total_accuracy - b.sub_total_accuracy) * 0.1;
+	c1 += (this.sub_unreached_power - b.sub_unreached_power) * 10;
+	c1 += (this.sub_total_accuracy - b.sub_total_accuracy) * 2.5;
 	c += c1;
 
 /*
@@ -491,6 +496,8 @@ Object.defineProperties(SupportFleetScorePrior.prototype, {
 });
 
 Object.defineProperties(SupportFleetScorePrior, {
+	get_start_temperature: {value: SupportFleetScorePrior_get_start_temperature},
+	get_end_temperature  : {value: SupportFleetScorePrior_get_end_temperature},
 	get_exp_weight      : {value: SupportFleetScorePrior_get_exp_weight},
 	get_linear_weight   : {value: SupportFleetScorePrior_get_linear_weight},
 	get_reci_weight     : {value: SupportFleetScorePrior_get_reci_weight},
@@ -628,13 +635,35 @@ function SupportFleetScorePrior_compare_s1s2s3(b){
 	return this.compare_s1(b) || this.compare_s2(b) || this.compare_s3(b);
 }
 
+
+/**
+ * 開始温度
+ * @param score_length 
+ * @returns {number}
+ * @alias SupportFleetScorePrior#get_start_temperature
+ */
+function SupportFleetScorePrior_get_start_temperature(score_length){
+	return 5000;
+}
+/**
+ * 終了温度
+ * @param score_length 
+ * @returns {number}
+ * @alias SupportFleetScorePrior#get_end_temperature
+ */
+function SupportFleetScorePrior_get_end_temperature(score_length){
+	// 優先度なしは 1
+	return Math.pow(SA_ENTIRE_DIFF, (score_length - 1));
+}
+
 /**
  * 焼きなまし用比較関数(優先度付き)
  * @param {SupportFleetScorePrior} b 
- * @param {number[]} weight 
+ * @param {number} score_length 有効な優先度の数
  * @returns {number}
  */
-function SupportFleetScorePrior_compare_annealing(b, weight = null){
+function SupportFleetScorePrior_compare_annealing(b, score_length){
+	let r = 1;
 	let c1_sum = 0;
 	
 	for (let i=0; i<this.scores.length; i++) {
@@ -642,18 +671,18 @@ function SupportFleetScorePrior_compare_annealing(b, weight = null){
 		let b_score = b.scores[i];
 		
 		if (a_score) {
-			let w = weight?.[i] || (this.scores.length - i) / this.scores.length;
-			
+			const cr = 10000;
 			let c1 = 0;
-			c1 += (a_score.unreached_power - b_score.unreached_power) * 100;
-			c1 += (a_score.damage_score_c - b_score.damage_score_c) * 20000;
-			c1 += (a_score.total_accuracy - b_score.total_accuracy) * 50;
+			c1 += (a_score.unreached_power - b_score.unreached_power) * 400;
+			c1 += (a_score.damage_score - b_score.damage_score) * (20000 - cr);
+			c1 += (a_score.damage_score_c - b_score.damage_score_c) * cr;
+			c1 += (a_score.total_accuracy - b_score.total_accuracy) * 100;
 			let c2 = 0;
-			c2 += (a_score.damage_score - b_score.damage_score) * 20;
-			c2 += (a_score.sub_unreached_power - b_score.sub_unreached_power);
-			c2 += (a_score.sub_total_accuracy - b_score.sub_total_accuracy) * 0.1;
+			c2 += (a_score.sub_unreached_power - b_score.sub_unreached_power) * 10;
+			c2 += (a_score.sub_total_accuracy - b_score.sub_total_accuracy) * 2.5;
 
-			c1_sum += (c1 + c2) * w;
+			c1_sum += (c1 + c2) * r;
+			r *= SA_ENTIRE_DIFF;
 		}
 	}
 	

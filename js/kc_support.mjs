@@ -114,7 +114,13 @@ function kancolle_support_init(){
 	support_fleet_tab.addEventListener("change", e => save_userdata());
 	support_fleet_tab.addEventListener("click_target", e => ev_click_target(e));
 	support_fleet_tab.addEventListener("changeoption", e => save_userdata());
-	
+	support_fleet_tab.addEventListener("beforechangefleet", e => {
+		if (mt_searcher?.running) e.preventDefault();
+	});
+	support_fleet_tab.addEventListener("showdialog", e => {
+		if (mt_searcher?.running) e.preventDefault();
+	});
+
 	// オプション
 	settings_initialize_form();
 	
@@ -186,6 +192,8 @@ function kancolle_support_init(){
 	
 	Debug.init({
 		load_form: load_form,
+		save_form: save_form,
+		set_search_comment: set_search_comment,
 	});
 }
 
@@ -434,6 +442,14 @@ function refresh_search_tools(){
 
 function set_search_comment(text){
 	DOM("optimize_comment").textContent = text;
+}
+
+/**
+ * (MT)探索中かどうか
+ * @returns {boolean}
+ */
+function is_running(){
+	return Boolean(mt_searcher?.running);
 }
 
 

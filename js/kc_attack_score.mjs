@@ -41,6 +41,8 @@ class AttackScoreCalc {
 	// 火力ボーダー (最終攻撃力)
 	power_supremum = 0;
 	power_infimum = 0;
+	power_supremum_ND = 0;
+	power_infimum_ND = 0;
 	// 命中ボーダー
 	accuracy_supremum = 0;
 	accuracy_infimum = 0;
@@ -137,8 +139,10 @@ class AttackScoreCalc {
 		this.formation_power = (af.combined || df.combined) ? 1.0 : af.power;
 		this.engagement_power = eng.support;
 		// (最終)攻撃力の上限・下限
-		// x >= power_supremum の攻撃力に対して、命中時の結果が全て同じとなる
-		// x <= power_infimum の攻撃力に対して、命中時の結果が全て同じとなる
+		// x >= power_supremum の攻撃力に対して、命中時の結果が全て同じとなる(全て撃沈)
+		// x <= power_infimum の攻撃力に対して、命中時の結果が全て同じとなる(全てカスダメ)
+		// x >= power_supremum_ND の攻撃力に対して、命中時の目標確率が全て同じとなる
+		// x <= power_infimum_ND の攻撃力に対して、命中時の目標確率が全て同じとなる
 		/*
 		 * [A - D] >= need for all D となる最小のAが上限
 		 * A >= need + D (∀D)
@@ -151,14 +155,16 @@ class AttackScoreCalc {
 		 * B < ceil(need + D)
 		 * infimum = ceil(need + minD) - 1
 		 */
+		let min_def = this.armor * 0.7;
+		let max_def = min_def + (Math.floor(this.armor) - 1) * 0.6;
+		this.power_supremum = Math.ceil(this.hp + max_def);
+		this.power_infimum = Math.ceil(this.hp + min_def) - 1;
 		if (this.need_damage > 0) {
-			let max_def = this.armor * 0.7 + (Math.floor(this.armor) - 1) * 0.6;
-			let min_def = this.armor * 0.7;
-			this.power_supremum = Math.ceil(this.need_damage + max_def);
-			this.power_infimum = Math.ceil(this.need_damage + min_def) - 1;
+			this.power_supremum_ND = Math.ceil(this.need_damage + max_def);
+			this.power_infimum_ND = Math.ceil(this.need_damage + min_def) - 1;
 		} else {
-			this.power_supremum = -Infinity;
-			this.power_infimum = Infinity;
+			this.power_supremum_ND = 1;
+			this.power_infimum_ND = Infinity;
 		}
 		/* 命中率の上限・下限
 		 * a_part - evp = M
@@ -316,8 +322,6 @@ class AttackScoreCalc {
 	 * @return {number[]} number[5]
 	 */
 	getProbsOnHit(power){
-		if (this.need_damage <= 0) return [0, 0, 0, 0, 1];
-
 		let rlim = Math.floor(this.armor);
 		let hp = this.hp;
 		let counts = [0, 0, 0, 0, 0];

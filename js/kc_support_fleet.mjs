@@ -613,6 +613,9 @@ class SupportFleetTab extends EventTarget {
 		this.e_shipcolumn.addEventListener("click", e => this.toggleButton("shipcolumn"));
 		this.e_alignment.addEventListener("click", e => this.toggleButton("alignment"));
 		this.e_fleetcount.addEventListener("click", e => {
+			// preventDefault() でキャンセル可能
+			if (!this.dispatchEvent(new CustomEvent("showdialog", {cancelable: true}))) return;
+
 			let dialog = new FleetOptionDialog().create();
 			dialog.fleet_count = this.fleets.length;
 			dialog.column_count = this.fleetcolumn;
@@ -621,16 +624,20 @@ class SupportFleetTab extends EventTarget {
 
 			dialog.show().then(result => {
 				if (result == "ok") {
-					this.setFleetCount(dialog.fleet_count);
-					this.fleetcolumn = dialog.column_count;
-					let names = dialog.names;
-					let resets = dialog.resets;
-					for (let i=0; i<names.length; i++) {
-						this.fleets[i].set_fleet_name(names[i]);
-						if (resets[i]) this.fleets[i].clear(this.getDefaultPriorityAt(i));
+					if (this.dispatchEvent(new CustomEvent("beforechangefleet", {cancelable: true}))) {
+						this.setFleetCount(dialog.fleet_count);
+						this.fleetcolumn = dialog.column_count;
+						let names = dialog.names;
+						let resets = dialog.resets;
+						for (let i=0; i<names.length; i++) {
+							this.fleets[i].set_fleet_name(names[i]);
+							if (resets[i]) this.fleets[i].clear(this.getDefaultPriorityAt(i));
+						}
+						this.refreshArrangement();
+						this.dispatchEvent(new CustomEvent("changeoption", {detail: {name: "fleetcount"}}));
+					} else {
+						DOMDialog.alert("探索中です", "変更失敗");
 					}
-					this.refreshArrangement();
-					this.dispatchEvent(new CustomEvent("changeoption", {detail: {name: "fleetcount"}}));
 				}
 				dialog.dispose();
 			});

@@ -472,7 +472,9 @@ function SupportFleetData_annealing_entire_main(iteration_scale, priority_data){
 		for (let j=0; j<saslots.length; j++) {
 			if (j == i) continue;
 			if (sa.ssd == saslots[j].ssd) continue;
-			
+			// 同優先度のみとする場合: いまいち
+			// if (sa.priority != saslots[j].priority) continue;
+
 			// 増設は増設同士で
 			if (sa.is_exslot == saslots[j].is_exslot) {
 				sa.swap_saslots.push(saslots[j]);
@@ -490,17 +492,23 @@ function SupportFleetData_annealing_entire_main(iteration_scale, priority_data){
 	
 	let retry_count = 0;
 	let retry_max = 1;
-	let start_temperature = 5000;
-	let end_temperature = 1;
-	
-	// 重み
+	// let start_temperature = 5000;
+	// let end_temperature = 1;
+
 	let priority_counts = this.get_priority_counts();
+	let score_length = priority_counts.length;
+	let start_temperature = SupportFleetScorePrior.get_start_temperature(score_length);
+	let end_temperature = SupportFleetScorePrior.get_end_temperature(score_length);
+
+/* 
+	// 重み (旧仕様)
 	let weight = null;
 	// weight = SupportFleetScorePrior.get_exp_weight_c(2, priority_counts);
 	// weight = SupportFleetScorePrior.get_linear_weight_c(priority_counts);
 	weight = SupportFleetScorePrior.get_linear_weight(priority_counts.length);
 	
 	if (weight) end_temperature *= weight[weight.length - 1];
+ */
 	
 	// 反復回数固定で設定
 	let expect_loop_count = 18000 * ssd_list.length * iteration_scale;
@@ -580,7 +588,7 @@ function SupportFleetData_annealing_entire_main(iteration_scale, priority_data){
 				score.add(ssd);
 				score.add(swap_ssd);
 				
-				let c = current_score.compare_annealing(score, weight);
+				let c = current_score.compare_annealing(score, score_length);
 				let move = c <= 0 || Math.random() < Math.exp(- c / temperature);
 				
 				if (move) {
@@ -638,7 +646,7 @@ function SupportFleetData_annealing_entire_main(iteration_scale, priority_data){
 				
 				score.add(ssd);
 				
-				let c = current_score.compare_annealing(score, weight);
+				let c = current_score.compare_annealing(score, score_length);
 				let move = c <= 0 || Math.random() < Math.exp(- c / temperature);
 				
 				if (move) {
@@ -662,7 +670,7 @@ function SupportFleetData_annealing_entire_main(iteration_scale, priority_data){
 		
 		
 		// check
-		let c = max_score.compare_annealing(current_score, weight);
+		let c = max_score.compare_annealing(current_score, score_length);
 		if (c < 0) {
 			max_fleet = this.clone(false);
 			max_score.copy_from(current_score);
@@ -674,6 +682,8 @@ function SupportFleetData_annealing_entire_main(iteration_scale, priority_data){
 
 	// 仕上げ
 	if (SA_HILL_CLIMBLING) this.hill_climbling1("entire");
+
+	// console.log(move_count * 100 / expect_loop_count, weight, start_temperature, end_temperature);
 }
 
 

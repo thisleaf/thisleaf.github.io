@@ -673,6 +673,12 @@ function SupportFleetData_search(search_type, param = null){
 			}
 		}, true);
 		
+	} else if (search_type == "hill_climbling1_entire") {
+		this.hill_climbling1("entire");
+
+	} else if (search_type == "hill_climbling1_rigidly") {
+		this.hill_climbling1("rigidly");
+
 	} else {
 		debugger;
 	}

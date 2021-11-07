@@ -208,17 +208,19 @@ function SupportFleetData_hill_climbling1(compare_type = "rigidly"){
 			
 			for (let s2=s1+1; s2<ssds.length; s2++) {
 				let ssd2 = ssds[s2];
+				// let same_priority = ssd1.priority == ssd2.priority;
 				current_score.sub(ssd2);
 				
 				// ssd1 の装備と ssd2 の装備を一つ交換したものを検討
 				// 合計命中値は変わらないため、ボーナス値が関係するもののみでよいはず
+				// → 優先度が同じかつ命中最大化の場合のみ
 				for (let i=0; i<ssd1.allslot_equipment.length; i++) {
 					let slot1 = ssd1.allslot_equipment[i];
-					let concern1 = ssd2.equipment_bonus.bonus_concerns(slot1.equipment_id);
+					// let concern1 = ssd2.equipment_bonus.bonus_concerns(slot1.equipment_id);
 					
 					for (let j=0; j<ssd2.allslot_equipment.length; j++) {
 						let slot2 = ssd2.allslot_equipment[j];
-						if (!concern1 && !ssd1.equipment_bonus.bonus_concerns(slot2.equipment_id)) continue;
+						// if (same_priority && !concern1 && !ssd1.equipment_bonus.bonus_concerns(slot2.equipment_id)) continue;
 						
 						if (this.check_swappable(ssd1, i, ssd2, j)) {
 							slot1.swap_equipment(slot2);

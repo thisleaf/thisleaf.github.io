@@ -37,6 +37,7 @@ import {
 } from "./kc_support_score.mjs";
 import {DamageTable} from "./kc_damage_table.mjs";
 import {DOMDialog} from "./dom_dialog.mjs";
+import {MultiThreadSearcher} from "./kc_support_mt.mjs";
 
 
 export {
@@ -72,23 +73,11 @@ function init(obj){
 
 // event -------------------------------------------------------------------------------------------
 function ev_click_test(){
-	let fleet = debug_object.load_form(true);
-	let exec = fleet.executable();
-	console.log(exec, fleet.reason);
+	debug_search("hill_climbling1_entire");
 }
 
 function ev_click_test2(){
-	if (0) {
-		let es = EquipmentDatabase.enemy_status;
-		let dialog = new EnemySelectorDialog(es).create();
-		dialog.show().then((e) => {
-			dialog.dispose();
-			let id = dialog.getCurrentId();
-			console.log(e, id, es.getStatus(id));
-			// console.log("exit dialog", e);
-		});
-		return;
-	}
+	debug_search("hill_climbling1_rigidly");
 }
 
 function ev_click_test3(){
@@ -103,6 +92,31 @@ function ev_click_test3(){
 	}, "annealing beta", 100);
 }
 
+
+function debug_search(search_type){
+	let fleet_data = debug_object.load_form(true);
+	if (!fleet_data.executable(search_type)) {
+		debug_object.set_search_comment("探索不可: " + fleet_data.reason);
+		return;
+	}
+	
+	let a = new Date;
+	let a_score = new SupportFleetScorePrior(fleet_data.ssd_list, 0, SupportFleetScore.MODE_VENEMY_DAMAGE);
+	fleet_data.search(search_type);
+	let b_score = new SupportFleetScorePrior(fleet_data.ssd_list, 0, SupportFleetScore.MODE_VENEMY_DAMAGE);
+	let b = new Date;
+
+	let c = MultiThreadSearcher.compare_score(a_score, b_score, search_type);
+	if (c < 0) {
+		debug_object.save_form(fleet_data);
+	} else {
+		b_score = a_score;
+	}
+
+	let msec = b.getTime() - a.getTime();
+	let diff = MultiThreadSearcher.get_score_diff(a_score, b_score, search_type, true);
+	debug_object.set_search_comment("探索終了　" + diff + "　" + msec + "ms");
+}
 
 
 // シミュレーション --------------------------------------------------------------------------------

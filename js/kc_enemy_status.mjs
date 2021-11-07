@@ -553,6 +553,24 @@ class EnemySelectorDialog extends DOMDialog {
 			this.clearSearchText();
 		}
 	}
+	
+	/**
+	 * 表示中にキーを押したときのイベント
+	 * @param e 
+	 * @override
+	 */
+	 ev_document_keydown(e){
+		if (this.showing) {
+			// 検索窓にフォーカスを移す
+			// Ctrl+F or 入力中でないF
+			if (e.key == "f" && !e.shiftKey && !e.altKey) {
+				if (e.ctrlKey || (document.activeElement != this.e_query)) {
+					this.e_query.select();
+					e.preventDefault();
+				}
+			}
+		}
+	}
 };
 
 
