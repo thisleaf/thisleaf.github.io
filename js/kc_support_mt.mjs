@@ -426,12 +426,16 @@ function MultiThreadSearcher_trace_scores(){
 	}
 	let avg_acc = acc_sum / c;
 
+	let elapsed = this.end_date.getTime() - this.begin_date.getTime();
+	let expected_time = elapsed / Math.ceil(c / this.thread_count);
+
 	console.log("Result:", this.receive_scores, {
 		count: c,
 		ds: ds_sum / c,
 		acc: avg_acc,
 		// acc_sd: Math.sqrt(acc_sqsum / c - avg_acc * avg_acc),
 		acc_usd: Math.sqrt((acc_sqsum - acc_sum * avg_acc) / (c - 1)),
+		exp_time: expected_time,
 	});
 }
 

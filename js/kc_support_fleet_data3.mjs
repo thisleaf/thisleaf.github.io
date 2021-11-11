@@ -104,6 +104,10 @@ function SupportFleetData_annealing(iteration_scale = 1){
 	this.ssd_list.forEach(ssd => ssd.calc_bonus());
 	this.own_list.forEach(own => own.generate_rem_stars());
 	
+	// 非固定をカウントから外す
+	// rem_stars は変わらないので、後で再びカウントする
+	this.countup_equipment(true, false, -1);
+
 	let ssd_list = this.ssd_list;
 	let own_list = this.own_list.filter(x => x.get_total_count() - x.get_main_count() > 0);
 	let own_list_normal = own_list.concat();
@@ -112,12 +116,14 @@ function SupportFleetData_annealing(iteration_scale = 1){
 	own_list_normal.sort((a, b) =>
 		SupportShipData.power_compare(b.id, a.id, false) ||
 		SupportShipData.accuracy_compare(b.id, a.id) ||
-		SupportShipData.priority_compare(b.id, a.id)
+		SupportShipData.priority_compare(b.id, a.id) ||
+		b.remaining - a.remaining
 	);
 	own_list_cv.sort((a, b) =>
 		SupportShipData.power_compare(b.id, a.id, true) ||
 		SupportShipData.accuracy_compare(b.id, a.id) ||
-		SupportShipData.priority_compare(b.id, a.id)
+		SupportShipData.priority_compare(b.id, a.id) ||
+		b.remaining - a.remaining
 	);
 	
 	// 各艦のslotと、それに付随するデータ
@@ -125,6 +131,7 @@ function SupportFleetData_annealing(iteration_scale = 1){
 	// SASlotData の配列
 	let saslots = new Array;
 	let db_map = EquipmentDatabase.equipment_data_map;
+	let saslots_length = ssd_list.reduce((a, c) => a + c.allslot_fixes.reduce((a, c) => a + (c ? 0 : 1), 0), 0);
 	
 	for (let p=0; p<ssd_list.length; p++) {
 		let ssd = ssd_list[p];
@@ -148,13 +155,35 @@ function SupportFleetData_annealing(iteration_scale = 1){
 				for (let k=0; k<n; k++) {
 					// [k] が [n] の上位なら追加
 					let k_eq = db_map[slot_list[k].id];
-					if (ssd.is_upper_equipment(k_eq, n_eq)) {
+					if (ssd.is_upper_equipment(k_eq, n_eq, slot_list[k].star_min, slot_list[n].star_max)) {
 						uppers.push(slot_list[k]);
 					}
 				}
+				// 後方の場合、同値は含まないものとする
+				for (let k=n+1; k<slot_list.length; k++) {
+					let k_eq = db_map[slot_list[k].id];
+					if ( ssd.is_upper_equipment(k_eq, n_eq, slot_list[k].star_min, slot_list[n].star_max)
+						&& !ssd.is_upper_equipment(n_eq, k_eq, slot_list[n].star_min, slot_list[k].star_max) )
+					{
+						uppers.push(slot_list[k]);
+					}
+				}
+
 				slot_uppers[n] = uppers;
 			}
 			
+			// 上位互換がスロットの数以上存在すれば、その装備は使用しなくて良い
+			// これで除外された装備を上位互換に持つ装備も常に除外である
+			for (let n=0; n<slot_list.length; n++) {
+				let count = slot_uppers[n].reduce((a, c) => a + c.remaining, 0);
+				if (count >= saslots_length) {
+					slot_list[n] = null;
+					slot_uppers[n] = null;
+				}
+			}
+			slot_list = slot_list.filter(x => x);
+			slot_uppers = slot_uppers.filter(x => x);
+
 			sa.eqab_owns = slot_list;
 			sa.upper_owns_array = slot_uppers;
 			
@@ -184,13 +213,26 @@ function SupportFleetData_annealing(iteration_scale = 1){
 				}
 			}
 */
+			// 交換できる装備があるか
+			let swappable = false;
+			for (let k=0; k<sa.eqab_owns.length; k++) {
+				if (saslots[j].eqab[sa.eqab_owns[k].id]) {
+					swappable = true;
+					break;
+				}
+			}
+			if (!swappable) continue;
+
 			// 増設は増設同士で
 			if (sa.is_exslot == saslots[j].is_exslot) {
 				sa.swap_saslots.push(saslots[j]);
 			}
 		}
 	}
-	
+
+	// 戻す
+	this.countup_equipment(true, false, 1);
+
 	// 装備可能なスロットがない(全て固定されている)
 	if (saslots.length == 0) return;
 	
@@ -406,6 +448,8 @@ function SupportFleetData_annealing_entire_main(iteration_scale, priority_data){
 	this.ssd_list.forEach(ssd => ssd.calc_bonus());
 	this.own_list.forEach(own => own.generate_rem_stars());
 	
+	this.countup_equipment(true, false, -1);
+
 	let ssd_list = this.ssd_list;
 	let own_list = this.own_list.filter(x => x.get_total_count() - x.get_main_count() > 0);
 	let own_list_normal = own_list.concat();
@@ -414,12 +458,14 @@ function SupportFleetData_annealing_entire_main(iteration_scale, priority_data){
 	own_list_normal.sort((a, b) =>
 		SupportShipData.power_compare(b.id, a.id, false) ||
 		SupportShipData.accuracy_compare(b.id, a.id) ||
-		SupportShipData.priority_compare(b.id, a.id)
+		SupportShipData.priority_compare(b.id, a.id) ||
+		b.remaining - a.remaining
 	);
 	own_list_cv.sort((a, b) =>
 		SupportShipData.power_compare(b.id, a.id, true) ||
 		SupportShipData.accuracy_compare(b.id, a.id) ||
-		SupportShipData.priority_compare(b.id, a.id)
+		SupportShipData.priority_compare(b.id, a.id) ||
+		b.remaining - a.remaining
 	);
 	
 	// 各艦のslotと、それに付随するデータ
@@ -427,6 +473,7 @@ function SupportFleetData_annealing_entire_main(iteration_scale, priority_data){
 	// SASlotData の配列
 	let saslots = new Array;
 	let db_map = EquipmentDatabase.equipment_data_map;
+	let saslots_length = ssd_list.reduce((a, c) => a + c.allslot_fixes.reduce((a, c) => a + (c ? 0 : 1), 0), 0);
 	
 	for (let p=0; p<ssd_list.length; p++) {
 		let ssd = ssd_list[p];
@@ -450,13 +497,33 @@ function SupportFleetData_annealing_entire_main(iteration_scale, priority_data){
 				for (let k=0; k<n; k++) {
 					// [k] が [n] の上位なら追加
 					let k_eq = db_map[slot_list[k].id];
-					if (ssd.is_upper_equipment(k_eq, n_eq)) {
+					if (ssd.is_upper_equipment(k_eq, n_eq, slot_list[k].star_min, slot_list[n].star_max)) {
 						uppers.push(slot_list[k]);
 					}
 				}
+				// 後方の場合、同値は含まないものとする
+				for (let k=n+1; k<slot_list.length; k++) {
+					let k_eq = db_map[slot_list[k].id];
+					if ( ssd.is_upper_equipment(k_eq, n_eq, slot_list[k].star_min, slot_list[n].star_max)
+						&& !ssd.is_upper_equipment(n_eq, k_eq, slot_list[n].star_min, slot_list[k].star_max) )
+					{
+						uppers.push(slot_list[k]);
+					}
+				}
+
 				slot_uppers[n] = uppers;
 			}
 			
+			for (let n=0; n<slot_list.length; n++) {
+				let count = slot_uppers[n].reduce((a, c) => a + c.remaining, 0);
+				if (count >= saslots_length) {
+					slot_list[n] = null;
+					slot_uppers[n] = null;
+				}
+			}
+			slot_list = slot_list.filter(x => x);
+			slot_uppers = slot_uppers.filter(x => x);
+
 			sa.eqab_owns = slot_list;
 			sa.upper_owns_array = slot_uppers;
 			
@@ -475,13 +542,26 @@ function SupportFleetData_annealing_entire_main(iteration_scale, priority_data){
 			// 同優先度のみとする場合: いまいち
 			// if (sa.priority != saslots[j].priority) continue;
 
+			// 交換できる装備があるか
+			let swappable = false;
+			for (let k=0; k<sa.eqab_owns.length; k++) {
+				if (saslots[j].eqab[sa.eqab_owns[k].id]) {
+					swappable = true;
+					break;
+				}
+			}
+			if (!swappable) continue;
+
 			// 増設は増設同士で
 			if (sa.is_exslot == saslots[j].is_exslot) {
 				sa.swap_saslots.push(saslots[j]);
 			}
 		}
 	}
-	
+
+	// 戻す
+	this.countup_equipment(true, false, 1);
+
 	// 装備可能なスロットがない(全て固定されている)
 	if (saslots.length == 0) return;
 	
@@ -670,7 +750,7 @@ function SupportFleetData_annealing_entire_main(iteration_scale, priority_data){
 		
 		
 		// check
-		let c = max_score.compare_annealing(current_score, score_length);
+		let c = max_score.compare_s1s2s3(current_score);
 		if (c < 0) {
 			max_fleet = this.clone(false);
 			max_score.copy_from(current_score);

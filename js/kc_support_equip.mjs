@@ -55,6 +55,9 @@ Object.assign(OwnEquipmentData.prototype, {
 	// 上の配列の和
 	remaining: 0,
 	fixed    : 0,
+	// 改修値の範囲(total - main)
+	star_min: 10,
+	star_max: 0,
 	
 	// 残っている装備の改修値(昇順)
 	// 利用するときのみ作り直す
@@ -171,6 +174,8 @@ function OwnEquipmentData_clone(){
 	if (this.rem_counts) out.rem_counts = this.rem_counts.concat();
 	if (this.fix_counts) out.fix_counts = this.fix_counts.concat();
 	out.remaining = this.remaining;
+	out.star_min = this.star_min;
+	out.star_max = this.star_max;
 	out.fixed = this.fixed;
 	if (this.rem_stars) out.rem_stars = this.rem_stars.slice(0, this.remaining);
 	
@@ -237,6 +242,8 @@ function OwnEquipmentData_get_json_MT(){
 	json.rem_counts = this.rem_counts;
 	json.fix_counts = this.fix_counts;
 	json.remaining = this.remaining;
+	json.star_min = this.star_min;
+	json.star_max = this.star_max;
 	json.fixed = this.fixed;
 	json.rem_stars = this.rem_stars;
 	return json;
@@ -247,6 +254,8 @@ function OwnEquipmentData_set_json_MT(json){
 	this.rem_counts = json.rem_counts;
 	this.fix_counts = json.fix_counts;
 	this.remaining = json.remaining;
+	this.star_min = json.star_min;
+	this.star_max = json.star_max;
 	this.fixed = json.fixed;
 	this.rem_stars = json.rem_stars;
 }
@@ -260,12 +269,19 @@ function OwnEquipmentData_init_varcounts(){
 	this.fix_counts = new Array(size).fill(0);
 	
 	let sum = 0;
+	let star_min = 10, star_max = 0;
 	for (let i=0; i<size; i++) {
 		let rem = this.total_counts[i] - this.main_counts[i];
 		this.rem_counts[i] = rem;
 		sum += rem;
+		if (rem > 0) {
+			if (star_min > i) star_min = i;
+			if (star_max < i) star_max = i;
+		}
 	}
 	this.remaining = sum;
+	this.star_min = star_min;
+	this.star_max = star_max;
 	this.fixed = 0;
 }
 

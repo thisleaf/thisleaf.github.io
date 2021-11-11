@@ -236,6 +236,44 @@ export function delayed_caller(func, delay, reset_delay = true){
 	return onevent;
 }
 
+/**
+ * 配列の隣接する重複要素を取り除く
+ * @param {Array} array 
+ * @returns {Array} array
+ */
+export function unique_array(array){
+	if (array.length >= 2) {
+		let o = 1;
+		for (let i=1; i<array.length; i++) {
+			if (array[i] !== array[i-1]) {
+				if (o != i) array[o] = array[i];
+				o++;
+			}
+		}
+		array.length = o;
+	}
+	return array;
+}
+/**
+ * 配列の隣接する重複要素を取り除く(比較関数指定版)
+ * @param {Array} array 
+ * @param {Function} compare 比較関数
+ * @returns {Array} array
+ */
+export function unique_array_comp(array, compare){
+	if (array.length >= 2) {
+		let o = 1;
+		for (let i=1; i<array.length; i++) {
+			if (compare(array[i], array[i-1]) == 0) {
+				if (o != i) array[o] = array[i];
+				o++;
+			}
+		}
+		array.length = o;
+	}
+	return array;
+}
+
 
 // 通信, csv ---------------------------------------------------------------------------------------
 // csvファイルのロード。データはすべて文字列だが、改行は\nに置き換えられる

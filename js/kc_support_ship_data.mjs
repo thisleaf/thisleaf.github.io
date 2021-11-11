@@ -698,58 +698,80 @@ function SupportShipData_sort_equipment(sort_by, use_category){
 
 /**
  * この艦に装備する際に、常に upper >= base と考えて良いかを判定する
- * upper, base: 装備データオブジェクト(csv)
- * @param {*} upper 
- * @param {*} base 
+ * @param {*} upper 装備データオブジェクト(csv)
+ * @param {*} base  装備データオブジェクト(csv)
+ * @param {number} [upper_star_min=0] upperの最小改修値
+ * @param {number} [base_star_max=10] baseの最大改修値
  * @returns {boolean}
  * @method SupportShipData#is_upper_equipment
  */
-function SupportShipData_is_upper_equipment(upper, base){
+function SupportShipData_is_upper_equipment(upper, base, upper_star_min = 0, base_star_max = 10){
 	let upper_fpw = upper.firepower;
 	let upper_tor = upper.torpedo;
 	let base_fpw = base.firepower;
 	let base_tor = base.torpedo;
+	// slot.bonus_torpedo
+	// 装備ボーナス(雷装/命中)は現在効果なしとする
 	
 	let bonus = this.equipment_bonus;
 	
 	// 装備優先度
+	// 厳密には改修値のぶんも加算されるが無視とする
 	if (upper.priority < base.priority) return false;
-	
-	// シナジーボーナスについて
-	if (bonus.assist_exists(base.number)) {
-		// 同一種類のものでないならば不明とする
-		if (!bonus.same_assist(upper.number, base.number)) return false;
+
+	// 空母系の場合は攻撃機かどうかも確認
+	if (this.cv_shelling) {
+		if (!upper.cv_attackable && base.cv_attackable) return false;
 	}
 	
-	if (bonus.bonus_exists(base.number)) {
-		// 自身への装備ボーナスあり
-		// どのくらいのボーナスがあるか分からないので、最大値で考えることにする
-		let slot = new EquipmentSlot(base.number, base, 10);
-		bonus.get_max_bonus(slot);
-		base_fpw += slot.bonus_firepower;
-		//base_tor += slot.bonus_torpedo;
+	// 装備ボーナスについて
+	// マイナスのシナジー(火力)はないと仮定(独立はあってもよい)
+	// base: 装備を追加したときの最大ボーナス
+	if (bonus.bonus_concerns(base.number)) {
+		let slot = new EquipmentSlot(base.number, base, base_star_max);
+		// 自身へのボーナス
+		if (bonus.bonus_exists(base.number)) {
+			let max_fpw = 0;
+			for (let k=1; k<=6; k++) {
+				bonus.get_max_bonus(slot, k);
+				if (k == 1 || max_fpw < slot.bonus_firepower) max_fpw = slot.bonus_firepower;
+			}
+			base_fpw += max_fpw;
+		}
+		// 他の装備へのボーナス
+		if (bonus.assist_exists(base.number)) {
+			bonus.get_max_assist(slot);
+			base_fpw += slot.bonus_firepower;
+		}
 	}
-	// upperは最小値
-	if (bonus.bonus_independent(upper.number)) {
-		let slot = new EquipmentSlot(upper.number, upper, 0);
+	// upper: 装備を追加したときの最小ボーナス
+	// 最小なので、assist は 0 と考えて良い
+	if (bonus.bonus_exists(upper.number)) {
+		let slot = new EquipmentSlot(upper.number, upper, upper_star_min);
+		// 独立ボーナスのみ
 		bonus.get_independent_bonus(slot);
 		upper_fpw += slot.bonus_firepower;
-		//upper_tor += slot.bonus_torpedo;
 	}
-	
-	// ステータス比較
-	if ( this.cv_shelling
-		?	upper_fpw      >= base_fpw &&
-			upper_tor      >= base_tor &&
-			upper.bombing  >= base.bombing &&
-			upper.accuracy >= base.accuracy
-		:	upper_fpw      >= base_fpw &&
-			upper.accuracy >= base.accuracy )
-	{
-		return true;
+
+	/*
+	 * ステータス比較
+	 * 空母系攻撃力: fpw, tor は整数なので
+	 * [(fpw + tor + [bom * 1.3] - 1) * 1.5] + 55
+	 * = [([fpw + tor + bom * 1.3] - 1) * 1.5] + 55
+	 * つまり
+	 * fpw + tor + bom * 1.3
+	 * の大小(<= or >=)に結果も従う
+	 */
+	let upper_power_min;
+	let base_power_max;
+	if (this.cv_shelling) {
+		upper_power_min = upper_fpw + upper_tor + upper.bombing * 1.3;
+		base_power_max = base_fpw + base_tor + base.bombing * 1.3;
+	} else {
+		upper_power_min = upper_fpw;
+		base_power_max = base_fpw;
 	}
-	
-	return false;
+	return upper_power_min >= base_power_max && upper.accuracy >= base.accuracy;
 }
 
 

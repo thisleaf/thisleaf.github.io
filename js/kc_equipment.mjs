@@ -67,6 +67,7 @@ Object.assign(EquipmentDatabase, {
 	initialize : EquipmentDatabase_initialize,
 	// カスタムプロパティを追加する
 	add_equipment_property: EquipmentDatabase_add_equipment_property,
+	add_lineNumber: EquipmentDatabase_add_lineNumber,
 	// デバッグ用
 	trace_jp_notjp: EquipmentDatabase_trace_jp_notjp,
 	check_csv     : EquipmentDatabase_check_csv,
@@ -234,6 +235,7 @@ function EquipmentDatabase_initialize(csv_shiplist, csv_equiplist_raw, csv_equip
 	EquipmentDatabase.csv_equipable_support = csv_equipable_support;
 	
 	
+	EquipmentDatabase.add_lineNumber(csv_equipbonus);
 	let bonusdata_array = new Array;
 	for (let d of csv_equipbonus) {
 		bonusdata_array.push(new EquipmentBonusData(d));
@@ -281,6 +283,19 @@ function EquipmentDatabase_add_equipment_property(name, definition){
 		}
 		eq[name] = value;
 	}
+}
+
+/**
+ * 行番号(lineNumber)を付与 (index + 1)
+ * @param {Array} array csvデータの配列
+ * @returns array
+ * @alias EquipmentDatabase.add_lineNumber
+ */
+function EquipmentDatabase_add_lineNumber(array){
+	for (let i=0; i<array.length; i++) {
+		array[i].lineNumber = i + 1;
+	}
+	return array;
 }
 
 /**
@@ -391,6 +406,12 @@ Object.assign(EquipableInfo.prototype, {
 });
 
 
+/**
+ * 装備可能かどうかを扱うクラス
+ * @param {string} name 
+ * @param {boolean} support_mode 
+ * @constructor
+ */
 function EquipableInfo(name, support_mode){
 	this.support_mode = support_mode;
 	
@@ -687,6 +708,13 @@ Object.assign(EquipmentSlot.prototype, {
 });
 
 
+/**
+ * スロットを表すクラス
+ * @param {number} [id=0] 装備ID、0で装備なし
+ * @param {*} [data=null] csv
+ * @param {number} [impr=0] 改修値
+ * @constructor
+ */
 function EquipmentSlot(id = 0, data = null, impr = 0){
 	if (id) {
 		this.set_equipment(id, data, impr);
@@ -1142,13 +1170,14 @@ Object.assign(EquipmentBonus.prototype, {
 	bonus_data_array: null, // array of EquipmentBonusData
 	bonus_data_map  : null, // map: equipId -> array of EquipmentBonusData
 	// 他の装備にボーナスを与える装備の情報
-	assist_data_map : null, // map: id -> EquipmentBonusData[] (重複あり)
+	assist_data_map : null, // map: id -> EquipmentBonusData[]
 	
 	// method
 	set_name             : EquipmentBonus_set_name,
 	get_bonus            : EquipmentBonus_get_bonus,
 	get_independent_bonus: EquipmentBonus_get_independent_bonus,
 	get_max_bonus        : EquipmentBonus_get_max_bonus,
+	get_max_assist       : EquipmentBonus_get_max_assist,
 	
 	bonus_exists         : EquipmentBonus_bonus_exists,
 	assist_exists        : EquipmentBonus_assist_exists,
@@ -1160,6 +1189,12 @@ Object.assign(EquipmentBonus.prototype, {
 });
 
 
+/**
+ * 装備ボーナスを計算するクラス
+ * @param {?string} name 艦名
+ * @param {boolean} [sup=false] 支援艦隊モード
+ * @constructor
+ */
 function EquipmentBonus(name, sup = false){
 	if (sup) this.support_mode = sup;
 	if (name) {
@@ -1233,6 +1268,13 @@ function EquipmentBonus_set_name(name){
 			_assist(data, data.subequip_map1);
 			_assist(data, data.subequip_map2);
 		}
+	}
+
+	// 重複の除外
+	for (let key of Object.keys(this.assist_data_map)) {
+		let arr = this.assist_data_map[key];
+		arr.sort((a, b) => a.line.lineNumber - b.line.lineNumber);
+		Util.unique_array(arr);
 	}
 }
 
@@ -1385,12 +1427,56 @@ function EquipmentBonus_get_independent_bonus(slot){
 	}
 }
 
-// 全てのボーナスを加算
-// 一部には負数のボーナスがあるが、あまり深く考えないこととする
-function EquipmentBonus_get_max_bonus(slot){
+/**
+ * 全てのボーナスを加算(slotへのボーナス)
+ * 一部には負数のボーナスがあるが、あまり深く考えないこととする
+ * @param {EquipmentSlot} slot スロット
+ * @param {number} [count=0] slotは何本目の装備か  0とすると本数を考慮しない(全て加算)
+ * @alias EquipmentBonus#get_max_bonus
+ */
+function EquipmentBonus_get_max_bonus(slot, count = 0){
 	slot.clear_bonus();
 	
 	let arr = this.bonus_data_map[slot.equipment_id];
+	if (!arr) return;
+	
+	for (let i=0; i<arr.length; i++) {
+		let data = arr[i];
+		if (count > 0 && (data.count_bit & (1 << (count - 1))) == 0) continue;
+		if (data.reset) {
+			slot.bonus_firepower = data.firepower[slot.improvement];
+			slot.bonus_torpedo   = data.torpedo[slot.improvement];
+			slot.bonus_antiair   = data.antiair[slot.improvement];
+			slot.bonus_ASW       = data.ASW[slot.improvement];
+			slot.bonus_evasion   = data.evasion[slot.improvement];
+			slot.bonus_LoS       = data.LoS[slot.improvement];
+			slot.bonus_armor     = data.armor[slot.improvement];
+			slot.bonus_accuracy  = data.accuracy[slot.improvement];
+			slot.bonus_range     = data.range[slot.improvement];
+		} else {
+			slot.bonus_firepower += data.firepower[slot.improvement];
+			slot.bonus_torpedo   += data.torpedo[slot.improvement];
+			slot.bonus_antiair   += data.antiair[slot.improvement];
+			slot.bonus_ASW       += data.ASW[slot.improvement];
+			slot.bonus_evasion   += data.evasion[slot.improvement];
+			slot.bonus_LoS       += data.LoS[slot.improvement];
+			slot.bonus_armor     += data.armor[slot.improvement];
+			slot.bonus_accuracy  += data.accuracy[slot.improvement];
+			slot.bonus_range     += data.range[slot.improvement];
+		}
+	}
+}
+
+/**
+ * 全てのassistボーナスを加算
+ * 自分へのボーナスではない
+ * @param {EquipmentSlot} slot 
+ * @alias EquipmentBonus#get_max_assist
+ */
+function EquipmentBonus_get_max_assist(slot){
+	slot.clear_bonus();
+	
+	let arr = this.assist_data_map[slot.equipment_id];
 	if (!arr) return;
 	
 	for (let i=0; i<arr.length; i++) {
