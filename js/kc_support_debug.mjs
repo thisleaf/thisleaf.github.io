@@ -81,15 +81,6 @@ function ev_click_test2(){
 }
 
 function ev_click_test3(){
-	performance_check(f => {
-		//f.annealing_entire(1);
-		f.annealing(1);
-/*
-		f.priority_call(x => {
-			f.annealing(1);
-		}, true);
-*/
-	}, "annealing beta", 100);
 }
 
 

@@ -1281,32 +1281,29 @@ function EquipmentBonus_set_name(name){
 // 装備ボーナスを計算
 // 改修値の順番もソートしておかなくてよい
 function EquipmentBonus_get_bonus(slot_array, synergy_only = false){
-	// 改修値の大きいものを1本目などとする
-	for (let i=0; i<slot_array.length; i++) {
-		let c = 1;
-		let id = slot_array[i].equipment_id;
-		let star = slot_array[i].improvement;
-		for (let j=0; j<i; j++) {
-			if (slot_array[j].equipment_id == id) {
-				if (slot_array[j].improvement < star) {
-					// [j]のほうが改修値が小さい→nthは大きい
-					slot_array[j].same_index++;
-				} else {
-					c++;
-				}
-			}
-		}
-		slot_array[i].same_index = c;
-	}
-
-	
 	for (let i=0; i<slot_array.length; i++) {
 		let slot = slot_array[i];
 		slot.clear_bonus();
 		
 		let arr = this.bonus_data_map[slot.equipment_id];
 		if (!arr) continue;
-		
+
+		// 何本目の装備であるか
+		// 改修値の大きいものを1本目などとする
+		// 高々6スロット、ボーナスを持たない装備も多くここで計算したほうが速い
+		let eq_index = 1;
+		let id = slot.equipment_id;
+		let star = slot.improvement;
+		for (let p=0; p<slot_array.length; p++) {
+			if (p != i && slot_array[p].equipment_id == id) {
+				if ( p < i ?  slot_array[p].improvement >= star :
+				  /* p > i */ slot_array[p].improvement >  star )
+				{
+					eq_index++;
+				}
+			}
+		}
+
 		for (let j=0; j<arr.length; j++) {
 			let data = arr[j];
 			
@@ -1326,7 +1323,7 @@ function EquipmentBonus_get_bonus(slot_array, synergy_only = false){
 					}
 				}
 			} else {
-				count = slot.same_index;
+				count = eq_index;
 			}
 			
 			/*

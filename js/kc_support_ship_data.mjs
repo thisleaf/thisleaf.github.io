@@ -121,6 +121,7 @@ Object.assign(SupportShipData.prototype, {
 
 	clear_bonus        : SupportShipData_clear_bonus      ,
 	calc_bonus         : SupportShipData_calc_bonus       ,
+	calc_bonus_if      : SupportShipData_calc_bonus_if    ,
 	get_display_power  : SupportShipData_get_display_power,
 	get_basic_power    : SupportShipData_get_basic_power  ,
 	get_final_power    : SupportShipData_get_final_power  ,
@@ -439,6 +440,21 @@ function SupportShipData_calc_bonus(){
 }
 
 /**
+ * eq_id1 または eq_id2 がボーナスに関係する装備のときのみ装備ボーナスを計算
+ * @param {number} eq_id1 
+ * @param {number} eq_id2 
+ * @returns {boolean} ボーナスを計算したら true
+ * @method SupportShipData#calc_bonus_if
+ */
+function SupportShipData_calc_bonus_if(eq_id1, eq_id2){
+	if (this.equipment_bonus.bonus_concerns(eq_id1) || this.equipment_bonus.bonus_concerns(eq_id2)) {
+		this.equipment_bonus.get_bonus(this.allslot_equipment, false);
+		return true;
+	}
+	return false;
+}
+
+/**
  * 表示火力
  * 先にボーナス値を計算しておく
  * @returns {number}
@@ -584,21 +600,22 @@ function SupportShipData_get_accuracy(){
 
 /**
  * 装備優先度の合計
- * 改修値 * 0.01 も加える
+ * (改修値 * 0.01 も加える ← 廃止。除外を考慮すると少し大変)
  * @returns {number}
  * @method SupportShipData#get_equipment_priority
  */
 function SupportShipData_get_equipment_priority(){
 	let p = 0;
-	let star = 0;
+	// let star = 0;
 	for (let i=0; i<this.allslot_equipment.length; i++) {
 		let data = this.allslot_equipment[i].equipment_data;
 		if (data) {
 			p += data.priority;
-			star += this.allslot_equipment[i].improvement;
+			// star += this.allslot_equipment[i].improvement;
 		}
 	}
-	return p + star * 0.01;
+	// return p + star * 0.01;
+	return p;
 }
 
 /**
@@ -714,9 +731,24 @@ function SupportShipData_is_upper_equipment(upper, base, upper_star_min = 0, bas
 	// 装備ボーナス(雷装/命中)は現在効果なしとする
 	
 	let bonus = this.equipment_bonus;
-	
+
+	// 同装備
+	if (upper == base) {
+		// 改修値によってボーナスが変化しないかどうかのみをチェックする
+		// ボーナスは単調増加であることを仮定
+		if (upper_star_min < base_star_max && bonus.bonus_exists(base.number)) {
+			let slot1 = new EquipmentSlot(upper.number, upper, upper_star_min);
+			let slot2 = new EquipmentSlot(base.number, base, base_star_max);
+			for (let k=1; k<=6; k++) {
+				bonus.get_max_bonus(slot1, k);
+				bonus.get_max_bonus(slot2, k);
+				if (slot1.bonus_firepower != slot2.bonus_firepower) return false;
+			}
+		}
+		return true;
+	}
+
 	// 装備優先度
-	// 厳密には改修値のぶんも加算されるが無視とする
 	if (upper.priority < base.priority) return false;
 
 	// 空母系の場合は攻撃機かどうかも確認

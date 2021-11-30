@@ -23,6 +23,9 @@ export {
 class SearchTargetRow {
 	static enemy_selector_dialog;
 
+	// 強調表示されているか
+	highlighted = false;
+
 	constructor(number){
 		Util.attach_event_target(this);
 
@@ -267,9 +270,11 @@ class SearchTargetRow {
 
 	highlight(){
 		this.e_row.classList.add("highlight");
+		this.highlighted = true;
 	}
 	removeHighlight(){
 		this.e_row.classList.remove("highlight");
+		this.highlighted = false;
 	}
 
 	ev_click_venemyname(){
@@ -424,10 +429,7 @@ class SearchTargetDialog extends DOMDialog {
 			]),
 		]);
 
-		this.addEventListener("show", () => {
-			if (!this.fleets) debugger;
-			this.move_to_center();
-		});
+		this.addEventListener("show", () => this.ev_show());
 		this.add_dialog_button(this.e_ok, "ok");
 		this.add_dialog_button(this.e_cancel, "cancel");
 		this.e_contents.addEventListener("mousedown", () => this.removeHighlight());
@@ -501,6 +503,18 @@ class SearchTargetDialog extends DOMDialog {
 		for (let row of this.rows) row.removeHighlight();
 	}
 
+	/**
+	 * 表示直前のイベント
+	 */
+	ev_show(){
+		if (!this.fleets) debugger;
+		this.move_to_center();
+		// 強調表示
+		let hrow = this.rows.find(row => row.highlighted);
+		if (hrow) {
+			hrow.e_row.closest("div.fleet")?.scrollIntoView({block: "nearest"});
+		}
+	}
 	/**
 	 * 敵艦選択ダイアログを閉じたときのイベント
 	 * @param e 

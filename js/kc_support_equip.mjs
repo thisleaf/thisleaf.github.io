@@ -69,9 +69,11 @@ Object.assign(OwnEquipmentData.prototype, {
 	insert_rem_star   : OwnEquipmentData_insert_rem_star,
 	remove_rem_star   : OwnEquipmentData_remove_rem_star,
 	pop_rem_star      : OwnEquipmentData_pop_rem_star,
+	shift_rem_star    : OwnEquipmentData_shift_rem_star,
 	insert_star   : OwnEquipmentData_insert_star,
 	remove_star   : OwnEquipmentData_remove_star,
 	pop_star      : OwnEquipmentData_pop_star,
+	shift_star    : OwnEquipmentData_shift_star,
 });
 
 
@@ -87,7 +89,7 @@ function OwnEquipmentData(data){
 
 function OwnEquipmentData_set_id(id, data = null){
 	this.id = id;
-	this.data = data || EquipmentDatabase.equipment_data_map[id];
+	this.csv_data = data || EquipmentDatabase.equipment_data_map[id];
 }
 
 // ID関連以外をクリア
@@ -335,6 +337,18 @@ function OwnEquipmentData_pop_rem_star(){
 	return star;
 }
 
+// 最も小さいものを削除して返す
+function OwnEquipmentData_shift_rem_star(){
+	if (this.remaining <= 0) {
+		debugger;
+		return -1;
+	}
+	let star = this.rem_stars.shift();
+	this.rem_counts[star]--;
+	this.remaining--;
+	return star;
+}
+
 // rem_starsを利用しないver
 function OwnEquipmentData_insert_star(star){
 	this.rem_counts[star]++;
@@ -353,6 +367,20 @@ function OwnEquipmentData_pop_star(){
 	}
 	let star = 10;
 	for (; star>0; star--) {
+		if (this.rem_counts[star] > 0) break;
+	}
+	this.rem_counts[star]--;
+	this.remaining--;
+	return star;
+}
+
+function OwnEquipmentData_shift_star(){
+	if (this.remaining <= 0) {
+		debugger;
+		return -1;
+	}
+	let star = 0;
+	for (; star<10; star++) {
 		if (this.rem_counts[star] > 0) break;
 	}
 	this.rem_counts[star]--;

@@ -238,39 +238,130 @@ export function delayed_caller(func, delay, reset_delay = true){
 
 /**
  * 配列の隣接する重複要素を取り除く
+ * compare() の結果が 0 の場合、compare() 内で重複要素を結合してもよい
+ * 結合する場合は第1引数に結合する
  * @param {Array} array 
+ * @param {?Function} [compare=null] 比較関数。省略すると厳密等価演算子による比較
  * @returns {Array} array
  */
-export function unique_array(array){
+export function unique_array(array, compare = null){
 	if (array.length >= 2) {
-		let o = 1;
+		let last = 0;
 		for (let i=1; i<array.length; i++) {
-			if (array[i] !== array[i-1]) {
-				if (o != i) array[o] = array[i];
-				o++;
+			let neq = compare ? compare(array[last], array[i]) != 0 : array[last] !== array[i];
+			if (neq) {
+				if (++last != i) array[last] = array[i];
 			}
 		}
-		array.length = o;
+		array.length = last + 1;
 	}
 	return array;
 }
 /**
- * 配列の隣接する重複要素を取り除く(比較関数指定版)
+ * 2つの配列をマージした配列を返す
+ * 配列は compare の順番に並んでいるものとする
+ * @param {Array} a 
+ * @param {Array} b 
+ * @param {?Function} [compare=null] default: a - b
+ */
+export function merge_array(a, b, compare = null){
+	let out = [];
+	let i = 0, j = 0;
+	while (i < a.length && j < b.length) {
+		let c = compare ? compare(a[i], b[j]) : a[i] - b[j];
+		if (c <= 0) {
+			out.push(a[i++]);
+		} else {
+			out.push(b[j++]);
+		}
+	}
+	for (; i<a.length; i++) out.push(a[i]);
+	for (; j<b.length; j++) out.push(b[j]);
+	return out;
+}
+/**
+ * merge + unique
+ * compare() の結果が 0 の場合、compare() 内で重複要素を結合してもよい
+ * @param {Array} a 
+ * @param {Array} b 
+ * @param {?Function} [compare=null] 
+ * @returns {Array}
+ */
+export function unique_merge_array(a, b, compare = null){
+	let out = [];
+	let i = 0, j = 0;
+	let last;
+	while (i < a.length || j < b.length) {
+		let c =
+			i >= a.length ?  1 :
+			j >= b.length ? -1 :
+			compare       ? compare(a[i], b[j]) : a[i] - b[j];
+		let v = c <= 0 ? a[i++] : b[j++];
+		if (c == 0) j++;
+		if (out.length == 0 || (compare ? compare(last, v) != 0 : last - v != 0)) {
+			out.push(v);
+			last = v;
+		}
+	}
+	return out;
+}
+/**
+ * 2つの配列の比較 (辞書順)
+ * null は任意の null でないオブジェクトより小さい
+ * a, b 両方 null の場合は 0 が返る
+ * @param {?Array} a 
+ * @param {?Array} b 
+ * @param {Function} [compare=0] 要素の比較関数。省略すると (a, b) => a - b
+ * @returns {number}
+ */
+export function compare_array(a, b, compare = null){
+	if (!a || !b) return (a ? 1 : 0) - (b ? 1 : 0);
+	let len = Math.min(a.length, b.length);
+	for (let i=0; i<len; i++) {
+		let c = compare ? compare(a[i], b[i]) : a[i] - b[i];
+		if (c != 0) return c;
+	}
+	return a.length - b.length;
+}
+/**
+ * 2つの配列が同じかどうか
+ * 同じかどうかの判定だけなら compare_array() より高速
+ * 両方 null の場合は true が返る
+ * @param {?Array} a 
+ * @param {?Array} b 
+ * @param {Function} [compare=0] 要素の比較関数、同値で 0 を返す。省略すると (a, b) => a !== b ? 1 : 0
+ * @returns {boolean}
+ */
+export function equal_array(a, b, compare = null){
+	if (!a && !b) return true;
+	if (!a || !b || a.length != b.length) return false;
+	for (let i=0; i<a.length; i++) {
+		let neq = compare ? compare(a[i], b[i]) != 0 : a[i] !== b[i];
+		if (neq) return false;
+	}
+	return true;
+}
+/**
+ * 2つの配列が同じかどうか
+ * 整数を返し、0 であれば同値
+ * @param {?Array} a 
+ * @param {?Array} b 
+ * @param {Function} [compare=0]
+ * @returns {number}
+ */
+export function equal_array_int(a, b, compare = null){
+	return equal_array(a, b, compare) ? 0 : -1;
+}
+/**
+ * 安定ソート
  * @param {Array} array 
  * @param {Function} compare 比較関数
  * @returns {Array} array
  */
-export function unique_array_comp(array, compare){
-	if (array.length >= 2) {
-		let o = 1;
-		for (let i=1; i<array.length; i++) {
-			if (compare(array[i], array[i-1]) == 0) {
-				if (o != i) array[o] = array[i];
-				o++;
-			}
-		}
-		array.length = o;
-	}
+export function stable_sort(array, compare){
+	let temp = array.map((v, i) => ({v: v, i: i}));
+	temp.sort((a, b) => compare(a.v, b.v) || a.i - b.i);
+	temp.forEach((x, i) => array[i] = x.v);
 	return array;
 }
 

@@ -31,6 +31,7 @@ import {
 	SupportFleetData_single_climbling,
 } from "./kc_support_fleet_data2.mjs";
 import {
+	SupportFleetData_calculate_common,
 	SupportFleetData_annealing,
 	SupportFleetData_annealing_entire,
 	SupportFleetData_annealing_entire_main,
@@ -98,6 +99,7 @@ Object.assign(SupportFleetData.prototype, {
 	single_climbling : SupportFleetData_single_climbling,
 	
 	// kancolle_support_data3.mjs
+	calculate_common     : SupportFleetData_calculate_common,
 	annealing            : SupportFleetData_annealing,
 	annealing_entire     : SupportFleetData_annealing_entire,
 	annealing_entire_main: SupportFleetData_annealing_entire_main,
@@ -241,13 +243,38 @@ function SupportFleetData_set_json_MT(json, set_dom){
 	this.generate_own_map();
 }
 
-// 装備数データに矛盾がないかどうか
-function SupportFleetData_verify(){
+/**
+ * 装備数データに矛盾がないかどうか
+ * @param {boolean} [countup_ssd=false] ssd_listの装備も合わせて総数が一致するか
+ * @returns {boolean}
+ * @alias SupportFleetData#verify
+ */
+function SupportFleetData_verify(countup_ssd = false){
 	for (let own of this.own_list) {
 		for (let c of own.rem_counts) {
 			if (c < 0) return false;
 		}
 	}
+
+	if (countup_ssd) {
+		this.countup_equipment(true, true, -1);
+		let errs = [];
+		for (let own of this.own_list) {
+			let good = own.total_counts.every((t, i) => {
+				let m = own.main_counts[i];
+				let r = own.rem_counts[i];
+				return m + r == t && m >= 0 && r >= 0 && t >= 0;
+			});
+			if (!good) errs.push(own);
+		}
+		this.countup_equipment(true, true, 1);
+
+		if (errs.length > 0) {
+			debugger;
+			return false;
+		}
+	}
+
 	return true;
 }
 

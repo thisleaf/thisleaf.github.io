@@ -427,7 +427,8 @@ function MultiThreadSearcher_trace_scores(){
 	let avg_acc = acc_sum / c;
 
 	let elapsed = this.end_date.getTime() - this.begin_date.getTime();
-	let expected_time = elapsed / Math.ceil(c / this.thread_count);
+	// let expected_time = elapsed / Math.ceil(c / this.thread_count);
+	let expected_time = elapsed * this.thread_count / c;
 
 	console.log("Result:", this.receive_scores, {
 		count: c,
