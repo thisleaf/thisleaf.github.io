@@ -116,7 +116,7 @@ Object.assign(EquipmentDatabase, {
 		"加賀型", "大鳳型", "大鷹型", "春日丸級", "祥鳳型",
 		"翔鶴型", "蒼龍型", "赤城型", "雲龍型", "飛鷹型",
 		"飛龍型", "鳳翔型", "龍驤型", "龍鳳型",
-		"改赤城型", "改加賀型", "改龍鳳型",
+		"改赤城型", "改加賀型", "改龍鳳型", "特設航空母艦",
 		// 水母
 		"千歳型", "日進型", "瑞穂型", "秋津洲型",
 		// 海防艦
@@ -325,6 +325,13 @@ function EquipmentDatabase_check_csv(){
 	shiplist.sort((a, b) => a.shipId - b.shipId);
 	if (shiplist.some((_c, i) => i + 1 < shiplist.length && shiplist[i].shipId == shiplist[i+1].shipId)) {
 		console.log("shipIdの重複があります");
+	}
+	// 敵艦
+	let orig_enemies = EquipmentDatabase.csv_enemies;
+	let enemies = orig_enemies.filter(ln => +ln.id);
+	enemies.sort((a, b) => a.id - b.id);
+	if (enemies.some((_c, i) => i + 1 < enemies.length && enemies[i].id == enemies[i+1].id)) {
+		console.log("enemy idの重複があります");
 	}
 }
 
@@ -1008,6 +1015,7 @@ function EquipmentBonusData_set_csv_line(line){
 	this.grouping = +line.grouping;
 	
 	let names  = line.shipNames && line.shipNames.split("|");
+	let prestr_names = names && names.filter(x => /^\^/.test(x)).map(x => x.substr(1));
 	let substr_names = names && names.filter(x => /^\[.+\]$/.test(x)).map(x => x.substr(1, x.length - 2));
 	let not_names    = names && names.filter(x => /^!/.test(x)).map(x => x.substr(1));
 	let not_substr_names = not_names && not_names.filter(x => /^\[.+\]$/.test(x)).map(x => x.substr(1, x.length - 2));
@@ -1028,10 +1036,6 @@ function EquipmentBonusData_set_csv_line(line){
 		this.shipname_map = new Object;
 	}
 	
-	// 丹陽の対応
-	// if (types && types.indexOf("駆逐艦") >= 0) types.push("陽字号駆逐艦");
-	// if (jp_types && jp_types.indexOf("駆逐艦") >= 0) jp_types.push("陽字号駆逐艦");
-	
 	let all_ship = names && names.indexOf("*") >= 0;
 	
 	for (let ship of EquipmentDatabase.csv_shiplist) {
@@ -1039,6 +1043,7 @@ function EquipmentBonusData_set_csv_line(line){
 		let hit = (
 			all_ship ||
 			(names && names.indexOf(ship.name) >= 0) ||
+			(prestr_names && prestr_names.findIndex(ss => ship.name.indexOf(ss) == 0) >= 0) ||
 			(substr_names && substr_names.findIndex(ss => ship.name.indexOf(ss) >= 0) >= 0) ||
 			(cnames && cnames.indexOf(ship.className) >= 0) ||
 			(jp_types && jp_def[ship.className] && jp_types.indexOf(st) >= 0) ||
