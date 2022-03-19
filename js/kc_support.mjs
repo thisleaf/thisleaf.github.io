@@ -500,22 +500,27 @@ function ev_click_fast_optimize(){
 		refresh_search_tools();
 		
 	} else {
-		let a = new Date;
-		let a_score = new SupportFleetScorePrior(fleet_data.ssd_list, 0, SupportFleetScore.MODE_VENEMY_DAMAGE);
-		fleet_data.search("fast");
-		let b_score = new SupportFleetScorePrior(fleet_data.ssd_list, 0, SupportFleetScore.MODE_VENEMY_DAMAGE);
-		let b = new Date;
-		
-		let c = MultiThreadSearcher.compare_score(a_score, b_score, "fast");
-		if (c <= 0) {
-			save_form(fleet_data);
-		} else { // 多分こちらは来ないが念の為
-			b_score = a_score;
+		try {
+			let a = new Date;
+			let a_score = new SupportFleetScorePrior(fleet_data.ssd_list, 0, SupportFleetScore.MODE_VENEMY_DAMAGE);
+			fleet_data.search("fast");
+			let b_score = new SupportFleetScorePrior(fleet_data.ssd_list, 0, SupportFleetScore.MODE_VENEMY_DAMAGE);
+			let b = new Date;
+			
+			let c = MultiThreadSearcher.compare_score(a_score, b_score, "fast");
+			if (c <= 0) {
+				save_form(fleet_data);
+			} else { // 多分こちらは来ないが念の為
+				b_score = a_score;
+			}
+			
+			let msec = b.getTime() - a.getTime();
+			let diff = MultiThreadSearcher.get_score_diff(a_score, b_score, "fast", true);
+			set_search_comment("高速探索終了　" + diff + "　" + msec + "ms");
+
+		} catch (err) {
+			set_search_comment("探索エラー");
 		}
-		
-		let msec = b.getTime() - a.getTime();
-		let diff = MultiThreadSearcher.get_score_diff(a_score, b_score, "fast", true);
-		set_search_comment("高速探索終了　" + diff + "　" + msec + "ms");
 	}
 }
 
@@ -559,24 +564,29 @@ function ev_click_random_optimize(){
 		
 	} else {
 		// シングルスレッド
-		let a = new Date;
-		let a_score = new SupportFleetScorePrior(fleet_data.ssd_list, 0, SupportFleetScore.MODE_VENEMY_DAMAGE);
-		fleet_data.search(search_type, {
-			iteration_scale: Global.Settings.AnnealingIteration100 / 100,
-		});
-		let b_score = new SupportFleetScorePrior(fleet_data.ssd_list, 0, SupportFleetScore.MODE_VENEMY_DAMAGE);
-		let b = new Date;
-		
-		let c = MultiThreadSearcher.compare_score(a_score, b_score, search_type);
-		if (c < 0) { // 同値解なら入力値を優先
-			save_form(fleet_data);
-		} else {
-			b_score = a_score;
+		try {
+			let a = new Date;
+			let a_score = new SupportFleetScorePrior(fleet_data.ssd_list, 0, SupportFleetScore.MODE_VENEMY_DAMAGE);
+			fleet_data.search(search_type, {
+				iteration_scale: Global.Settings.AnnealingIteration100 / 100,
+			});
+			let b_score = new SupportFleetScorePrior(fleet_data.ssd_list, 0, SupportFleetScore.MODE_VENEMY_DAMAGE);
+			let b = new Date;
+			
+			let c = MultiThreadSearcher.compare_score(a_score, b_score, search_type);
+			if (c < 0) { // 同値解なら入力値を優先
+				save_form(fleet_data);
+			} else {
+				b_score = a_score;
+			}
+			
+			let msec = b.getTime() - a.getTime();
+			let diff = MultiThreadSearcher.get_score_diff(a_score, b_score, search_type, true);
+			set_search_comment("ランダム探索終了　" + diff + "　" + msec + "ms");
+
+		} catch (err) {
+			set_search_comment("探索エラー");
 		}
-		
-		let msec = b.getTime() - a.getTime();
-		let diff = MultiThreadSearcher.get_score_diff(a_score, b_score, search_type, true);
-		set_search_comment("ランダム探索終了　" + diff + "　" + msec + "ms");
 	}
 }
 

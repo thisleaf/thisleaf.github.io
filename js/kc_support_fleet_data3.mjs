@@ -50,6 +50,7 @@ class SASlotData {
 		this.slot_index = slot_index;
 		this.slot = ssd.allslot_equipment[slot_index];
 		this.eqab = ssd.allslot_equipables[slot_index];
+		this.eqab2 = Object.assign({}, this.eqab, {"0": 1}); // "装備なし" も "装備可"
 		this.is_exslot = ssd.exslot_available && slot_index == ssd.allslot_equipment.length - 1;
 		this.is_fixed = ssd.allslot_fixes[slot_index];
 		/**
@@ -417,7 +418,16 @@ function SupportFleetData_calculate_common(type){
 		RESOLVE:
 		for (let i=0; i<saslots.length; i++) {
 			let sa = saslots[i];
-			// このスロットにおいて、装備を必ず使用することが分かっているもののみ判定
+
+			// 装備可能な装備がない場合は空で確定
+			if (sa.eqab_owns.length == 0) {
+				sa.slot.set_equipment(0);
+				saslots_resolved.push(sa);
+				saslots[i] = null;
+				continue;
+			}
+
+			// 以下は、このスロットにおいて装備を必ず使用することが分かっているもののみ判定
 			if (!sa.flood) continue;
 
 			let resolved_own = null;
@@ -492,8 +502,10 @@ function SupportFleetData_calculate_common(type){
 		if (common.saslots_resolved?.indexOf(sa) >= 0) return;
 
 		sa.eqab = sa.eqab_owns.reduce((a, c) => (a[c.id] = 1, a), {});
+		sa.eqab2 = Object.assign({"0": 1}, sa.eqab);
 		for (let i=1; i<eqs.length; i++) {
 			eqs[i].eqab = sa.eqab;
+			eqs[i].eqab2 = sa.eqab2;
 			// check
 			// eqs[i].eqab_owns.forEach(own => console.assert(eqs[i].eqab[own.id] == 1));
 		}
@@ -640,7 +652,7 @@ function SupportFleetData_annealing(iteration_scale = 1){
 					let b = a_swap[k];
 					let b_id = b.slot.equipment_id;
 					let b_star = b.slot.improvement;
-					if ((b_id != a_id || b_star != a_star) && sa.eqab[b_id] && b.eqab[a_id]) {
+					if ((b_id != a_id || b_star != a_star) && sa.eqab2[b_id] && b.eqab2[a_id]) {
 						swap_sa = b;
 						break SELECT;
 					}
@@ -652,7 +664,7 @@ function SupportFleetData_annealing(iteration_scale = 1){
 					let b = a_swap[i];
 					let b_id = b.slot.equipment_id;
 					let b_star = b.slot.improvement;
-					if ((b_id != a_id || b_star != a_star) && sa.eqab[b_id] && b.eqab[a_id]) {
+					if ((b_id != a_id || b_star != a_star) && sa.eqab2[b_id] && b.eqab2[a_id]) {
 						r = (sugg_count % 4 == 0 ? Math.random() : r - k);
 						r *= ++sugg_count;
 						k = Math.floor(r);
@@ -710,6 +722,8 @@ function SupportFleetData_annealing(iteration_scale = 1){
 			let list = sa.eqab_owns;
 			let list_uppers = sa.upper_owns_array;
 			let old_id = sa.slot.equipment_id;
+
+			if (list.length == 0) continue;
 
 			// 乱択アルゴリズム
 			// 確実に得られるわけではないが、全ての要素を見るよりも高速かつ十分
@@ -911,7 +925,7 @@ function SupportFleetData_annealing_entire_main(iteration_scale, priority_data){
 					let b = a_swap[k];
 					let b_id = b.slot.equipment_id;
 					let b_star = b.slot.improvement;
-					if ((b_id != a_id || b_star != a_star) && sa.eqab[b_id] && b.eqab[a_id]) {
+					if ((b_id != a_id || b_star != a_star) && sa.eqab2[b_id] && b.eqab2[a_id]) {
 						swap_sa = b;
 						break SELECT;
 					}
@@ -923,7 +937,7 @@ function SupportFleetData_annealing_entire_main(iteration_scale, priority_data){
 					let b = a_swap[i];
 					let b_id = b.slot.equipment_id;
 					let b_star = b.slot.improvement;
-					if ((b_id != a_id || b_star != a_star) && sa.eqab[b_id] && b.eqab[a_id]) {
+					if ((b_id != a_id || b_star != a_star) && sa.eqab2[b_id] && b.eqab2[a_id]) {
 						r = (sugg_count % 4 == 0 ? Math.random() : r - k);
 						r *= ++sugg_count;
 						k = Math.floor(r);
@@ -981,6 +995,8 @@ function SupportFleetData_annealing_entire_main(iteration_scale, priority_data){
 			let list = sa.eqab_owns;
 			let list_uppers = sa.upper_owns_array;
 			let old_id = sa.slot.equipment_id;
+
+			if (list.length == 0) continue;
 
 			// 乱択アルゴリズム
 			// 確実に得られるわけではないが、全ての要素を見るよりも高速かつ十分
