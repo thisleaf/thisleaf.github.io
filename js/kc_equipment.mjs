@@ -904,6 +904,8 @@ Object.assign(EquipmentBonusData.prototype, {
 	range    : null,
 	// 一応元のデータへの参照を
 	line: null,
+	// 適用する装備IDがないならtrue
+	comment_line: false,
 	
 	// method
 	set_csv_line: EquipmentBonusData_set_csv_line,
@@ -987,12 +989,18 @@ function EquipmentBonusData_set_csv_line(line){
 	
 	{
 		let arr = line.equipId.split("|");
+		let comment_line = true;
 		this.equipment_id_map = arr.reduce((a, c) => {
-			let num = +c;
-			if (!(1 <= num && num <= max_number)) debugger;
-			a[num] = true;
+			// c == "" は無視(コメント)
+			if (c != "") {
+				let num = +c;
+				if (!(1 <= num && num <= max_number)) debugger;
+				a[num] = true;
+				comment_line = false;
+			}
 			return a;
 		}, _assign_bool_map(max_number + 1));
+		this.comment_line = comment_line;
 	}
 	
 	
@@ -1134,6 +1142,7 @@ function EquipmentBonusData_set_csv_line(line){
 	this.range     = _by_impr(line.range);
 	
 	this.line = line;
+	return this.comment_line;
 }
 
 
