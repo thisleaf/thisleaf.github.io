@@ -202,7 +202,7 @@ export const SORT_CATEGORY_DEF = [
 export const EQUIP_PRIORITY_DEF = [
 	// 上が優先、該当なしは0
 	// 大和電探
-	{value: 4, ids: [142]},
+	{value: 4, ids: [142, 460]},
 	// 大型電探
 	{value: 2, cates: ["大型電探"]},
 	// 51砲
