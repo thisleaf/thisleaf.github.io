@@ -1339,10 +1339,10 @@ function OwnResetDialog_create(){
 				this.e_reset_own = ELEMENT("input", {type: "checkbox"}),
 				TEXT("所持数をリセット"),
 			]),
-			NODE(ELEMENT("label"), [
-				this.e_reset_own_confirm = ELEMENT("input", {type: "checkbox"}),
-				TEXT("確認"),
-			]),
+			// NODE(ELEMENT("label"), [
+			// 	this.e_reset_own_confirm = ELEMENT("input", {type: "checkbox"}),
+			// 	TEXT("確認"),
+			// ]),
 		]),
 		ELEMENT("h4", {textContent: "本隊装備数"}),
 		NODE(ELEMENT("div"), [
@@ -1372,14 +1372,14 @@ function OwnResetDialog_create(){
 		if (e.detail == "ok") {
 			// 実行を押した
 			let reset_own = this.e_reset_own.checked;
-			let reset_own2 = this.e_reset_own_confirm.checked;
+			// let reset_own2 = this.e_reset_own_confirm.checked;
 			let reset_main = this.e_reset_main.checked;
 			
-			if (reset_own != reset_own2) {
-				e.preventDefault();
-				DOMDialog.alert("所持数をリセットする場合、両方にチェックを入れてください", "リセット確認");
-				return;
-			}
+			// if (reset_own != reset_own2) {
+			// 	e.preventDefault();
+			// 	DOMDialog.alert("所持数をリセットする場合、両方にチェックを入れてください", "リセット確認");
+			// 	return;
+			// }
 			
 			if (reset_own)  this.own_form.reset_totals();
 			if (reset_main) this.own_form.reset_mains();
@@ -1456,9 +1456,9 @@ function OwnConvertDialog_create(){
 		NODE(ELEMENT("div"), [
 			this.e_select = NODE(ELEMENT("select", "", "data_type"), [
 				// new Option("艦隊分析 (装備＞JSON)", OwnConvertDialog.select_enum["艦隊分析"]),
-				new Option("艦隊分析 (装備＞装備反映)", OwnConvertDialog.select_enum["API抽出"]),
-				new Option("制空権シミュレータ", OwnConvertDialog.select_enum["制空権シミュレータ"]),
+				// new Option("艦隊分析 (装備＞装備反映)", OwnConvertDialog.select_enum["API抽出"]),
 				new Option("デッキビルダー", OwnConvertDialog.select_enum["デッキビルダー"]),
+				new Option("装備反映", OwnConvertDialog.select_enum["制空権シミュレータ"]),
 			]),
 		]),
 		
@@ -1493,9 +1493,10 @@ function OwnConvertDialog_create(){
 		this.e_airsimulator_div = NODE(ELEMENT("div", "", "option"), [
 			NODE(ELEMENT("div", "", "option_text"), [
 				HTML(
-					'<a href="https://noro6.github.io/kcTools/" target="_blank">制空権シミュレータ</a>'
-					+ " さんで扱われる装備のJSONデータを、<b>所持装備データ</b>として読み込みます<br>"
-					+ "装備＞反映にある手順で取得したデータ、または共有タブから出力されるデータを入力してください<br>"
+					'<a href="https://noro6.github.io/kc-web/#/" target="_blank">制空権シミュレータ</a>'
+					+ " さんで扱われる艦隊分析コードを、<b>所持装備データ</b>として読み込みます<br>"
+					+ "制空権シミュレータ の 反映タブ の手順で取得した<b>装備コード（装備データ更新時に入力するコード）</b>もしくは<br>"
+					+ "制空権シミュレータ の 共有タブ -> 他サイト連携 -> <b>装備コード （装備データを入力済みの場合）</b>を入力してください。<br>"
 					+ '[{"id":378,"lv":0}, ... ] の形式のデータです<br>'
 					+ "既にある所持装備データは破棄(リセット)されます"
 				),
@@ -1543,12 +1544,12 @@ function OwnConvertDialog_create(){
 			]),
 		]),
 		
-		NODE(ELEMENT("div", "", "option"), [
-			NODE(ELEMENT("label"), [
-				this.e_confirm = ELEMENT("input", {type: "checkbox"}),
-				TEXT("確認"),
-			]),
-		]),
+		// NODE(ELEMENT("div", "", "option"), [
+		// 	NODE(ELEMENT("label"), [
+		// 		this.e_confirm = ELEMENT("input", {type: "checkbox"}),
+		// 		TEXT("確認"),
+		// 	]),
+		// ]),
 		NODE(ELEMENT("div", "", "button_div"), [
 			ok_btn = ELEMENT("button", {textContent: "読み込む"}),
 			cancel_btn = ELEMENT("button", {textContent: "キャンセル"}),
@@ -1596,7 +1597,7 @@ function OwnConvertDialog_refresh_hint(){
 // 「確認」のチェックをはずす
 // 確認後にデータが操作されては意味がないので
 function OwnConvertDialog_reset_confirmation(){
-	this.e_confirm.checked = false;
+	// this.e_confirm.checked = false;
 }
 
 /* 艦隊分析形式
@@ -1808,11 +1809,11 @@ function OwnConvertDialog_parse_deckbuilder_text(text, load_fleets){
 
 function OwnConvertDialog_ev_close(e){
 	if (e.detail == "ok") {
-		if (!this.e_confirm.checked) {
-			e.preventDefault();
-			DOMDialog.alert("確認にチェックを入れてください", "確認");
-			return;
-		}
+		// if (!this.e_confirm.checked) {
+		// 	e.preventDefault();
+		// 	DOMDialog.alert("確認にチェックを入れてください", "確認");
+		// 	return;
+		// }
 		
 		let text = this.e_textarea.value;
 		let opt = this.e_select.options[this.e_select.selectedIndex];
