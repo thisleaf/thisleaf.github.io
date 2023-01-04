@@ -1457,8 +1457,8 @@ function OwnConvertDialog_create(){
 			this.e_select = NODE(ELEMENT("select", "", "data_type"), [
 				// new Option("艦隊分析 (装備＞JSON)", OwnConvertDialog.select_enum["艦隊分析"]),
 				// new Option("艦隊分析 (装備＞装備反映)", OwnConvertDialog.select_enum["API抽出"]),
-				new Option("デッキビルダー", OwnConvertDialog.select_enum["デッキビルダー"]),
-				new Option("装備反映", OwnConvertDialog.select_enum["制空権シミュレータ"]),
+				new Option("所持装備の反映（艦隊分析コード）", OwnConvertDialog.select_enum["制空権シミュレータ"]),
+				new Option("本隊編成の反映（デッキビルダー形式データ）", OwnConvertDialog.select_enum["デッキビルダー"]),
 			]),
 		]),
 		
@@ -1494,10 +1494,11 @@ function OwnConvertDialog_create(){
 			NODE(ELEMENT("div", "", "option_text"), [
 				HTML(
 					'<a href="https://noro6.github.io/kc-web/#/" target="_blank">制空権シミュレータ</a>'
-					+ " さんで扱われる艦隊分析コードを、<b>所持装備データ</b>として読み込みます<br>"
+					+ " さんで扱われる艦隊分析コードを読み込み、<b>ゲーム内で所持している全装備の情報</b>を反映します<br>"
 					+ "制空権シミュレータ の 反映タブ の手順で取得した<b>装備コード（装備データ更新時に入力するコード）</b>もしくは<br>"
-					+ "制空権シミュレータ の 共有タブ -> 他サイト連携 -> <b>装備コード （装備データを入力済みの場合）</b>を入力してください。<br>"
-					+ '[{"id":378,"lv":0}, ... ] の形式のデータです<br>'
+					+ "制空権シミュレータ の 共有タブ -> 他サイト連携 -> <b>装備コード （装備データを入力済みの場合）</b>を入力してください<br>"
+					+ '[{"id":378,"lv":0}, ... ] の形式のデータです。<br>'
+					+ '[{"api_slotitem_id":10, "api_level":0}, ...]の形式のデータにも対応しています。<br>'
 					+ "既にある所持装備データは破棄(リセット)されます"
 				),
 			]),
@@ -1527,7 +1528,7 @@ function OwnConvertDialog_create(){
 			NODE(ELEMENT("div", "", "option_text"), [
 				HTML(
 					'<a href="http://kancolle-calc.net/deckbuilder.html" target="_blank">艦隊シミュレーター＆デッキビルダー</a>'
-					+ " さんの形式のデータを、<b>本隊装備データ</b>として読み込みます"
+					+ " さんで扱われるデッキビルダー形式データを読み込み、<b>本隊の編成で使用されている装備の情報</b>を反映します"
 				),
 			]),
 			
@@ -1555,8 +1556,8 @@ function OwnConvertDialog_create(){
 			cancel_btn = ELEMENT("button", {textContent: "キャンセル"}),
 		]),
 	]);
-	
-	this.e_select.value = OwnConvertDialog.select_enum["デッキビルダー"];
+
+	this.e_select.value = OwnConvertDialog.select_enum["制空権シミュレータ"];
 	this.refresh_hint();
 	
 	// event
@@ -1878,9 +1879,10 @@ function OwnConvertDialog_ev_close(e){
 		} else if ( opt.value == OwnConvertDialog.select_enum["API抽出"] ||
 			opt.value == OwnConvertDialog.select_enum["制空権シミュレータ"] )
 		{
-			let sim = opt.value == OwnConvertDialog.select_enum["制空権シミュレータ"];
-			let id_prop = sim ? "id" : "api_slotitem_id";
-			let lv_prop = sim ? "lv" : "api_level";
+			// 文字列に"api_slotitem_id"が含まれているか（API抽出/制空シミュの判定）
+			let sim = text.indexOf('api_slotitem_id') !== -1;
+			let id_prop = sim ? "api_slotitem_id" : "id";
+			let lv_prop = sim ? "api_level" : "lv";
 			let data = this.parse_apiextract_text(text, id_prop, lv_prop);
 			
 			if (!data) {
