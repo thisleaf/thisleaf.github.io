@@ -684,6 +684,7 @@ Object.assign(EquipmentSlot.prototype, {
 	
 	bonus_firepower: 0,
 	bonus_torpedo  : 0,
+	bonus_bombing  : 0,
 	bonus_antiair  : 0,
 	bonus_ASW      : 0,
 	bonus_evasion  : 0,
@@ -746,6 +747,7 @@ function EquipmentSlot_set_equipment_from(slot){
 function EquipmentSlot_clear_bonus(){
 	this.bonus_firepower = 0;
 	this.bonus_torpedo   = 0;
+	this.bonus_bombing   = 0;
 	this.bonus_antiair   = 0;
 	this.bonus_ASW       = 0;
 	this.bonus_evasion   = 0;
@@ -895,6 +897,7 @@ Object.assign(EquipmentBonusData.prototype, {
 	// map: 改修値 -> ボーナス値
 	firepower: null,
 	torpedo  : null,
+	bombing  : null,
 	antiair  : null,
 	ASW      : null,
 	evasion  : null,
@@ -1133,6 +1136,7 @@ function EquipmentBonusData_set_csv_line(line){
 	
 	this.firepower = _by_impr(line.firepower);
 	this.torpedo   = _by_impr(line.torpedo);
+	this.bombing   = _by_impr(line.bombing);
 	this.antiair   = _by_impr(line.antiair);
 	this.ASW       = _by_impr(line.ASW);
 	this.evasion   = _by_impr(line.evasion);
@@ -1399,6 +1403,8 @@ function EquipmentBonus_get_bonus(slot_array, synergy_only = false){
 				slot.bonus_accuracy  += data.accuracy[slot.improvement];
 				slot.bonus_range     += data.range[slot.improvement];
 			}
+			// 熟練甲板要員+航空整備員 やっつけ仕事なのでいつか直す
+			slot.bonus_firepower += slot.equipment_id == 478 ? data.torpedo[slot.improvement] + data.bombing[slot.improvement]: 0;
 		}
 	}
 }

@@ -55,7 +55,7 @@ Object.defineProperties(BonusViewer, {
 		{name: "改修値", className: "star"},
 		{name: "火力", propName: "firepower", className: "param"},
 		{name: "雷装", propName: "torpedo", className: "param"},
-		//{name: "爆装", propName: "bombing", className: "param"}, // ない
+		{name: "爆装", propName: "bombing", className: "param"}, // ない
 		{name: "対空", propName: "antiair", className: "param"},
 		{name: "対潜", propName: "ASW", className: "param"},
 		{name: "索敵", propName: "LoS", className: "param"},
