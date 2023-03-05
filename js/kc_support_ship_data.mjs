@@ -88,6 +88,7 @@ Object.assign(SupportShipData.prototype, {
 	input_luck : -1,
 	// キラ
 	condition_good: true,
+	e_bulk: true,
 	// 陣形・交戦形態 (ID)
 	self_formation: -1,
 	enemy_formation: -1,
@@ -883,6 +884,8 @@ function SupportShipData_set_json(json, transfer_mode){
 	this.equipment_ids    = array("equipment_ids", Number);
 	this.equipment_stars  = array("equipment_stars", Number);
 	this.equipment_fixes  = array("equipment_fixes", Boolean);
+
+	this.e_bulk = true;
 
 	this.condition_good   = bool("condition_good");
 	this.self_formation   = number("self_formation");

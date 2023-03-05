@@ -32,6 +32,9 @@ class SearchTargetRow {
 		this.e_row = EL("div.shiprow.row", [
 			EL("div.number", [_T(number)]),
 			this.e_name = EL("div.name"),
+			EL("div.bulk", [
+				this.e_bulk = EL("input", {type: "checkbox"})
+			]),
 			EL("div.priority", [
 				this.e_priority = EL("select")
 			]),
@@ -104,6 +107,7 @@ class SearchTargetRow {
 
 		// event
 		let forms_on_change = [
+			this.e_bulk,
 			this.e_kira,
 			this.e_priority,
 			this.e_selffm,
@@ -115,6 +119,7 @@ class SearchTargetRow {
 			this.e_border_power,
 			this.e_venemy_damage,
 		];
+		
 		let refresh = () => {
 			if (this.ssd) {
 				this.formToSsd();
@@ -244,6 +249,7 @@ class SearchTargetRow {
 		let name = ssd.get_name();
 		this.e_name.textContent = name || "(empty)";
 		this.e_name.classList.toggle("empty", name == "");
+		this.e_bulk.checked = ssd.e_bulk;
 		this.e_kira.checked = ssd.condition_good;
 		setsel(this.e_priority, ssd.priority, 1);
 		setsel(this.e_selffm, ssd.self_formation, 1);
@@ -257,6 +263,7 @@ class SearchTargetRow {
 	}
 
 	formToSsd(){
+		this.ssd.bulk = this.e_bulk.checked
 		this.ssd.condition_good = this.e_kira.checked;
 		this.ssd.priority = +this.e_priority.value;
 		this.ssd.self_formation = +this.e_selffm.value;
@@ -365,6 +372,10 @@ class SearchTargetRow {
 	static createHeader(fleet_name, letter){
 		return EL("div.header.row.header_" + letter, [
 			EL("div.numname", [_T(fleet_name)]),
+			EL("div.bulk.column", [
+				EL("div.bulk", [_T("一括設定")]),
+				// this.e_bulk = EL("input", {type: "checkbox"})
+			]),
 			EL("div.priority", [_T("優先度")]),
 			EL("div.modgroup.column", [
 				EL("div.mods.row", [
@@ -441,9 +452,54 @@ class SearchTargetDialog extends DOMDialog {
 	 */
 	setFleets(fleets){
 		this.fleets = fleets;
-
 		let divs = [];
 		let rows_array = [];
+
+		const add_bulk_change_event = (row) => {
+			const result = row.map((fl, index) => {
+					let forms_on_change = [
+						"e_selffm",
+						"e_enemyfm",
+						"e_engagement",
+						"e_targetselect",
+					];
+					let forms_on_input = [
+						"e_border_power",
+						"e_venemy_damage",
+					];
+
+					let bulk_change = (form_name) => {
+						return () => {
+							if(fl.e_bulk.checked) {
+								console.log("一括変更");
+
+								// フォームを書き換える
+								let other_row = row.filter((_,i) => i !== index)
+								for (let other_fl of other_row) {
+									if (other_fl.e_bulk.checked) {
+										other_fl[form_name].value = fl[form_name].value
+										other_fl.formToSsd();
+										other_fl.refreshInfo();
+									}
+								}
+								fl.formToSsd();
+								fl.refreshInfo();
+								return
+							}
+							console.log("変更なし")
+						}
+					};
+
+			
+					for (let form_name of forms_on_change) fl[form_name].addEventListener("change", bulk_change(form_name));
+					for (let form_name of forms_on_input) fl[form_name].addEventListener("input", bulk_change(form_name));
+					return fl
+				}
+			)
+
+			return result
+		}
+
 		for (let fl of fleets) {
 			let rows = fl.support_ships.map((ss, i) => {
 				// データはあとで
@@ -459,7 +515,10 @@ class SearchTargetDialog extends DOMDialog {
 			rows_array.push(rows);
 		}
 		NODE(Util.remove_children(this.e_table), divs);
-		this.rows_array = rows_array;
+
+		console.log(rows_array)
+
+		this.rows_array = rows_array.map((row) => add_bulk_change_event(row));
 
 		this.ships = this.fleets.flatMap(fl => fl.support_ships);
 		this.rows = this.rows_array.flat();

@@ -187,7 +187,7 @@ function kancolle_support_init(){
 	window.addEventListener("hashchange", () => select_header_tab_by_hash(location.hash));
 
 	message_bar.start_hiding();
-	console.log("み");
+	// console.log("み");
 	// start_kome_console();
 	
 	Debug.init({

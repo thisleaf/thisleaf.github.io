@@ -1650,13 +1650,16 @@ body {
 	width: 100px;
 }
 .search_target .targettable div.target {
-	width: 300px;
+	width: 200px;
 	flex-grow: 3;
 	text-align: left;
 	font-size: 80%;
 }
 .search_target .targettable .header div.target {
 	font-size: 100%;
+}
+.search_target .targettable div.bulk {
+	width: 100px;
 }
 .search_target .targettable input.firepower,
 .search_target .targettable input.damage {

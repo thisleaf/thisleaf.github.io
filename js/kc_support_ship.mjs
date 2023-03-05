@@ -60,6 +60,7 @@ Object.assign(SupportShip.prototype, {
 	e_lv_number       : null,
 	e_luck            : null, // div
 	e_luck_number     : null,
+	e_bulk			  : null,
 	e_condition_good  : null,
 	e_exslot_available: null,
 	e_priority        : null,
@@ -149,6 +150,9 @@ Object.assign(SupportShip.prototype, {
 	// event
 	ev_change_ship     : SupportShip_ev_change_ship     ,
 	ev_click_lvluck    : SupportShip_ev_click_lvluck    ,
+
+	ev_change_bulk	   :SupportShip_ev_change_bulk,
+
 	ev_change_cond     : SupportShip_ev_change_cond     ,
 	ev_click_exavail   : SupportShip_ev_click_exavail   ,
 	ev_change_priority : SupportShip_ev_change_priority ,
@@ -272,6 +276,11 @@ function SupportShip_create(def_priority){
 		]),
 	]);
 	this.e_lvluck.addEventListener("click", e => this.ev_click_lvluck(e));
+
+
+	this.e_bulk = ELEMENT("input", {type: "checkbox"});
+
+
 	this.e_condition_good = ELEMENT("input", {type: "checkbox"});
 	this.e_condition_good.addEventListener("change", e => this.ev_change_cond(e));
 	this.e_exslot_available = ELEMENT("input", {type: "checkbox"});
@@ -1020,6 +1029,7 @@ function SupportShip_refresh_probs(){
  */
 function SupportShip_form_to_ssd(){
 	let ssd = this.ssd;
+	ssd.e_bulk = this.e_bulk.checked;
 	ssd.condition_good = this.e_condition_good.checked;
 	ssd.priority = Util.formstr_to_int(this.e_priority.value, 12, 12).value;
 	ssd.exslot_available = this.e_exslot_available.checked;
@@ -1060,9 +1070,11 @@ function SupportShip_form_to_ssd(){
  */
 function SupportShip_ssd_to_form(){
 	let ssd = this.ssd;
+	this.e_bulk.checked = ssd.e_bulk;
 	this.e_condition_good.checked = ssd.condition_good;
 	this.e_priority.value = ssd.priority;
 	this.e_exslot_available.checked = ssd.exslot_available;
+
 
 	if (this.ship_selector.get_shipname() != ssd.get_name()) {
 		this.ship_selector.set_shipname(ssd.get_name());
@@ -1225,6 +1237,13 @@ function SupportShip_ev_click_lvluck(e){
 }
 
 function SupportShip_ev_change_cond(){
+	this.form_to_ssd();
+	this.refresh_equipstatus();
+	this.refresh_probs();
+	this.call_onchange();
+}
+
+function SupportShip_ev_change_bulk(){
 	this.form_to_ssd();
 	this.refresh_equipstatus();
 	this.refresh_probs();
