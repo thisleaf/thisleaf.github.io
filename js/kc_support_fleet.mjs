@@ -607,7 +607,7 @@ class SupportFleetTab extends EventTarget {
 			EL("div.row", [
 				this.e_shipcolumn = EL("div.button.shipcolumn"),
 				this.e_alignment = EL("div.button.alignment"),
-				this.e_fleetcount = EL("div.button.fleetcount", [_T("艦隊数設定")]),
+				this.e_fleetcount = EL("div.button.fleetcount", [_T("艦隊数設定/リセット")]),
 			]),
 		]);
 		this.e_shipcolumn.addEventListener("click", e => this.toggleButton("shipcolumn"));
