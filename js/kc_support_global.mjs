@@ -7,7 +7,7 @@
  * 最大レベル
  * @type {number}
  */
-export const MAX_SHIP_LEVEL = 175;
+export const MAX_SHIP_LEVEL = 180;
 /**
  * 攻撃力キャップ(支援艦隊)
  * @type {number}
