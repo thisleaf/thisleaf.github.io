@@ -1404,7 +1404,7 @@ function EquipmentBonus_get_bonus(slot_array, synergy_only = false){
 				slot.bonus_range     += data.range[slot.improvement];
 			}
 			// 熟練甲板要員+航空整備員 やっつけ仕事なのでいつか直す
-			slot.bonus_firepower += slot.equipment_id == 478 ? data.torpedo[slot.improvement] + data.bombing[slot.improvement]: 0;
+			slot.bonus_firepower += slot.equipment_id == 478 ? data.torpedo[slot.improvement] + data.bombing[slot.improvement]*1.3: 0;
 		}
 	}
 }

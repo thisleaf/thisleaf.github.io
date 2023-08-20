@@ -506,9 +506,9 @@ function SupportShipData_get_basic_power(score_mode = false){
 		
 		let power;
 		if (attackable) {
-			power = Math.floor((fire + torp + Math.floor(bomb * 1.3) + Global.SUPPORT_MODIFY) * 1.5) + 55;
+			power = Math.floor((fire + torp + bomb * 1.3 + Global.SUPPORT_MODIFY) * 1.5) + 55;
 		} else if (score_mode) {
-			power = Math.floor((fire + torp + Math.floor(bomb * 1.3) + Global.SUPPORT_MODIFY) * 1.5) + 55 - 1000;
+			power = Math.floor((fire + torp + bomb * 1.3 + Global.SUPPORT_MODIFY) * 1.5) + 55 - 1000;
 		} else {
 			power = 0;
 		}
