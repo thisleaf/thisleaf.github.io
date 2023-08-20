@@ -1133,6 +1133,8 @@ Object.defineProperties(ShipSelectorDialog, {
 		"潜水母艦",
 		"揚陸艦",
 		"工作艦",
+		"戦車揚陸艦",
+		"練習特務艦",
 	]},
 });
 
