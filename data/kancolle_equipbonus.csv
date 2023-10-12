@@ -390,7 +390,7 @@ GFCS Mk.37＋5inch連装両用砲(集中配備):363,362|363,*,,,,Brooklyn級|St.
 ,464,1,,,大和改二|大和改二重|武蔵改二|榛名改二乙|榛名改二丙,,,142,,,,0,,0,2,0,1,0,0,1,0,2023/06/05
 ,464,1,,,,大和型,,460,,,,0,,0,2,0,1,0,0,1,0,2022/06/08
 ,464,1,,,,大和型,,142,,,,0,,0,2,0,1,0,0,1,0,2022/06/08
-5inch連装砲(副砲配置)集中配備,467,*,,,,Colorado級|North Carolina級|South Dakota級|Iowa級|Lexington級|Yorktown級,,,,,,1,,0,3,0,3,0,0,0,0,2022/06/18
+5inch連装砲(副砲配置)集中配備,467,*,,,,Colorado級|North Carolina級|South Dakota級|Iowa級|Lexington級|Yorktown級|Nevada級,,,,,,1,,0,3,0,3,0,0,0,0,2023/10/12
 ,467,*,,,,Northampton級|Lexington級|Yorktown級|Essex級|Illustrious級|Casablanca級,,,,,,1,,0,1,0,2,0,0,0,0,2022/06/18
 ,467,1,,,,Colorado級|North Carolina級|South Dakota級|Iowa級|Lexington級|Yorktown級|Essex級|Casablanca級|Northampton級|Brooklyn級|St. Louis級|Atlanta級|Fletcher級|John C.Butler級,,278,,,,0,,0,2,0,2,0,0,0,0,2022/06/18
 ,467,1,,,,Colorado級|North Carolina級|South Dakota級|Iowa級|Lexington級|Yorktown級|Essex級|Casablanca級|Northampton級|Brooklyn級|St. Louis級|Atlanta級|Fletcher級|John C.Butler級,,279,,,,1,,0,3,0,3,0,0,2,0,2022/06/18
@@ -447,8 +447,8 @@ GFCS Mk.37＋5inch連装両用砲(集中配備):363,362|363,*,,,,Brooklyn級|St.
 紫雲:118,118,*,,,,大淀型,,,,,,1|1|1|1|1|1|1|1|1|1|3,,0,0,0,2,2|2|2|2|2|2|2|2|2|2|3,0,0,0,2021/03/07
 零式水上偵察機11型乙:238 熟練:239,238|239,1,,1,最上改二|最上改二特,,,,,,,0,,1,0,0,1,0,0,0,0,2021/04/04
 Ar196改:115,115,*,,,,Bismarck級|Admiral Hipper級,,,,,,2|2|2|2|2|2|2|2|2|2|3,,0,0,0,1|1|1|1|1|1|1|1|1|1|2,2,0,0,0,2021/03/07
-OS2U:171,171,1,,,,Colorado級|North Carolina級|South Dakota級|Iowa級,,,,,,1|1|1|1|1|1|1|1|1|1|2,,0,0,0,0|0|0|0|0|1|1|1|1|1|1,1|1|1|2|2|2|2|2|3|3|3,0,0,0,2021/06/07
-,171,1,,,,Northampton級|Brooklyn級|St. Louis級|Atlanta級,,,,,,0|0|0|0|0|0|0|0|0|0|1,,0,0,0,0|0|0|0|0|1|1|1|1|1|1,0,0,0,0,2021/06/07
+OS2U:171,171,1,,,,Colorado級|North Carolina級|South Dakota級|Iowa級|Nevada級,,,,,,1|1|1|1|1|1|1|1|1|1|2,,0,0,0,0|0|0|0|0|1|1|1|1|1|1,1|1|1|2|2|2|2|2|3|3|3,0,0,0,2021/06/07
+,171,1,,,,Northampton級|Brooklyn級|St. Louis級|Atlanta級,,,,,,0|0|0|0|0|0|0|0|0|0|1,,0,0,0,0|0|0|0|0|1|1|1|1|1|1,0,0,0,0,2023/10/12
 S9 Osprey,304,*,,,,球磨型|改装球磨型|長良型|川内型|阿賀野型|改阿賀野型,,,,,,1,,0,0,1,1,0,0,,,2021/02/15
 能代改二は水偵+阿賀野型ボーナス,304,*,,,,Gotland級,,,,,,1,,0,0,2,2,0,0,,,
 Swordfish Mk.II改(水偵型),370,*,,,,Gotland級,,,,,,1,,0,0,3,1,2,0,,,2020/04/03
