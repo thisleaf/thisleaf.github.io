@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<meta name="description" content="主に艦これのweb計算機を作ってます。">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>This leaf</title>
+<!--
+　　　　　　 　 　　,.r-=
+　　　 　 　 　 　((  -―-. (ｿ
+　　　　　　 　 ／::::::::::ﾟ丶
+　　　　　　 　/::/ﾚﾍ:::;ヘ::i.i
+　　　　　 　〈|::l ┃` ┃ `!::j　　　　ようこそでち！
+　　　　　 　 ji:〈 " ヮ " /::|
+　　　　　　　 Ｖ`ゥrr-.rｭｲ人人
+　　　　　　　　 ,/1::ｰ:'::! i
+　　　 　 　 (￣)￣ ￣￣iﾉ￣￣＞＜
+　　　　　　　￣￣￣￣￣￣￣￣
+-->
+<link rel="canonical" href="https://thisleaf.github.io/">
+<link rel="icon" type="image/png" href="./icon-192x192.png">
+<link rel="apple-touch-icon" type="image/png" href="./apple-touch-icon-180x180.png">
+<link rel="stylesheet" type="text/css" href="style.css">
+
+<script type="module" src="js/index.mjs" defer></script>
+
+<!-- Global site tag (gtag.js) - Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-46408606-2"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-46408606-2');
+</script>
+
+<style type="text/css">
+body {
+	margin-left: 0px;
+	margin-right: 0px;
+}
+body > p
+, body > ul
+, body > dl
+{
+	margin-left: 1em;
+	margin-right: 1em;
+}
+h1.title {
+	padding-left: 1em;
+	background: linear-gradient(90deg, white, #8f8);
+}
+h4.history {
+	margin-left: 0.5em;
+	padding-left: 0.5em;
+	margin-bottom: 0px;
+	background-color: #bcf;
+}
+dl.history {
+	margin-top: 0px;
+}
+#history_list .hide {
+	display: none;
+}
+#history_list .button {
+	font-size: 80%;
+	color: blue;
+	cursor: pointer;
+	vertical-align: text-top;
+}
+</style>
+</head>
+<body>
+
+<h1 class="title">This leaf</h1>
+<p>
+	JavaScriptで動く計算機とか作ってます。<noscript>有効にしないと動かないよ。</noscript>
+</p>
+
+<ul>
+<li>
+	<div><a href="kancolle_los.html">艦これ索敵計算機</a></div>
+	<div>艦これの33式索敵スコア計算機です。</div>
+</li>
+<li>
+	<div><a href="kancolle_support.html">らくらく支援艦隊</a></div>
+	<div>艦これの支援艦隊計算機です。支援艦隊の最適装備を計算します。</div>
+</li>
+<li>
+	<div><a href="kc_expd_st.html">遠征ステータス簡易計算機</a></div>
+	<div>艦これ：マウス操作でステータスと装備の効果の合計を計算。</div>
+</li>
+<li>
+	<div><a href="kancolle_tp.html">艦これ輸送物資量(TP)計算機</a></div>
+	<div>艦これの輸送マップにおけるTPを計算します。</div>
+</li>
+<li>
+	<div><a href="kancolle_c.html">その他の計算機＠艦これ</a></div>
+	<div>艦娘基礎ステータス逆算/家具コインの計算</div>
+</li>
+<li>
+	<div>Chrome拡張機能 Binaural Webpage <small>(<a href="https://chrome.google.com/webstore/detail/binaural-webpage/aegcebaebekmenognkfkamfpinmldpll">Chrome Web Storeのページ</a>)</small></div>
+	<div>拡張機能のアイコンからタブの音声を調節 (音量調節/リミッター/パンニング)</div>
+</li>
+<li>
+	<div><a href="flower_exp.html">花騎士合成計算機</a></div>
+	<div>花騎士を強化するときの、素材やゴールドの消費がなるべく少なくなるような手順を計算します。</div>
+</li>
+</ul>
+
+<h4 class="history">適当な更新履歴</h4>
+<dl id="history_list" class="history">
+	<dt>2021/07/19</dt>
+	<dd>Binaural Webpageを公開</dd>
+	<dt>2020/05/23</dt>
+	<dd>
+		遠征ステータス簡易計算機を公開
+	</dd>
+	<dt>2019/12/11</dt>
+	<dd>
+		TP計算機を更新
+	</dd>
+	<dt>2019/11/05</dt>
+	<dd>
+		らくらく支援艦隊を更新 <span><br>
+		* 損傷率の計算を追加<br>
+		* 火力目標の計算誤差をもう少し丁寧に扱うように修正 </span><br>
+		索敵計算機を微更新<br>
+	</dd>
+	<dt>2019/10/30</dt>
+	<dd>
+		らくらく支援艦隊をベータ公開<br>
+		索敵計算機をちょっと更新 <span><br>
+		* Firefox以外でドラッグ＆ドロップできない問題を修正<br>
+		* ロード中表示とかを出したり、ちょっとカラフルになったり<br>
+		* 色々説明書きを書いた<br>
+		</span>
+	</dd>
+	<dt>2019/09/06</dt>
+	<dd>
+		花騎士合成計算機を更新。 <span><br>
+		*「ここから再計算」を追加　など<br>
+		</span>
+	</dd>
+	<dt>2019/08/27</dt>
+	<dd>
+		索敵計算機、家具コイン計算を公開。
+	</dd>
+	<dt>2019/05/06</dt>
+	<dd>
+		サイト作成。花騎士合成計算機、艦これTP計算機を公開。
+	</dd>
+</dl>
+
+<p class="footer">
+	twitter: <a href="https://twitter.com/konoha_gold_EX">@konoha_gold_EX</a><br>
+	<a href="https://odaibako.net/u/shinpei_">お題箱</a>
+</p>
+
+</body>
+</html>

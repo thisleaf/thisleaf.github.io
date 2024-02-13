@@ -7,7 +7,7 @@
  * 最大レベル
  * @type {number}
  */
-export const MAX_SHIP_LEVEL = 175;
+export const MAX_SHIP_LEVEL = 180;
 /**
  * 攻撃力キャップ(支援艦隊)
  * @type {number}
@@ -130,8 +130,6 @@ export const CONDITION_MODIFY = [
  * @type {Array.<SupportOwnEquipmentDef>}
  */
 export const SUPPORT_EQUIPLIST_DEF = [
-	{category: "小型電探"},
-	{category: "大型電探"},
 	{category: "小口径主砲"},
 	{category: "中口径主砲"},
 	{category: "大口径主砲"},
@@ -139,9 +137,12 @@ export const SUPPORT_EQUIPLIST_DEF = [
 	{viewname: "艦爆/噴式", cates: ["艦上爆撃機", "噴式戦闘爆撃機"], airplane: true},
 	{viewname: "艦攻", category: "艦上攻撃機", airplane: true},
 	{viewname: "艦偵", category: "艦上偵察機", airplane: true},
-	{viewname: "瑞雲", category: "多用途水上機/水上爆撃機", airplane: true},
-	{viewname: "機銃ほか", cates: ["対空機銃", "対艦強化弾", "水上艦要員", "司令部施設", "航空要員"], ignore_zero_param: true},
-];
+	{viewname: "瑞雲/水戦", cates: ["多用途水上機/水上爆撃機", "水上戦闘機"], airplane: true},
+	{category: "小型電探"},
+	{category: "大型電探"},
+	{category: "ソナー"},
+	{viewname: "機銃", category: "対空機銃", ignore_zero_param: true},
+	{viewname: "その他", cates: ["対空強化弾", "対艦強化弾", "司令部施設", "航空要員", "水上艦要員"], ignore_zero_param: true},];
 
 /**
  * 装備の詳細で表示するパラメータ
@@ -188,6 +189,8 @@ export const SORT_CATEGORY_DEF = [
 	"水上艦要員",
 	"司令部施設",
 	"対空機銃",
+	"対空強化弾",
+	"対艦強化弾",
 ];
 
 
@@ -202,7 +205,7 @@ export const SORT_CATEGORY_DEF = [
 export const EQUIP_PRIORITY_DEF = [
 	// 上が優先、該当なしは0
 	// 大和電探
-	{value: 4, ids: [142]},
+	{value: 4, ids: [142, 460]},
 	// 大型電探
 	{value: 2, cates: ["大型電探"]},
 	// 51砲

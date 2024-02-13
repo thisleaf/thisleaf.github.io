@@ -97,9 +97,9 @@ Object.assign(EquipmentDatabase, {
 	// 該当する型名を指定
 	jp_classes_def: [
 		// 駆逐
-		"初春型", "吹雪型", "夕雲型", "島風型", "改白露型",
+		"初春型", "吹雪型", "夕雲型", "島風型", "改白露型","改装白露型",
 		"暁型", "朝潮型", "白露型", "睦月型", "神風型",
-		"秋月型", "綾波型", "陽炎型", "松型", "改装陽炎型", "改陽炎型",
+		"秋月型", "綾波型", "陽炎型", "松型", "改装陽炎型", "改陽炎型", "改夕雲型",
 		// 軽巡級
 		"夕張型", "大淀型", "天龍型", "川内型", "球磨型", "改装球磨型",
 		"長良型", "阿賀野型", "改阿賀野型", "香取型",
@@ -111,7 +111,7 @@ Object.assign(EquipmentDatabase, {
 		"海大VI型", "潜特型(伊400型潜水艦)", "巡潜丙型", "潜高型",
 		// 戦艦・航空戦艦
 		"伊勢型", "大和型", "扶桑型", "改金剛型", "改伊勢型",
-		"金剛型", "長門型",
+		"金剛型", "長門型", "改大和型",
 		// 空母
 		"加賀型", "大鳳型", "大鷹型", "春日丸級", "祥鳳型",
 		"翔鶴型", "蒼龍型", "赤城型", "雲龍型", "飛鷹型",
@@ -684,6 +684,7 @@ Object.assign(EquipmentSlot.prototype, {
 	
 	bonus_firepower: 0,
 	bonus_torpedo  : 0,
+	bonus_bombing  : 0,
 	bonus_antiair  : 0,
 	bonus_ASW      : 0,
 	bonus_evasion  : 0,
@@ -746,6 +747,7 @@ function EquipmentSlot_set_equipment_from(slot){
 function EquipmentSlot_clear_bonus(){
 	this.bonus_firepower = 0;
 	this.bonus_torpedo   = 0;
+	this.bonus_bombing   = 0;
 	this.bonus_antiair   = 0;
 	this.bonus_ASW       = 0;
 	this.bonus_evasion   = 0;
@@ -895,6 +897,7 @@ Object.assign(EquipmentBonusData.prototype, {
 	// map: 改修値 -> ボーナス値
 	firepower: null,
 	torpedo  : null,
+	bombing  : null,
 	antiair  : null,
 	ASW      : null,
 	evasion  : null,
@@ -1133,6 +1136,7 @@ function EquipmentBonusData_set_csv_line(line){
 	
 	this.firepower = _by_impr(line.firepower);
 	this.torpedo   = _by_impr(line.torpedo);
+	this.bombing   = _by_impr(line.bombing);
 	this.antiair   = _by_impr(line.antiair);
 	this.ASW       = _by_impr(line.ASW);
 	this.evasion   = _by_impr(line.evasion);
@@ -1399,6 +1403,8 @@ function EquipmentBonus_get_bonus(slot_array, synergy_only = false){
 				slot.bonus_accuracy  += data.accuracy[slot.improvement];
 				slot.bonus_range     += data.range[slot.improvement];
 			}
+			// 熟練甲板要員+航空整備員 やっつけ仕事なのでいつか直す
+			slot.bonus_firepower += slot.equipment_id == 478 ? data.torpedo[slot.improvement] + data.bombing[slot.improvement]*1.3: 0;
 		}
 	}
 }

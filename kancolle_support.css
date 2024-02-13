@@ -166,7 +166,7 @@ body {
 }
 #explanation div.recent_update > .update {
 	font-size: 80%;
-	height: 20em;
+	height: 25em;
 	overflow: auto;
 }
 #explanation div.recent_update > .update #csv_update {
@@ -903,7 +903,7 @@ body {
 	font-size: 80%;
 	display: flex;
 	flex-direction: column;
-	min-width: 200px;
+	min-width: 220px;
 	margin-top: 0.5em;
 	border-radius: 6px / 3px;
 	padding: 3px 2px;
@@ -920,13 +920,13 @@ body {
 	background-color: #afa;
 }
 .fleet_display_option .button.shipcolumn {
-	flex: 1 0 25%;
+	flex: 1 0 20%;
 }
 .fleet_display_option .button.alignment {
-	flex: 1 0 25%;
+	flex: 1 0 20%;
 }
 .fleet_display_option .button.fleetcount {
-	flex: 1 0 50%;
+	flex: 1 0 60%;
 }
 /* 表示オプションダイアログ */
 .fleetdialog .countsrow {
@@ -1650,13 +1650,16 @@ body {
 	width: 100px;
 }
 .search_target .targettable div.target {
-	width: 300px;
+	width: 200px;
 	flex-grow: 3;
 	text-align: left;
 	font-size: 80%;
 }
 .search_target .targettable .header div.target {
 	font-size: 100%;
+}
+.search_target .targettable div.bulk {
+	width: 100px;
 }
 .search_target .targettable input.firepower,
 .search_target .targettable input.damage {
